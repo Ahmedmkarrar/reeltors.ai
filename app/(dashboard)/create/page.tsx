@@ -13,11 +13,19 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 
 type Step = 'upload' | 'details' | 'template' | 'generating' | 'result';
 
-const LOADING_MESSAGES = [
+const LOADING_MESSAGES_BASE = [
   'Analyzing your photos…',
   'Applying cinematic effects…',
   'Syncing music…',
   'Rendering your video…',
+  'Almost ready…',
+];
+
+const LOADING_MESSAGES_AI = [
+  'Generating AI drone shot…',
+  'Rendering cinematic flyover…',
+  'Compositing your video…',
+  'Stitching drone shot with photos…',
   'Almost ready…',
 ];
 
@@ -34,6 +42,7 @@ export default function CreatePage() {
 
   // Form state
   const [images, setImages]                 = useState<string[]>([]);
+  const [aiVideoIndices, setAiVideoIndices] = useState<number[]>([0]);
   const [listingAddress, setListingAddress] = useState('');
   const [listingPrice, setListingPrice]     = useState('');
   const [agentName, setAgentName]           = useState('');
@@ -44,7 +53,7 @@ export default function CreatePage() {
   const [videoId, setVideoId]     = useState('');
   const [outputUrl, setOutputUrl] = useState('');
   const [generating, setGenerating] = useState(false);
-  const [loadingMsg, setLoadingMsg] = useState(LOADING_MESSAGES[0]);
+  const [loadingMsg, setLoadingMsg] = useState(LOADING_MESSAGES_BASE[0]);
   const [progress, setProgress]     = useState(0);
   const [copied, setCopied]         = useState(false);
 
@@ -65,13 +74,14 @@ export default function CreatePage() {
   // Cycle loading messages while generating
   useEffect(() => {
     if (step !== 'generating') return;
+    const messages = aiVideoIndices.length > 0 ? LOADING_MESSAGES_AI : LOADING_MESSAGES_BASE;
     const interval = setInterval(() => {
-      msgRef.current = (msgRef.current + 1) % LOADING_MESSAGES.length;
-      setLoadingMsg(LOADING_MESSAGES[msgRef.current]);
+      msgRef.current = (msgRef.current + 1) % messages.length;
+      setLoadingMsg(messages[msgRef.current]);
       setProgress((p) => Math.min(p + PROGRESS_TICK, PROGRESS_CAP));
     }, 3000);
     return () => clearInterval(interval);
-  }, [step]);
+  }, [step, aiVideoIndices.length]);
 
   // Clean up Realtime channel on unmount
   useEffect(() => {
@@ -128,7 +138,9 @@ export default function CreatePage() {
     setStep('generating');
     setProgress(5);
     msgRef.current = 0;
-    setLoadingMsg(LOADING_MESSAGES[0]);
+    setLoadingMsg(
+      aiVideoIndices.length > 0 ? LOADING_MESSAGES_AI[0] : LOADING_MESSAGES_BASE[0],
+    );
 
     try {
       const res = await fetch('/api/videos/generate', {
@@ -137,6 +149,7 @@ export default function CreatePage() {
         body: JSON.stringify({
           templateId,
           images,
+          aiVideoIndices,
           listingAddress,
           listingPrice,
           agentName,
@@ -208,7 +221,12 @@ export default function CreatePage() {
     return (
       <div className="p-6 md:p-8 max-w-3xl">
         <StepHeader step={1} total={3} title="Upload Listing Photos" />
-        <UploadZone userId={userId} onUploadComplete={setImages} />
+        <UploadZone
+          userId={userId}
+          onUploadComplete={setImages}
+          aiVideoIndices={aiVideoIndices}
+          onAiIndicesChange={setAiVideoIndices}
+        />
         <div className="flex justify-end mt-6">
           <Button
             variant="primary"
@@ -315,10 +333,11 @@ export default function CreatePage() {
 
   // ─── STEP: GENERATING ────────────────────────────────────────────
   if (step === 'generating') {
+    const hasAiShots = aiVideoIndices.length > 0;
     return (
       <div className="p-6 md:p-8 max-w-xl">
         <div className="bg-[#FFFFFF] border border-[#E2DED6] rounded-[6px] p-10 text-center">
-          <div className="text-5xl mb-6 animate-bounce">🎬</div>
+          <div className="text-5xl mb-6 animate-bounce">{hasAiShots ? '🚁' : '🎬'}</div>
           <h2 className="font-syne font-bold text-2xl mb-2">Creating your video…</h2>
           <p className="text-[#C07A00] text-sm mb-8 transition-all duration-500">{loadingMsg}</p>
 
@@ -330,6 +349,15 @@ export default function CreatePage() {
             />
           </div>
           <p className="text-xs text-[#8A8682]">{progress < 100 ? 'Rendering…' : 'Done!'}</p>
+
+          {hasAiShots && (
+            <div className="mt-5 flex items-center justify-center gap-1.5 text-[11px] text-[#7C3AED] bg-[#7C3AED]/8 border border-[#7C3AED]/20 rounded px-3 py-1.5">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 shrink-0">
+                <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clipRule="evenodd" />
+              </svg>
+              Generating {aiVideoIndices.length} AI drone shot{aiVideoIndices.length !== 1 ? 's' : ''} — this takes 1–3 min
+            </div>
+          )}
 
           {videoId && (
             <p className="text-[10px] text-[#B8B4AE] font-mono mt-4">
@@ -448,6 +476,7 @@ export default function CreatePage() {
           <Button variant="secondary" size="md" onClick={() => {
             setStep('upload');
             setImages([]);
+            setAiVideoIndices([0]);
             setListingAddress('');
             setListingPrice('');
             setOutputUrl('');
