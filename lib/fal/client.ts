@@ -16,7 +16,9 @@ export const DRONE_SHOT_PROMPT =
 
 interface FalQueueSubmitResponse {
   request_id: string;
-  status: string;
+  status?: string;
+  status_url: string;
+  response_url: string;
 }
 
 interface FalStatusResponse {
@@ -76,11 +78,13 @@ export async function generateDroneShot(
     throw new FalError(`fal.ai submit error ${submitRes.status}: ${text}`);
   }
 
-  const { request_id } = (await submitRes.json()) as FalQueueSubmitResponse;
-  if (!request_id) throw new FalError('fal.ai returned no request_id');
+  const { request_id, status_url, response_url } = (await submitRes.json()) as FalQueueSubmitResponse;
+  if (!request_id || !status_url || !response_url) {
+    throw new FalError('fal.ai returned incomplete queue URLs');
+  }
 
   // 2. Poll until COMPLETED or FAILED
-  return pollForResult(request_id, key, timeoutMs);
+  return pollForResult(request_id, status_url, response_url, key, timeoutMs);
 }
 
 // ─── Parallel: generate multiple drone shots, returns URL per index ───────────
@@ -122,6 +126,8 @@ export function clampAiIndices(indices: number[], imageCount: number): number[] 
 
 async function pollForResult(
   requestId: string,
+  statusUrl: string,
+  responseUrl: string,
   key: string,
   timeoutMs: number,
 ): Promise<string> {
@@ -131,10 +137,9 @@ async function pollForResult(
   while (Date.now() < deadline) {
     await sleep(POLL_MS);
 
-    const statusRes = await fetch(
-      `${FAL_QUEUE_BASE}/${FAL_MODEL}/requests/${requestId}/status`,
-      { headers: { Authorization: `Key ${key}` } },
-    );
+    const statusRes = await fetch(statusUrl, {
+      headers: { Authorization: `Key ${key}` },
+    });
 
     if (!statusRes.ok) {
       // Transient network error — keep polling
@@ -145,10 +150,9 @@ async function pollForResult(
     const statusData = (await statusRes.json()) as FalStatusResponse;
 
     if (statusData.status === 'COMPLETED') {
-      const resultRes = await fetch(
-        `${FAL_QUEUE_BASE}/${FAL_MODEL}/requests/${requestId}`,
-        { headers: { Authorization: `Key ${key}` } },
-      );
+      const resultRes = await fetch(responseUrl, {
+        headers: { Authorization: `Key ${key}` },
+      });
       if (!resultRes.ok) {
         throw new FalError(`fal.ai result fetch failed ${resultRes.status} for ${requestId}`);
       }

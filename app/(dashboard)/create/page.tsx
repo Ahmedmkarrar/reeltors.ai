@@ -42,7 +42,7 @@ export default function CreatePage() {
 
   // Form state
   const [images, setImages]                 = useState<string[]>([]);
-  const [aiVideoIndices, setAiVideoIndices] = useState<number[]>([0]);
+  const [aiVideoIndices, setAiVideoIndices] = useState<number[]>([]);
   const [listingAddress, setListingAddress] = useState('');
   const [listingPrice, setListingPrice]     = useState('');
   const [agentName, setAgentName]           = useState('');

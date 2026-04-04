@@ -39,9 +39,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'All images must be valid HTTP URLs' }, { status: 400 });
   }
 
-  // Default: first photo → AI drone shot. User can override via aiVideoIndices.
+  // AI drone shots: only run if user explicitly selected indices (empty = no AI).
   const aiIndices = clampAiIndices(
-    Array.isArray(rawAiIndices) ? rawAiIndices : [0],
+    Array.isArray(rawAiIndices) ? rawAiIndices : [],
     images.length,
   );
 
@@ -137,7 +137,13 @@ export async function POST(req: NextRequest) {
   try {
     if (hasAiVideos) {
       // Custom timeline: fal.ai videos + static images stitched together
-      render = await generateMixedMediaVideo({ mediaItems, ...sharedParams });
+      try {
+        render = await generateMixedMediaVideo({ mediaItems, ...sharedParams });
+      } catch (mixedErr) {
+        // Mixed-media failed — log it and fall back to the standard template
+        console.error('Mixed-media render failed, falling back to template:', mixedErr);
+        render = await generateVideo({ templateId, images, ...sharedParams });
+      }
     } else {
       // No AI videos (fal.ai skipped/failed) — use existing template approach
       render = await generateVideo({ templateId, images, ...sharedParams });
