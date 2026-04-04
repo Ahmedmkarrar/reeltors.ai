@@ -28,7 +28,7 @@ export function StickyCTA() {
     >
       <div className="bg-[#141210] border-t border-[#2E2B27] px-4 py-3 flex items-center gap-3">
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-bold text-[#FAFAF8]">Start from $19/month</p>
+          <p className="text-xs font-bold text-[#FAFAF8]">Start from $49/month</p>
           <p className="text-[10px] text-[#6B6760]">30-day money back · Ready in 60 seconds</p>
         </div>
         <Link href="/signup" className="shrink-0">

@@ -140,7 +140,7 @@ export function ROICalculator() {
                 </Link>
 
                 <p className="text-center text-xs text-[#4A4744] mt-3">
-                  From $19/month. Cancel anytime. 30-day money-back guarantee.
+                  From $49/month. Cancel anytime. 30-day money-back guarantee.
                 </p>
               </div>
             )}
