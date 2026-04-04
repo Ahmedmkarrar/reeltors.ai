@@ -85,6 +85,140 @@ export async function generateVideo(params: GenerateVideoParams): Promise<Creato
   return retryWithBackoff(() => callCreatomate('/renders', body), { attempts: 3, baseMs: 1000 });
 }
 
+// ─── Mixed-media composition (AI videos + static images) ─────────────────────
+
+export interface MediaItem {
+  type: 'image' | 'video';
+  url: string;
+}
+
+export async function generateMixedMediaVideo(params: {
+  mediaItems: MediaItem[];
+  listingAddress?: string;
+  listingPrice?: string;
+  agentName?: string;
+  format?: 'vertical' | 'square' | 'horizontal';
+  webhookUrl?: string;
+  metadata?: Record<string, string>;
+}): Promise<CreatomateRender> {
+  const {
+    mediaItems,
+    listingAddress,
+    listingPrice,
+    agentName,
+    format = 'vertical',
+    webhookUrl,
+    metadata,
+  } = params;
+
+  const { width, height } = {
+    vertical:   { width: 1080, height: 1920 },
+    square:     { width: 1080, height: 1080 },
+    horizontal: { width: 1920, height: 1080 },
+  }[format];
+
+  const elements: Record<string, unknown>[] = [];
+
+  // ── Track 1: sequential media (videos + images) ───────────────────────────
+  for (const item of mediaItems) {
+    if (item.type === 'video') {
+      elements.push({
+        track:  1,
+        type:   'video',
+        source: item.url,
+        fit:    'cover',
+        volume: 0,        // mute source audio; add music via track 5 if desired
+      });
+    } else {
+      elements.push({
+        track:    1,
+        type:     'image',
+        source:   item.url,
+        fit:      'cover',
+        duration: 3.5,
+        // Subtle Ken Burns push-in
+        animations: [
+          {
+            time:        0,
+            duration:    3.5,
+            transition:  false,
+            type:        'scale',
+            scope:       'element',
+            start_scale: '100%',
+            end_scale:   '108%',
+            easing:      'linear',
+          },
+        ],
+      });
+    }
+  }
+
+  // ── Track 2: price ─────────────────────────────────────────────────────────
+  if (listingPrice) {
+    elements.push({
+      track:             2,
+      type:              'text',
+      text:              listingPrice,
+      y:                 '80%',
+      width:             '85%',
+      height:            'auto',
+      x_alignment:       '50%',
+      font_family:       'Montserrat',
+      font_size_minimum: '7 vmin',
+      font_weight:       '700',
+      color:             '#ffffff',
+      shadow_color:      'rgba(0,0,0,0.65)',
+      shadow_blur:       '3 vmin',
+    });
+  }
+
+  // ── Track 3: address ───────────────────────────────────────────────────────
+  if (listingAddress) {
+    elements.push({
+      track:             3,
+      type:              'text',
+      text:              listingAddress,
+      y:                 listingPrice ? '88%' : '83%',
+      width:             '85%',
+      height:            'auto',
+      x_alignment:       '50%',
+      font_family:       'Montserrat',
+      font_size_minimum: '3.5 vmin',
+      font_weight:       '500',
+      color:             'rgba(255,255,255,0.92)',
+      shadow_color:      'rgba(0,0,0,0.55)',
+      shadow_blur:       '2 vmin',
+    });
+  }
+
+  // ── Track 4: agent name ────────────────────────────────────────────────────
+  if (agentName) {
+    elements.push({
+      track:             4,
+      type:              'text',
+      text:              agentName,
+      y:                 '94%',
+      width:             '85%',
+      height:            'auto',
+      x_alignment:       '50%',
+      font_family:       'Montserrat',
+      font_size_minimum: '3 vmin',
+      font_weight:       '400',
+      color:             'rgba(255,255,255,0.72)',
+      shadow_color:      'rgba(0,0,0,0.4)',
+      shadow_blur:       '1.5 vmin',
+    });
+  }
+
+  const source = { output_format: 'mp4', width, height, frame_rate: 30, elements };
+
+  const body: Record<string, unknown> = { source };
+  if (webhookUrl) body.webhook_url = webhookUrl;
+  if (metadata)   body.metadata    = JSON.stringify(metadata);
+
+  return retryWithBackoff(() => callCreatomate('/renders', body), { attempts: 3, baseMs: 1000 });
+}
+
 export async function getRenderStatus(renderId: string): Promise<CreatomateRender> {
   return retryWithBackoff(() => callCreatomate(`/renders/${renderId}`), { attempts: 2, baseMs: 500 });
 }
