@@ -4,6 +4,7 @@ import { useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { createClient } from '@/lib/supabase/client';
 import toast from 'react-hot-toast';
+import { MAX_AI_VIDEOS } from '@/lib/fal/client';
 
 interface UploadedFile {
   url: string;
@@ -14,12 +15,22 @@ interface UploadedFile {
 interface UploadZoneProps {
   userId: string;
   onUploadComplete: (urls: string[]) => void;
+  /** Currently selected AI-generation indices (controlled by parent) */
+  aiVideoIndices: number[];
+  /** Called whenever the user toggles AI on/off for a photo */
+  onAiIndicesChange: (indices: number[]) => void;
   maxFiles?: number;
 }
 
-export function UploadZone({ userId, onUploadComplete, maxFiles = 15 }: UploadZoneProps) {
+export function UploadZone({
+  userId,
+  onUploadComplete,
+  aiVideoIndices,
+  onAiIndicesChange,
+  maxFiles = 15,
+}: UploadZoneProps) {
   const supabase = createClient();
-  const [files, setFiles] = useState<UploadedFile[]>([]);
+  const [files, setFiles]       = useState<UploadedFile[]>([]);
   const [uploading, setUploading] = useState(false);
 
   // Native drag-to-reorder state
@@ -81,6 +92,24 @@ export function UploadZone({ userId, onUploadComplete, maxFiles = 15 }: UploadZo
     const updated = files.filter((_, i) => i !== index);
     setFiles(updated);
     onUploadComplete(updated.map((f) => f.url));
+    // Remap AI indices: remove the deleted index, shift down any indices above it
+    const newAiIndices = aiVideoIndices
+      .filter((i) => i !== index)
+      .map((i) => (i > index ? i - 1 : i));
+    onAiIndicesChange(newAiIndices);
+  }
+
+  function toggleAiForIndex(index: number) {
+    const isOn = aiVideoIndices.includes(index);
+    if (isOn) {
+      onAiIndicesChange(aiVideoIndices.filter((i) => i !== index));
+    } else {
+      if (aiVideoIndices.length >= MAX_AI_VIDEOS) {
+        toast.error(`Maximum ${MAX_AI_VIDEOS} AI drone shots per video`);
+        return;
+      }
+      onAiIndicesChange([...aiVideoIndices, index].sort((a, b) => a - b));
+    }
   }
 
   // ── Native HTML5 drag-to-reorder handlers ──────────────────────────
@@ -100,11 +129,22 @@ export function UploadZone({ userId, onUploadComplete, maxFiles = 15 }: UploadZo
       setDragOverIndex(null);
       return;
     }
+
     const updated = [...files];
     const [item] = updated.splice(fromIndex, 1);
     updated.splice(toIndex, 0, item);
     setFiles(updated);
     onUploadComplete(updated.map((f) => f.url));
+
+    // Remap AI indices to follow their photo after reorder
+    const remapped = aiVideoIndices.map((i) => {
+      if (i === fromIndex) return toIndex;
+      if (fromIndex < toIndex && i > fromIndex && i <= toIndex) return i - 1;
+      if (fromIndex > toIndex && i >= toIndex && i < fromIndex) return i + 1;
+      return i;
+    });
+    onAiIndicesChange(Array.from(new Set(remapped)).sort((a, b) => a - b));
+
     dragIndex.current = null;
     setDragOverIndex(null);
   }
@@ -158,63 +198,110 @@ export function UploadZone({ userId, onUploadComplete, maxFiles = 15 }: UploadZo
             <p className="text-xs text-[#F0B429] font-medium">#1 = cover frame</p>
           </div>
 
+          {/* AI drone shot legend */}
+          <div className="flex items-center gap-1.5 mb-3">
+            <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/30 rounded px-2 py-0.5">
+              <BoltIcon className="w-2.5 h-2.5" /> AI
+            </span>
+            <span className="text-[10px] text-[#8A8682]">
+              = AI drone shot via fal.ai · tap the bolt to toggle · max {MAX_AI_VIDEOS} per video
+            </span>
+          </div>
+
           <div className="flex gap-3 overflow-x-auto pb-2 pt-3 pl-2">
-            {files.map((file, i) => (
-              <div
-                key={file.url}
-                draggable
-                onDragStart={() => handleDragStart(i)}
-                onDragOver={(e) => handleDragOver(e, i)}
-                onDrop={(e) => handleDrop(e, i)}
-                onDragEnd={handleDragEnd}
-                className={[
-                  'relative flex-shrink-0 w-[72px] select-none transition-all duration-150 cursor-grab active:cursor-grabbing',
-                  dragOverIndex === i && dragIndex.current !== i
-                    ? 'scale-105 ring-2 ring-[#F0B429] rounded'
-                    : '',
-                  dragIndex.current === i ? 'opacity-40' : 'opacity-100',
-                ].join(' ')}
-              >
-                {/* 9:16 crop preview */}
-                <div className="aspect-[9/16] relative overflow-hidden rounded border border-[#E2DED6] bg-[#F7F5EF]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={file.preview}
-                    alt={file.name}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    draggable={false}
-                  />
+            {files.map((file, i) => {
+              const isAi = aiVideoIndices.includes(i);
+              return (
+                <div
+                  key={file.url}
+                  draggable
+                  onDragStart={() => handleDragStart(i)}
+                  onDragOver={(e) => handleDragOver(e, i)}
+                  onDrop={(e) => handleDrop(e, i)}
+                  onDragEnd={handleDragEnd}
+                  className={[
+                    'relative flex-shrink-0 w-[72px] select-none transition-all duration-150 cursor-grab active:cursor-grabbing',
+                    dragOverIndex === i && dragIndex.current !== i
+                      ? 'scale-105 ring-2 ring-[#F0B429] rounded'
+                      : '',
+                    dragIndex.current === i ? 'opacity-40' : 'opacity-100',
+                  ].join(' ')}
+                >
+                  {/* 9:16 crop preview */}
+                  <div
+                    className={[
+                      'aspect-[9/16] relative overflow-hidden rounded border bg-[#F7F5EF]',
+                      isAi ? 'border-[#7C3AED]/60 ring-1 ring-[#7C3AED]/40' : 'border-[#E2DED6]',
+                    ].join(' ')}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={file.preview}
+                      alt={file.name}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      draggable={false}
+                    />
 
-                  {/* Cover badge */}
-                  {i === 0 && (
-                    <div className="absolute top-1 left-1 right-1 bg-[#F0B429] text-[#1A1714] text-[8px] font-bold text-center rounded-sm py-0.5 leading-none">
-                      COVER
+                    {/* AI overlay tint when selected */}
+                    {isAi && (
+                      <div className="absolute inset-0 bg-[#7C3AED]/10 pointer-events-none" />
+                    )}
+
+                    {/* Cover badge */}
+                    {i === 0 && (
+                      <div className="absolute top-1 left-1 right-1 bg-[#F0B429] text-[#1A1714] text-[8px] font-bold text-center rounded-sm py-0.5 leading-none">
+                        COVER
+                      </div>
+                    )}
+
+                    {/* AI drone badge */}
+                    {isAi && (
+                      <div className="absolute bottom-5 left-0 right-0 flex justify-center">
+                        <span className="inline-flex items-center gap-0.5 bg-[#7C3AED] text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                          <BoltIcon className="w-2 h-2" /> AI
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Drag handle dots */}
+                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
+                      {[0, 1, 2].map((dot) => (
+                        <div key={dot} className="w-0.5 h-2 bg-white/60 rounded-full" />
+                      ))}
                     </div>
-                  )}
 
-                  {/* Drag handle dots */}
-                  <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
-                    {[0, 1, 2].map((dot) => (
-                      <div key={dot} className="w-0.5 h-2 bg-white/60 rounded-full" />
-                    ))}
+                    {/* Remove button */}
+                    <button
+                      type="button"
+                      onClick={() => removeFile(i)}
+                      className="absolute top-1 right-1 w-4 h-4 bg-black/70 rounded-full flex items-center justify-center text-white text-[8px] hover:bg-red-600 transition-colors"
+                    >
+                      ✕
+                    </button>
                   </div>
 
-                  {/* Remove button */}
+                  {/* Order number */}
+                  <div className="absolute -top-1.5 -left-1.5 w-4 h-4 bg-[#F0B429] rounded-full flex items-center justify-center text-[8px] font-bold text-[#1A1714] shadow-sm">
+                    {i + 1}
+                  </div>
+
+                  {/* AI toggle button */}
                   <button
                     type="button"
-                    onClick={() => removeFile(i)}
-                    className="absolute top-1 right-1 w-4 h-4 bg-black/70 rounded-full flex items-center justify-center text-white text-[8px] hover:bg-red-600 transition-colors"
+                    title={isAi ? 'Remove AI drone shot' : 'Generate AI drone shot'}
+                    onClick={() => toggleAiForIndex(i)}
+                    className={[
+                      'absolute -bottom-2 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-all border',
+                      isAi
+                        ? 'bg-[#7C3AED] border-[#6D28D9] text-white'
+                        : 'bg-white border-[#D8D4CC] text-[#B8B4AE] hover:border-[#7C3AED] hover:text-[#7C3AED]',
+                    ].join(' ')}
                   >
-                    ✕
+                    <BoltIcon className="w-2.5 h-2.5" />
                   </button>
                 </div>
-
-                {/* Order number */}
-                <div className="absolute -top-1.5 -left-1.5 w-4 h-4 bg-[#F0B429] rounded-full flex items-center justify-center text-[8px] font-bold text-[#1A1714] shadow-sm">
-                  {i + 1}
-                </div>
-              </div>
-            ))}
+              );
+            })}
 
             {/* Add more slot */}
             {files.length < maxFiles && (
@@ -230,5 +317,22 @@ export function UploadZone({ userId, onUploadComplete, maxFiles = 15 }: UploadZo
         </div>
       )}
     </div>
+  );
+}
+
+function BoltIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+    >
+      <path
+        fillRule="evenodd"
+        d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z"
+        clipRule="evenodd"
+      />
+    </svg>
   );
 }
