@@ -38,7 +38,7 @@ export default function CreatePage() {
   const [listingPrice, setListingPrice]     = useState('');
   const [agentName, setAgentName]           = useState('');
   const [format, setFormat]                 = useState<VideoFormat>('vertical');
-  const [templateId, setTemplateId]         = useState('cinematic-listing');
+  const [templateId, setTemplateId]         = useState('9a562ec6-000e-4a92-ad76-bd9adfdc750d');
 
   // Generation state
   const [videoId, setVideoId]     = useState('');
@@ -160,36 +160,39 @@ export default function CreatePage() {
       // Subscribe to Realtime for instant completion notification
       subscribeToVideo(vid);
 
-      // Safety net: if Realtime doesn't fire within 6 minutes, poll once
-      const safetyTimer = setTimeout(async () => {
+      // Polling fallback: every 5 seconds check render status directly
+      // This handles cases where the webhook fails (e.g. localtunnel timeouts)
+      const pollInterval = setInterval(async () => {
         try {
-          const { data: video } = await supabase
-            .from('videos')
-            .select('status, output_url')
-            .eq('id', vid)
-            .single();
+          const statusRes = await fetch(`/api/videos/${vid}/status`);
+          if (!statusRes.ok) return;
+          const { status, output_url } = await statusRes.json();
 
-          if (video?.status === 'complete' && video.output_url) {
-            setOutputUrl(video.output_url);
+          if (status === 'complete' && output_url) {
+            clearInterval(pollInterval);
+            setOutputUrl(output_url);
             setProgress(100);
             setStep('result');
             setGenerating(false);
-          } else if (video?.status === 'failed') {
+          } else if (status === 'failed') {
+            clearInterval(pollInterval);
             toast.error('Render failed. Please try again.');
             setStep('template');
             setGenerating(false);
-          } else if (video?.status !== 'complete') {
-            toast.error('Render timed out. Please check your videos page.');
-            setStep('template');
-            setGenerating(false);
           }
-        } catch { /* ignore */ }
+        } catch { /* ignore poll errors */ }
+      }, 5000);
+
+      // Stop polling after 6 minutes (safety net)
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        if (generating) {
+          toast.error('Render timed out. Please check your videos page.');
+          setStep('template');
+          setGenerating(false);
+        }
       }, 360_000);
 
-      // Cancel safety timer if component unmounts
-      channelRef.current?.on('system', {}, () => clearTimeout(safetyTimer));
-
-      return () => clearTimeout(safetyTimer);
     } catch {
       toast.error('Failed to generate video. Please try again.');
       setStep('template');
