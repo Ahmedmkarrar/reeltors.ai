@@ -2,8 +2,16 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { VideoCard } from '@/components/dashboard/VideoCard';
-import { getGreeting } from '@/lib/utils';
 import type { Profile, Video } from '@/types';
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 6)  return "Let's get after it";
+  if (hour < 12) return "Let's close some deals";
+  if (hour < 17) return "Time to go viral";
+  if (hour < 20) return "Make tonight count";
+  return "Night owl mode";
+}
 
 export default async function DashboardPage() {
   const supabase = createClient();
@@ -49,7 +57,7 @@ export default async function DashboardPage() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
         <div>
-          <h1 className="font-syne font-extrabold text-2xl md:text-[28px] tracking-tight mb-1">
+          <h1 className="font-syne font-extrabold text-2xl md:text-[28px] tracking-tight mb-1 text-[#1A1714]">
             {getGreeting()},{' '}
             <span className="text-gradient-lime">{firstName}</span>.
           </h1>
@@ -146,7 +154,7 @@ export default async function DashboardPage() {
       {/* ── Recent videos ── */}
       <div>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="font-syne font-bold text-lg">Recent Videos</h2>
+          <h2 className="font-syne font-bold text-lg text-[#1A1714]">Recent Videos</h2>
           {allVideos.length > 0 && (
             <Link href="/videos" className="text-sm text-[#C07A00] hover:text-[#8B5E00] transition-colors flex items-center gap-1">
               View all

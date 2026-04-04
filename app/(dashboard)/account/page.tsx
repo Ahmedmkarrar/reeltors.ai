@@ -11,8 +11,8 @@ import type { Profile } from '@/types';
 const PLAN_META: Record<string, { color: string; label: string; bg: string; border: string }> = {
   free:    { color: '#6B6760', label: 'Free',    bg: 'rgba(107,103,96,0.08)',  border: 'rgba(107,103,96,0.2)'  },
   starter: { color: '#5C5853', label: 'Starter', bg: 'rgba(92,88,83,0.08)',    border: 'rgba(92,88,83,0.2)'    },
-  pro:     { color: '#C07A00', label: 'Pro',     bg: 'rgba(240,180,41,0.10)',  border: 'rgba(240,180,41,0.25)' },
-  team:    { color: '#059669', label: 'Team',    bg: 'rgba(5,150,105,0.08)',   border: 'rgba(5,150,105,0.2)'   },
+  growth:  { color: '#C07A00', label: 'Growth',  bg: 'rgba(240,180,41,0.10)',  border: 'rgba(240,180,41,0.25)' },
+  pro:     { color: '#059669', label: 'Pro',     bg: 'rgba(5,150,105,0.08)',   border: 'rgba(5,150,105,0.2)'   },
 };
 
 export default function AccountPage() {
@@ -77,7 +77,7 @@ export default function AccountPage() {
 
   const planMeta  = PLAN_META[profile.plan] ?? PLAN_META.free;
   const usedPct   = Math.min((profile.videos_used_this_month / Math.max(profile.videos_limit, 1)) * 100, 100);
-  const isUnlimited = profile.plan === 'pro' || profile.plan === 'team';
+  const isUnlimited = profile.plan === 'pro' || profile.plan === 'growth';
   const isPaid    = profile.plan !== 'free';
 
   return (
@@ -203,39 +203,39 @@ export default function AccountPage() {
               <div className="flex-1 h-px bg-[#EAE8E2]" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {(['starter', 'pro', 'team'] as const).map((key) => {
+              {(['starter', 'growth', 'pro'] as const).map((key) => {
                 const p = PLANS[key];
-                const isPro = key === 'pro';
+                const isPopular = key === 'growth';
                 return (
                   <div
                     key={key}
                     className="relative rounded-[8px] border p-4 flex flex-col"
                     style={{
-                      borderColor: isPro ? 'rgba(240,180,41,0.4)' : '#EAE8E2',
-                      background: isPro ? 'rgba(240,180,41,0.03)' : '#F7F5EF',
-                      boxShadow: isPro ? '0 0 20px rgba(240,180,41,0.05)' : 'none',
+                      borderColor: isPopular ? 'rgba(240,180,41,0.4)' : '#EAE8E2',
+                      background: isPopular ? 'rgba(240,180,41,0.03)' : '#F7F5EF',
+                      boxShadow: isPopular ? '0 0 20px rgba(240,180,41,0.05)' : 'none',
                     }}
                   >
-                    {isPro && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F0B429] text-[#FAFAF8] text-[9px] font-bold px-3 py-0.5 rounded-full">
+                    {isPopular && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#F0B429] text-[#1A1714] text-[9px] font-bold px-3 py-0.5 rounded-full">
                         MOST POPULAR
                       </div>
                     )}
                     <div className="font-bold text-[13px] text-[#1A1714] mb-0.5">{p.name}</div>
                     <div className="flex items-baseline gap-0.5 mb-3">
-                      <span className="font-syne font-extrabold text-2xl" style={{ color: isPro ? '#F0B429' : '#7A7672' }}>
+                      <span className="font-syne font-extrabold text-2xl" style={{ color: isPopular ? '#F0B429' : '#7A7672' }}>
                         ${p.price}
                       </span>
                       <span className="text-[11px] text-[#8A8682]">/mo</span>
                     </div>
                     <Button
-                      variant={isPro ? 'primary' : 'secondary'}
+                      variant={isPopular ? 'primary' : 'secondary'}
                       size="sm"
                       className="w-full text-[12px]"
                       loading={checkoutLoading === key}
                       onClick={() => handleUpgrade(key)}
                     >
-                      {isPro ? 'Upgrade to Pro →' : 'Upgrade'}
+                      {isPopular ? 'Get Growth →' : key === 'pro' ? 'Get Pro →' : 'Upgrade'}
                     </Button>
                   </div>
                 );
