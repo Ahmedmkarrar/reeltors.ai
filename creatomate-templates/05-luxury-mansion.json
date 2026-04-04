@@ -1,0 +1,934 @@
+{
+  "name": "Reeltor — Luxury Mansion",
+  "output_format": "mp4",
+  "width": 720,
+  "height": 1280,
+  "duration": 35,
+  "snapshot_time": 1,
+  "fps": 30,
+  "elements": [
+    {
+      "id": "address-intro",
+      "type": "composition",
+      "track": 1,
+      "time": 0,
+      "duration": 4,
+      "elements": [
+        {
+          "id": "intro-bg",
+          "name": "photo-1",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 4,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            { "time": 0, "duration": 4, "type": "scale", "scope": "element", "start_scale": "100%", "end_scale": "110%", "easing": "linear" },
+            { "time": 0, "duration": 1, "transition": true, "type": "fade" }
+          ]
+        },
+        {
+          "id": "intro-overlay",
+          "type": "shape",
+          "track": 2,
+          "time": 0,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "100%",
+          "fill_color": "rgba(0,0,0,0.55)"
+        },
+        {
+          "id": "intro-price",
+          "type": "text",
+          "track": 3,
+          "time": 0.5,
+          "x": "50%",
+          "y": "35%",
+          "width": "90%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "x_alignment": "50%",
+          "y_alignment": "50%",
+          "name": "Pricetext",
+          "text": "$4,950,000",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "9 vmin",
+          "fill_color": "#F5C518",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.8, "easing": "back-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "intro-address",
+          "name": "Addresstext",
+          "type": "text",
+          "track": 4,
+          "time": 1.3,
+          "x": "50%",
+          "y": "48%",
+          "width": "85%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "x_alignment": "50%",
+          "text": "100 Bel Air Road\nBel Air, CA 90077",
+          "font_family": "Montserrat",
+          "font_weight": "700",
+          "font_size": "4 vmin",
+          "line_height": "170%",
+          "fill_color": "#ffffff",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.8, "easing": "quadratic-out", "type": "text-slide", "scope": "split-clip", "split": "line", "overlap": "80%", "direction": "up" }
+          ]
+        },
+        {
+          "id": "intro-divider",
+          "type": "shape",
+          "track": 5,
+          "time": 2,
+          "x": "35%",
+          "y": "58%",
+          "width": "30%",
+          "height": "0.3%",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "fill_color": "rgba(245,197,24,0.6)"
+        },
+        {
+          "id": "intro-brand",
+          "name": "Brand-Name",
+          "type": "text",
+          "track": 6,
+          "time": 2.3,
+          "x": "50%",
+          "y": "62%",
+          "width": "50%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "0%",
+          "x_alignment": "50%",
+          "text": "Presented by Elite Realty Group",
+          "font_family": "Inter",
+          "font_weight": "400",
+          "font_size": "2.8 vmin",
+          "fill_color": "rgba(255,255,255,0.7)",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.6, "easing": "quadratic-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "intro-agent",
+          "name": "Agent-Name",
+          "type": "text",
+          "track": 7,
+          "time": 2.8,
+          "x": "50%",
+          "y": "68%",
+          "width": "60%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "0%",
+          "x_alignment": "50%",
+          "text": "Sarah Johnson  •  (310) 555-0199",
+          "font_family": "Inter",
+          "font_weight": "400",
+          "font_size": "2.8 vmin",
+          "fill_color": "rgba(255,255,255,0.6)",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        }
+      ],
+      "animations": [
+        { "time": 3.5, "duration": 0.5, "transition": true, "type": "fade" }
+      ]
+    },
+    {
+      "id": "room-1",
+      "type": "composition",
+      "track": 1,
+      "time": 4,
+      "duration": 5,
+      "elements": [
+        {
+          "id": "r1-photo",
+          "name": "photo-2",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 5,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            { "time": 0, "duration": 5, "type": "scale", "scope": "element", "start_scale": "110%", "end_scale": "120%", "easing": "linear" },
+            { "time": 0, "duration": 0.5, "transition": true, "type": "fade" }
+          ]
+        },
+        {
+          "id": "r1-top-bar",
+          "type": "shape",
+          "track": 2,
+          "time": 0,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "8%",
+          "fill_color": "rgba(0,0,0,0.6)"
+        },
+        {
+          "id": "r1-label",
+          "type": "text",
+          "track": 3,
+          "time": 0.4,
+          "x": "5%",
+          "y": "0%",
+          "width": "90%",
+          "height": "8%",
+          "x_anchor": "0%",
+          "y_anchor": "0%",
+          "y_alignment": "50%",
+          "text": "THE GREAT ROOM",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "3.5 vmin",
+          "letter_spacing": "100%",
+          "text_transform": "uppercase",
+          "fill_color": "#F5C518"
+        },
+        {
+          "id": "r1-overlay",
+          "type": "shape",
+          "track": 4,
+          "time": 0,
+          "x": "0%",
+          "y": "88%",
+          "width": "100%",
+          "height": "12%",
+          "fill_color": "rgba(0,0,0,0.5)"
+        },
+        {
+          "id": "r1-address",
+          "name": "Addresstext",
+          "type": "text",
+          "track": 5,
+          "time": 0.6,
+          "x": "5%",
+          "y": "89%",
+          "width": "60%",
+          "height": "auto",
+          "x_anchor": "0%",
+          "y_anchor": "0%",
+          "text": "100 Bel Air Road",
+          "font_family": "Inter",
+          "font_weight": "400",
+          "font_size": "2.8 vmin",
+          "fill_color": "rgba(255,255,255,0.7)",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "r1-price",
+          "type": "text",
+          "track": 6,
+          "time": 0.6,
+          "x": "95%",
+          "y": "89%",
+          "width": "40%",
+          "height": "auto",
+          "x_anchor": "100%",
+          "y_anchor": "0%",
+          "text": "$4,950,000",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "3.5 vmin",
+          "fill_color": "#F5C518",
+          "text_align": "right",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        }
+      ],
+      "animations": [
+        { "time": 4.3, "duration": 0.7, "transition": true, "type": "fade" }
+      ]
+    },
+    {
+      "id": "room-2",
+      "type": "composition",
+      "track": 1,
+      "time": 9,
+      "duration": 5,
+      "elements": [
+        {
+          "id": "r2-photo",
+          "name": "photo-3",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 5,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            { "time": 0, "duration": 5, "type": "scale", "scope": "element", "start_scale": "100%", "end_scale": "110%", "easing": "linear" },
+            { "time": 0, "duration": 0.5, "transition": true, "type": "fade" }
+          ]
+        },
+        {
+          "id": "r2-top-bar",
+          "type": "shape",
+          "track": 2,
+          "time": 0,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "8%",
+          "fill_color": "rgba(0,0,0,0.6)"
+        },
+        {
+          "id": "r2-label",
+          "type": "text",
+          "track": 3,
+          "time": 0.4,
+          "x": "5%",
+          "y": "0%",
+          "width": "90%",
+          "height": "8%",
+          "x_anchor": "0%",
+          "y_anchor": "0%",
+          "y_alignment": "50%",
+          "text": "GOURMET KITCHEN",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "3.5 vmin",
+          "letter_spacing": "100%",
+          "text_transform": "uppercase",
+          "fill_color": "#F5C518"
+        },
+        {
+          "id": "r2-overlay",
+          "type": "shape",
+          "track": 4,
+          "time": 0,
+          "x": "0%",
+          "y": "88%",
+          "width": "100%",
+          "height": "12%",
+          "fill_color": "rgba(0,0,0,0.5)"
+        },
+        {
+          "id": "r2-address",
+          "name": "Addresstext",
+          "type": "text",
+          "track": 5,
+          "time": 0.6,
+          "x": "5%",
+          "y": "89%",
+          "width": "60%",
+          "height": "auto",
+          "x_anchor": "0%",
+          "y_anchor": "0%",
+          "text": "100 Bel Air Road",
+          "font_family": "Inter",
+          "font_weight": "400",
+          "font_size": "2.8 vmin",
+          "fill_color": "rgba(255,255,255,0.7)",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "r2-price",
+          "type": "text",
+          "track": 6,
+          "time": 0.6,
+          "x": "95%",
+          "y": "89%",
+          "width": "40%",
+          "height": "auto",
+          "x_anchor": "100%",
+          "y_anchor": "0%",
+          "text": "$4,950,000",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "3.5 vmin",
+          "fill_color": "#F5C518",
+          "text_align": "right",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        }
+      ],
+      "animations": [
+        { "time": 4.3, "duration": 0.7, "transition": true, "type": "fade" }
+      ]
+    },
+    {
+      "id": "room-3",
+      "type": "composition",
+      "track": 1,
+      "time": 14,
+      "duration": 5,
+      "elements": [
+        {
+          "id": "r3-photo",
+          "name": "photo-4",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 5,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            { "time": 0, "duration": 5, "type": "scale", "scope": "element", "start_scale": "110%", "end_scale": "100%", "easing": "linear" },
+            { "time": 0, "duration": 0.5, "transition": true, "type": "fade" }
+          ]
+        },
+        {
+          "id": "r3-top-bar",
+          "type": "shape",
+          "track": 2,
+          "time": 0,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "8%",
+          "fill_color": "rgba(0,0,0,0.6)"
+        },
+        {
+          "id": "r3-label",
+          "type": "text",
+          "track": 3,
+          "time": 0.4,
+          "x": "5%",
+          "y": "0%",
+          "width": "90%",
+          "height": "8%",
+          "x_anchor": "0%",
+          "y_anchor": "0%",
+          "y_alignment": "50%",
+          "text": "PRIMARY SUITE",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "3.5 vmin",
+          "letter_spacing": "100%",
+          "text_transform": "uppercase",
+          "fill_color": "#F5C518"
+        },
+        {
+          "id": "r3-overlay",
+          "type": "shape",
+          "track": 4,
+          "time": 0,
+          "x": "0%",
+          "y": "88%",
+          "width": "100%",
+          "height": "12%",
+          "fill_color": "rgba(0,0,0,0.5)"
+        },
+        {
+          "id": "r3-address",
+          "name": "Addresstext",
+          "type": "text",
+          "track": 5,
+          "time": 0.6,
+          "x": "5%",
+          "y": "89%",
+          "width": "60%",
+          "height": "auto",
+          "x_anchor": "0%",
+          "y_anchor": "0%",
+          "text": "100 Bel Air Road",
+          "font_family": "Inter",
+          "font_weight": "400",
+          "font_size": "2.8 vmin",
+          "fill_color": "rgba(255,255,255,0.7)",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "r3-price",
+          "type": "text",
+          "track": 6,
+          "time": 0.6,
+          "x": "95%",
+          "y": "89%",
+          "width": "40%",
+          "height": "auto",
+          "x_anchor": "100%",
+          "y_anchor": "0%",
+          "text": "$4,950,000",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "3.5 vmin",
+          "fill_color": "#F5C518",
+          "text_align": "right",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        }
+      ],
+      "animations": [
+        { "time": 4.3, "duration": 0.7, "transition": true, "type": "fade" }
+      ]
+    },
+    {
+      "id": "room-4",
+      "type": "composition",
+      "track": 1,
+      "time": 19,
+      "duration": 5,
+      "elements": [
+        {
+          "id": "r4-photo",
+          "name": "photo-5",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 5,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            { "time": 0, "duration": 5, "type": "scale", "scope": "element", "start_scale": "100%", "end_scale": "110%", "easing": "linear" },
+            { "time": 0, "duration": 0.5, "transition": true, "type": "fade" }
+          ]
+        },
+        {
+          "id": "r4-top-bar",
+          "type": "shape",
+          "track": 2,
+          "time": 0,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "8%",
+          "fill_color": "rgba(0,0,0,0.6)"
+        },
+        {
+          "id": "r4-label",
+          "type": "text",
+          "track": 3,
+          "time": 0.4,
+          "x": "5%",
+          "y": "0%",
+          "width": "90%",
+          "height": "8%",
+          "x_anchor": "0%",
+          "y_anchor": "0%",
+          "y_alignment": "50%",
+          "text": "OUTDOOR OASIS",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "3.5 vmin",
+          "letter_spacing": "100%",
+          "text_transform": "uppercase",
+          "fill_color": "#F5C518"
+        },
+        {
+          "id": "r4-overlay",
+          "type": "shape",
+          "track": 4,
+          "time": 0,
+          "x": "0%",
+          "y": "88%",
+          "width": "100%",
+          "height": "12%",
+          "fill_color": "rgba(0,0,0,0.5)"
+        },
+        {
+          "id": "r4-address",
+          "name": "Addresstext",
+          "type": "text",
+          "track": 5,
+          "time": 0.6,
+          "x": "5%",
+          "y": "89%",
+          "width": "60%",
+          "height": "auto",
+          "x_anchor": "0%",
+          "y_anchor": "0%",
+          "text": "100 Bel Air Road",
+          "font_family": "Inter",
+          "font_weight": "400",
+          "font_size": "2.8 vmin",
+          "fill_color": "rgba(255,255,255,0.7)",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "r4-price",
+          "type": "text",
+          "track": 6,
+          "time": 0.6,
+          "x": "95%",
+          "y": "89%",
+          "width": "40%",
+          "height": "auto",
+          "x_anchor": "100%",
+          "y_anchor": "0%",
+          "text": "$4,950,000",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "3.5 vmin",
+          "fill_color": "#F5C518",
+          "text_align": "right",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        }
+      ],
+      "animations": [
+        { "time": 4.3, "duration": 0.7, "transition": true, "type": "fade" }
+      ]
+    },
+    {
+      "id": "room-5",
+      "type": "composition",
+      "track": 1,
+      "time": 24,
+      "duration": 5,
+      "elements": [
+        {
+          "id": "r5-photo",
+          "name": "photo-6",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 5,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            { "time": 0, "duration": 5, "type": "scale", "scope": "element", "start_scale": "110%", "end_scale": "120%", "easing": "linear" },
+            { "time": 0, "duration": 0.5, "transition": true, "type": "fade" }
+          ]
+        },
+        {
+          "id": "r5-top-bar",
+          "type": "shape",
+          "track": 2,
+          "time": 0,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "8%",
+          "fill_color": "rgba(0,0,0,0.6)"
+        },
+        {
+          "id": "r5-label",
+          "type": "text",
+          "track": 3,
+          "time": 0.4,
+          "x": "5%",
+          "y": "0%",
+          "width": "90%",
+          "height": "8%",
+          "x_anchor": "0%",
+          "y_anchor": "0%",
+          "y_alignment": "50%",
+          "text": "PRIVATE POOL & SPA",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "3.5 vmin",
+          "letter_spacing": "100%",
+          "text_transform": "uppercase",
+          "fill_color": "#F5C518"
+        },
+        {
+          "id": "r5-overlay",
+          "type": "shape",
+          "track": 4,
+          "time": 0,
+          "x": "0%",
+          "y": "88%",
+          "width": "100%",
+          "height": "12%",
+          "fill_color": "rgba(0,0,0,0.5)"
+        },
+        {
+          "id": "r5-address",
+          "name": "Addresstext",
+          "type": "text",
+          "track": 5,
+          "time": 0.6,
+          "x": "5%",
+          "y": "89%",
+          "width": "60%",
+          "height": "auto",
+          "x_anchor": "0%",
+          "y_anchor": "0%",
+          "text": "100 Bel Air Road",
+          "font_family": "Inter",
+          "font_weight": "400",
+          "font_size": "2.8 vmin",
+          "fill_color": "rgba(255,255,255,0.7)",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "r5-price",
+          "type": "text",
+          "track": 6,
+          "time": 0.6,
+          "x": "95%",
+          "y": "89%",
+          "width": "40%",
+          "height": "auto",
+          "x_anchor": "100%",
+          "y_anchor": "0%",
+          "text": "$4,950,000",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "3.5 vmin",
+          "fill_color": "#F5C518",
+          "text_align": "right",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        }
+      ],
+      "animations": [
+        { "time": 4.3, "duration": 0.7, "transition": true, "type": "fade" }
+      ]
+    },
+    {
+      "id": "closing",
+      "type": "composition",
+      "track": 1,
+      "time": 29,
+      "duration": 6,
+      "elements": [
+        {
+          "id": "closing-bg",
+          "name": "photo-1",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 6,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            { "time": 0, "duration": 6, "type": "scale", "scope": "element", "start_scale": "100%", "end_scale": "108%", "easing": "linear" },
+            { "time": 0, "duration": 0.8, "transition": true, "type": "fade" }
+          ]
+        },
+        {
+          "id": "closing-overlay",
+          "type": "shape",
+          "track": 2,
+          "time": 0.5,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "100%",
+          "fill_color": "rgba(0,0,0,0.65)"
+        },
+        {
+          "id": "closing-price",
+          "type": "text",
+          "track": 3,
+          "time": 1,
+          "x": "50%",
+          "y": "30%",
+          "width": "90%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "x_alignment": "50%",
+          "y_alignment": "50%",
+          "name": "Pricetext",
+          "text": "$4,950,000",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "10 vmin",
+          "fill_color": "#F5C518",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.8, "easing": "back-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "closing-address",
+          "name": "Addresstext",
+          "type": "text",
+          "track": 4,
+          "time": 1.8,
+          "x": "50%",
+          "y": "44%",
+          "width": "85%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "x_alignment": "50%",
+          "text": "100 Bel Air Road\nBel Air, CA 90077",
+          "font_family": "Montserrat",
+          "font_weight": "700",
+          "font_size": "3.8 vmin",
+          "line_height": "170%",
+          "fill_color": "#ffffff",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.8, "easing": "quadratic-out", "type": "text-slide", "scope": "split-clip", "split": "line", "overlap": "80%", "direction": "up" }
+          ]
+        },
+        {
+          "id": "closing-divider",
+          "type": "shape",
+          "track": 5,
+          "time": 2.6,
+          "x": "35%",
+          "y": "55%",
+          "width": "30%",
+          "height": "0.3%",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "fill_color": "rgba(245,197,24,0.6)"
+        },
+        {
+          "id": "closing-agent",
+          "name": "Agent-Name",
+          "type": "text",
+          "track": 6,
+          "time": 2.9,
+          "x": "50%",
+          "y": "60%",
+          "width": "60%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "0%",
+          "x_alignment": "50%",
+          "text": "Sarah Johnson  •  (310) 555-0199",
+          "font_family": "Inter",
+          "font_weight": "400",
+          "font_size": "2.8 vmin",
+          "fill_color": "rgba(255,255,255,0.8)",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.6, "easing": "quadratic-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "closing-brand",
+          "name": "Brand-Name",
+          "type": "text",
+          "track": 7,
+          "time": 3.4,
+          "x": "50%",
+          "y": "66%",
+          "width": "50%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "0%",
+          "x_alignment": "50%",
+          "text": "Presented by Elite Realty Group",
+          "font_family": "Inter",
+          "font_weight": "400",
+          "font_size": "2.8 vmin",
+          "fill_color": "rgba(255,255,255,0.6)",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "closing-cta",
+          "type": "text",
+          "track": 8,
+          "time": 4.2,
+          "x": "50%",
+          "y": "78%",
+          "width": "60%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "0%",
+          "x_alignment": "50%",
+          "text": "PRIVATE SHOWINGS BY APPOINTMENT",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "2.8 vmin",
+          "letter_spacing": "80%",
+          "text_transform": "uppercase",
+          "fill_color": "#ffffff",
+          "background_color": "rgba(245,197,24,0.9)",
+          "background_x_padding": "50%",
+          "background_y_padding": "35%",
+          "text_align": "center",
+          "animations": [
+            { "time": 0, "duration": 0.6, "easing": "back-out", "type": "text-slide", "scope": "split-clip", "split": "line", "direction": "up" }
+          ]
+        },
+        {
+          "id": "closing-reeltor",
+          "type": "text",
+          "track": 9,
+          "time": 5,
+          "x": "50%",
+          "y": "97%",
+          "width": "30%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "100%",
+          "x_alignment": "50%",
+          "text": "Reeltor.ai",
+          "font_family": "Inter",
+          "font_weight": "700",
+          "font_size": "1.8 vmin",
+          "fill_color": "rgba(245,197,24,0.5)",
+          "text_align": "center"
+        }
+      ],
+      "animations": [
+        { "time": 5.5, "duration": 0.5, "transition": true, "type": "fade" }
+      ]
+    }
+  ]
+}

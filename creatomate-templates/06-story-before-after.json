@@ -1,0 +1,604 @@
+{
+  "name": "Reeltor — Story: Before & After",
+  "output_format": "mp4",
+  "width": 720,
+  "height": 1280,
+  "duration": 22,
+  "snapshot_time": 0.5,
+  "fps": 30,
+  "elements": [
+    {
+      "id": "hook",
+      "type": "composition",
+      "track": 1,
+      "time": 0,
+      "duration": 3,
+      "elements": [
+        {
+          "id": "hook-bg",
+          "type": "shape",
+          "track": 1,
+          "time": 0,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "100%",
+          "fill_color": "#1A1A1A"
+        },
+        {
+          "id": "hook-line1",
+          "type": "text",
+          "track": 2,
+          "time": 0.3,
+          "x": "50%",
+          "y": "38%",
+          "width": "90%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "x_alignment": "50%",
+          "y_alignment": "50%",
+          "text": "WE TRANSFORMED THIS",
+          "font_family": "Montserrat",
+          "font_weight": "900",
+          "font_size": "6 vmin",
+          "line_height": "120%",
+          "fill_color": "#ffffff",
+          "text_align": "center",
+          "animations": [
+            { "time": 0, "duration": 0.6, "easing": "back-out", "type": "text-slide", "scope": "split-clip", "split": "line", "direction": "up", "background_effect": "scaling-clip" }
+          ]
+        },
+        {
+          "id": "hook-line2",
+          "type": "text",
+          "track": 3,
+          "time": 1,
+          "x": "50%",
+          "y": "52%",
+          "width": "90%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "x_alignment": "50%",
+          "name": "Addresstext",
+          "text": "123 Flip Street",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "5 vmin",
+          "fill_color": "#F5C518",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.6, "easing": "back-out", "type": "text-slide", "scope": "split-clip", "split": "line", "direction": "up", "background_effect": "scaling-clip" }
+          ]
+        },
+        {
+          "id": "hook-brand",
+          "name": "Brand-Name",
+          "type": "text",
+          "track": 4,
+          "time": 1.8,
+          "x": "50%",
+          "y": "97%",
+          "width": "30%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "100%",
+          "x_alignment": "50%",
+          "text": "Reeltor.ai",
+          "font_family": "Inter",
+          "font_weight": "700",
+          "font_size": "1.8 vmin",
+          "fill_color": "rgba(245,197,24,0.5)",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.3, "transition": true, "type": "fade" }
+          ]
+        }
+      ],
+      "animations": [
+        { "time": 2.6, "duration": 0.4, "transition": true, "type": "fade" }
+      ]
+    },
+    {
+      "id": "before-scene",
+      "type": "composition",
+      "track": 1,
+      "time": 3,
+      "duration": 5,
+      "elements": [
+        {
+          "id": "before-photo",
+          "name": "photo-1",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 5,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            { "time": 0, "duration": 1, "transition": true, "type": "fade" },
+            { "time": 0, "duration": 4, "type": "scale", "scope": "element", "start_scale": "100%", "end_scale": "105%", "easing": "linear" }
+          ]
+        },
+        {
+          "id": "before-overlay",
+          "type": "shape",
+          "track": 2,
+          "time": 0.5,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "100%",
+          "fill_color": "rgba(0,0,0,0.4)"
+        },
+        {
+          "id": "before-label",
+          "type": "text",
+          "track": 3,
+          "time": 0.8,
+          "x": "50%",
+          "y": "45%",
+          "width": "70%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "x_alignment": "50%",
+          "y_alignment": "50%",
+          "text": "BEFORE",
+          "font_family": "Montserrat",
+          "font_weight": "900",
+          "font_size": "9 vmin",
+          "letter_spacing": "150%",
+          "text_transform": "uppercase",
+          "fill_color": "#ffffff",
+          "text_align": "center",
+          "animations": [
+            { "time": 0, "duration": 0.6, "easing": "back-out", "type": "text-slide", "scope": "split-clip", "split": "line", "direction": "up", "background_effect": "scaling-clip" }
+          ]
+        },
+        {
+          "id": "before-address",
+          "name": "Addresstext",
+          "type": "text",
+          "track": 4,
+          "time": 1.5,
+          "x": "50%",
+          "y": "60%",
+          "width": "80%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "x_alignment": "50%",
+          "text": "123 Flip Street, Austin, TX",
+          "font_family": "Inter",
+          "font_weight": "400",
+          "font_size": "3 vmin",
+          "fill_color": "rgba(255,255,255,0.7)",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "before-price",
+          "type": "text",
+          "track": 5,
+          "time": 2,
+          "x": "50%",
+          "y": "67%",
+          "width": "60%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "0%",
+          "x_alignment": "50%",
+          "text": "PURCHASED: $185,000",
+          "font_family": "Inter",
+          "font_weight": "700",
+          "font_size": "3 vmin",
+          "fill_color": "rgba(255,255,255,0.5)",
+          "text_align": "center",
+          "animations": [
+            { "time": 0, "duration": 0.4, "easing": "quadratic-out", "type": "fade" }
+          ]
+        }
+      ],
+      "animations": [
+        { "time": 4.5, "duration": 0.5, "transition": true, "type": "fade" }
+      ]
+    },
+    {
+      "id": "blur-transition",
+      "type": "composition",
+      "track": 1,
+      "time": 8,
+      "duration": 2,
+      "elements": [
+        {
+          "id": "blur-photo",
+          "name": "photo-1",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 2,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "blur": 30,
+          "animations": [
+            { "time": 0, "duration": 1, "transition": true, "type": "fade" },
+            { "time": 1, "duration": 1, "transition": true, "type": "fade" }
+          ]
+        },
+        {
+          "id": "blur-text",
+          "type": "text",
+          "track": 2,
+          "time": 0.5,
+          "x": "50%",
+          "y": "50%",
+          "width": "80%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "x_alignment": "50%",
+          "y_alignment": "50%",
+          "text": "AFTER 90 DAYS OF RENOVATIONS...",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "5 vmin",
+          "line_height": "120%",
+          "fill_color": "#ffffff",
+          "text_align": "center",
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "back-out", "type": "text-slide", "scope": "split-clip", "split": "line", "direction": "up", "background_effect": "scaling-clip" }
+          ]
+        }
+      ],
+      "animations": [
+        { "time": 1.5, "duration": 0.5, "transition": true, "type": "fade" }
+      ]
+    },
+    {
+      "id": "after-scene",
+      "type": "composition",
+      "track": 1,
+      "time": 10,
+      "duration": 6,
+      "elements": [
+        {
+          "id": "after-photo",
+          "name": "photo-2",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 6,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            { "time": 0, "duration": 1, "transition": true, "type": "fade" },
+            { "time": 0, "duration": 5, "type": "scale", "scope": "element", "start_scale": "100%", "end_scale": "110%", "easing": "linear" }
+          ]
+        },
+        {
+          "id": "after-overlay",
+          "type": "shape",
+          "track": 2,
+          "time": 0.5,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "100%",
+          "fill_color": "rgba(0,0,0,0.3)"
+        },
+        {
+          "id": "after-label",
+          "type": "text",
+          "track": 3,
+          "time": 0.8,
+          "x": "50%",
+          "y": "38%",
+          "width": "70%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "x_alignment": "50%",
+          "y_alignment": "50%",
+          "text": "AFTER",
+          "font_family": "Montserrat",
+          "font_weight": "900",
+          "font_size": "10 vmin",
+          "letter_spacing": "150%",
+          "text_transform": "uppercase",
+          "fill_color": "#F5C518",
+          "text_align": "center",
+          "animations": [
+            { "time": 0, "duration": 0.7, "easing": "back-out", "type": "text-slide", "scope": "split-clip", "split": "line", "direction": "up", "background_effect": "scaling-clip" }
+          ]
+        },
+        {
+          "id": "after-address",
+          "name": "Addresstext",
+          "type": "text",
+          "track": 4,
+          "time": 1.6,
+          "x": "50%",
+          "y": "53%",
+          "width": "80%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "x_alignment": "50%",
+          "text": "123 Flip Street, Austin, TX",
+          "font_family": "Inter",
+          "font_weight": "400",
+          "font_size": "3 vmin",
+          "fill_color": "rgba(255,255,255,0.8)",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "after-price",
+          "type": "text",
+          "track": 5,
+          "time": 2.2,
+          "x": "50%",
+          "y": "60%",
+          "width": "60%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "0%",
+          "x_alignment": "50%",
+          "name": "Pricetext",
+          "text": "SOLD: $385,000",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "5 vmin",
+          "fill_color": "#F5C518",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "back-out", "type": "scale", "scope": "element", "start_scale": "85%", "end_scale": "100%" }
+          ]
+        }
+      ],
+      "animations": [
+        { "time": 5.5, "duration": 0.5, "transition": true, "type": "fade" }
+      ]
+    },
+    {
+      "id": "results-scene",
+      "type": "composition",
+      "track": 1,
+      "time": 16,
+      "duration": 6,
+      "elements": [
+        {
+          "id": "results-bg",
+          "type": "shape",
+          "track": 1,
+          "time": 0,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "100%",
+          "fill_color": "#1A1A1A"
+        },
+        {
+          "id": "results-headline",
+          "type": "text",
+          "track": 2,
+          "time": 0.4,
+          "x": "50%",
+          "y": "18%",
+          "width": "90%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "x_alignment": "50%",
+          "y_alignment": "50%",
+          "text": "THE DEAL",
+          "font_family": "Montserrat",
+          "font_weight": "900",
+          "font_size": "6 vmin",
+          "letter_spacing": "120%",
+          "text_transform": "uppercase",
+          "fill_color": "#F5C518",
+          "text_align": "center",
+          "animations": [
+            { "time": 0, "duration": 0.6, "easing": "back-out", "type": "text-slide", "scope": "split-clip", "split": "line", "direction": "up", "background_effect": "scaling-clip" }
+          ]
+        },
+        {
+          "id": "results-bought",
+          "type": "text",
+          "track": 3,
+          "time": 1.2,
+          "x": "50%",
+          "y": "32%",
+          "width": "80%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "0%",
+          "x_alignment": "50%",
+          "text": "PURCHASED FOR",
+          "font_family": "Inter",
+          "font_weight": "400",
+          "font_size": "2.5 vmin",
+          "letter_spacing": "100%",
+          "text_transform": "uppercase",
+          "fill_color": "rgba(255,255,255,0.5)",
+          "text_align": "center",
+          "animations": [
+            { "time": 0, "duration": 0.4, "easing": "quadratic-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "results-bought-price",
+          "type": "text",
+          "track": 4,
+          "time": 1.6,
+          "x": "50%",
+          "y": "37%",
+          "width": "70%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "0%",
+          "x_alignment": "50%",
+          "text": "$185,000",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "6 vmin",
+          "fill_color": "rgba(255,255,255,0.7)",
+          "text_align": "center",
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "back-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "results-divider",
+          "type": "shape",
+          "track": 5,
+          "time": 2.2,
+          "x": "30%",
+          "y": "46%",
+          "width": "40%",
+          "height": "0.3%",
+          "x_anchor": "50%",
+          "y_anchor": "50%",
+          "fill_color": "rgba(245,197,24,0.4)"
+        },
+        {
+          "id": "results-sold",
+          "type": "text",
+          "track": 6,
+          "time": 2.5,
+          "x": "50%",
+          "y": "50%",
+          "width": "80%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "0%",
+          "x_alignment": "50%",
+          "text": "SOLD FOR",
+          "font_family": "Inter",
+          "font_weight": "400",
+          "font_size": "2.5 vmin",
+          "letter_spacing": "100%",
+          "text_transform": "uppercase",
+          "fill_color": "rgba(255,255,255,0.5)",
+          "text_align": "center",
+          "animations": [
+            { "time": 0, "duration": 0.4, "easing": "quadratic-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "results-sold-price",
+          "type": "text",
+          "track": 7,
+          "time": 2.9,
+          "x": "50%",
+          "y": "55%",
+          "width": "70%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "0%",
+          "x_alignment": "50%",
+          "name": "Pricetext",
+          "text": "$385,000",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "7 vmin",
+          "fill_color": "#F5C518",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.6, "easing": "back-out", "type": "scale", "scope": "element", "start_scale": "80%", "end_scale": "100%" }
+          ]
+        },
+        {
+          "id": "results-profit",
+          "type": "text",
+          "track": 8,
+          "time": 3.6,
+          "x": "50%",
+          "y": "68%",
+          "width": "70%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "0%",
+          "x_alignment": "50%",
+          "text": "+$200,000 PROFIT",
+          "font_family": "Montserrat",
+          "font_weight": "900",
+          "font_size": "5.5 vmin",
+          "fill_color": "#ffffff",
+          "text_align": "center",
+          "animations": [
+            { "time": 0, "duration": 0.6, "easing": "back-out", "type": "text-slide", "scope": "split-clip", "split": "line", "direction": "up" }
+          ]
+        },
+        {
+          "id": "results-agent",
+          "name": "Agent-Name",
+          "type": "text",
+          "track": 9,
+          "time": 4.3,
+          "x": "50%",
+          "y": "78%",
+          "width": "60%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "0%",
+          "x_alignment": "50%",
+          "text": "Sarah Johnson  •  (310) 555-0199",
+          "font_family": "Inter",
+          "font_weight": "400",
+          "font_size": "2.8 vmin",
+          "fill_color": "rgba(255,255,255,0.6)",
+          "text_align": "center",
+          "dynamic": true,
+          "animations": [
+            { "time": 0, "duration": 0.5, "easing": "quadratic-out", "type": "fade" }
+          ]
+        },
+        {
+          "id": "results-reeltor",
+          "type": "text",
+          "track": 10,
+          "time": 5,
+          "x": "50%",
+          "y": "97%",
+          "width": "30%",
+          "height": "auto",
+          "x_anchor": "50%",
+          "y_anchor": "100%",
+          "x_alignment": "50%",
+          "text": "Reeltor.ai",
+          "font_family": "Inter",
+          "font_weight": "700",
+          "font_size": "1.8 vmin",
+          "fill_color": "rgba(245,197,24,0.5)",
+          "text_align": "center"
+        }
+      ],
+      "animations": [
+        { "time": 5.5, "duration": 0.5, "transition": true, "type": "fade" }
+      ]
+    }
+  ]
+}
