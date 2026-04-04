@@ -51,6 +51,8 @@ export interface Template {
 export interface CreateVideoPayload {
   templateId: string;
   images: string[];
+  /** Indices within `images` to route through fal.ai for AI drone-shot generation. Max 3. Defaults to [0]. */
+  aiVideoIndices?: number[];
   listingAddress?: string;
   listingPrice?: string;
   agentName?: string;
