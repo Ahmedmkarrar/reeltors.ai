@@ -1,4 +1,4 @@
-const CREATOMATE_API_URL = 'https://api.creatomate.com/v1';
+const CREATOMATE_API_URL = 'https://api.creatomate.com/v2';
 
 function getApiKey(): string {
   const key = process.env.CREATOMATE_API_KEY;
@@ -8,7 +8,7 @@ function getApiKey(): string {
 
 export const TEMPLATES = [
   {
-    id: 'cinematic-listing',
+    id: '9a562ec6-000e-4a92-ad76-bd9adfdc750d',
     name: 'Cinematic Listing',
     description: 'Smooth cinematic Ken Burns effect on your photos',
     thumbnail: '/templates/cinematic.jpg',
@@ -64,12 +64,12 @@ export async function generateVideo(params: GenerateVideoParams): Promise<Creato
   const modifications: Record<string, string | number> = {};
 
   images.slice(0, 10).forEach((url, i) => {
-    modifications[`Photo-${i + 1}.source`] = url;
+    modifications[`photo-${i + 1}.source`] = url;
   });
 
-  if (listingAddress) modifications['Address.text'] = listingAddress;
-  if (listingPrice)   modifications['Price.text']   = listingPrice;
-  if (agentName)      modifications['Agent-Name.text'] = agentName;
+  if (listingAddress) modifications['Addresstext.text'] = listingAddress;
+  if (listingPrice)   modifications['Pricetext.text']   = listingPrice;
+  if (agentName)      modifications['Agent-Nametext.text'] = agentName;
 
   modifications['Output-Width']  = outputFormat.width;
   modifications['Output-Height'] = outputFormat.height;
@@ -80,7 +80,7 @@ export async function generateVideo(params: GenerateVideoParams): Promise<Creato
   };
 
   if (webhookUrl)  body.webhook_url = webhookUrl;
-  if (metadata)    body.metadata    = metadata;
+  if (metadata)    body.metadata    = JSON.stringify(metadata);
 
   return retryWithBackoff(() => callCreatomate('/renders', body), { attempts: 3, baseMs: 1000 });
 }
