@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { generateVideo, CreatomateError } from '@/lib/creatomate/client';
+import { generateVideo, generateMixedMediaVideo, CreatomateError } from '@/lib/creatomate/client';
+import type { MediaItem } from '@/lib/creatomate/client';
+import { generateDroneShotsForIndices, clampAiIndices, FalError } from '@/lib/fal/client';
 import type { CreateVideoPayload } from '@/types';
+
+// Allow up to 5 minutes — fal.ai video generation takes ~1–2 min per clip.
+// Up to 3 clips run in parallel, so worst-case ~3 min before Creatomate starts.
+export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
   const supabase = createClient();
@@ -21,7 +27,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
-  const { templateId, images, listingAddress, listingPrice, agentName, format, title } = body;
+  const { templateId, images, aiVideoIndices: rawAiIndices, listingAddress, listingPrice, agentName, format, title } = body;
 
   if (!templateId || typeof templateId !== 'string') {
     return NextResponse.json({ error: 'templateId is required' }, { status: 400 });
@@ -32,6 +38,12 @@ export async function POST(req: NextRequest) {
   if (images.some((url) => typeof url !== 'string' || !url.startsWith('http'))) {
     return NextResponse.json({ error: 'All images must be valid HTTP URLs' }, { status: 400 });
   }
+
+  // Default: first photo → AI drone shot. User can override via aiVideoIndices.
+  const aiIndices = clampAiIndices(
+    Array.isArray(rawAiIndices) ? rawAiIndices : [0],
+    images.length,
+  );
 
   // ── 3. Load profile + check plan limits ────────────────────────────────────
   const { data: profile } = await supabase
@@ -52,8 +64,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // ── 4. Create pending video record first ───────────────────────────────────
-  // Create the DB record before calling Creatomate so we always have an audit trail
+  // ── 4. Create pending video record ─────────────────────────────────────────
   const admin = getSupabaseAdmin();
   const videoTitle = (title || listingAddress || 'My Listing Video').slice(0, 255);
 
@@ -78,25 +89,60 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to create video record' }, { status: 500 });
   }
 
-  // ── 5. Call Creatomate ─────────────────────────────────────────────────────
+  // ── 5. Generate AI drone shots via fal.ai (parallel, max 3) ───────────────
+  // aiIndices are already clamped to MAX_AI_VIDEOS (3) by clampAiIndices.
+  let falVideoMap = new Map<number, string>();
+  let falFailed = false;
+
+  if (aiIndices.length > 0 && process.env.FAL_KEY) {
+    try {
+      falVideoMap = await generateDroneShotsForIndices(images, aiIndices);
+      if (falVideoMap.size === 0) {
+        console.warn(`fal.ai: all ${aiIndices.length} generation(s) failed — falling back to images`);
+        falFailed = true;
+      }
+    } catch (err) {
+      console.error('fal.ai generation error, falling back to images:', err);
+      falFailed = true;
+    }
+  } else if (aiIndices.length > 0 && !process.env.FAL_KEY) {
+    console.warn('FAL_KEY not set — skipping AI drone shot generation, using images as-is');
+  }
+
+  // ── 6. Build the final media array (videos + images) ──────────────────────
+  const mediaItems: MediaItem[] = images.map((url, idx) => {
+    const videoUrl = falVideoMap.get(idx);
+    return videoUrl
+      ? { type: 'video' as const, url: videoUrl }
+      : { type: 'image' as const, url };
+  });
+
+  const hasAiVideos = falVideoMap.size > 0;
+
+  // ── 7. Call Creatomate ─────────────────────────────────────────────────────
   const webhookUrl = process.env.NEXT_PUBLIC_APP_URL
     ? `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/creatomate?token=${process.env.WEBHOOK_SECRET ?? ''}`
     : undefined;
 
+  const sharedParams = {
+    listingAddress,
+    listingPrice,
+    agentName,
+    format: (format ?? 'vertical') as 'vertical' | 'square' | 'horizontal',
+    webhookUrl,
+    metadata: { video_id: video.id, user_id: user.id },
+  };
+
   let render;
   try {
-    render = await generateVideo({
-      templateId,
-      images,
-      listingAddress,
-      listingPrice,
-      agentName,
-      format: format ?? 'vertical',
-      webhookUrl,
-      metadata: { video_id: video.id, user_id: user.id },
-    });
+    if (hasAiVideos) {
+      // Custom timeline: fal.ai videos + static images stitched together
+      render = await generateMixedMediaVideo({ mediaItems, ...sharedParams });
+    } else {
+      // No AI videos (fal.ai skipped/failed) — use existing template approach
+      render = await generateVideo({ templateId, images, ...sharedParams });
+    }
   } catch (err) {
-    // Mark the video record as failed before returning
     await admin
       .from('videos')
       .update({ status: 'failed' })
@@ -106,23 +152,35 @@ export async function POST(req: NextRequest) {
       console.error('Creatomate API error:', err.message);
       return NextResponse.json({ error: 'Video generation service error. Please try again.' }, { status: 502 });
     }
-    console.error('Unexpected error calling Creatomate:', err);
+    if (err instanceof FalError) {
+      console.error('fal.ai error during Creatomate fallback path:', err.message);
+      return NextResponse.json({ error: 'AI video generation failed. Please try again.' }, { status: 502 });
+    }
+    console.error('Unexpected error calling video services:', err);
     return NextResponse.json({ error: 'Failed to start video generation' }, { status: 500 });
   }
 
-  // ── 6. Update record with render ID + atomically increment usage ───────────
+  // ── 8. Update record with render ID + increment usage ─────────────────────
   const [updateResult] = await Promise.allSettled([
     admin
       .from('videos')
-      .update({ status: 'processing', creatomate_render_id: render.id })
+      .update({
+        status:               'processing',
+        creatomate_render_id: render.id,
+      })
       .eq('id', video.id),
     admin.rpc('increment_videos_used', { p_user_id: user.id }),
   ]);
 
   if (updateResult.status === 'rejected') {
     console.error('Failed to update video record after render start:', updateResult.reason);
-    // Video is processing — non-fatal, carry on
+    // Non-fatal — video is processing
   }
 
-  return NextResponse.json({ videoId: video.id, renderId: render.id });
+  return NextResponse.json({
+    videoId:     video.id,
+    renderId:    render.id,
+    aiVideosGenerated: falVideoMap.size,
+    aiVideosFailed:    falFailed,
+  });
 }
