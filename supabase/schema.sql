@@ -51,13 +51,14 @@ CREATE POLICY "Users can update own videos" ON videos FOR UPDATE USING (auth.uid
 CREATE POLICY "Users can delete own videos" ON videos FOR DELETE USING (auth.uid() = user_id);
 
 -- ─── Auto-create profile on signup ────────────────────────────────────────────
-CREATE OR REPLACE FUNCTION handle_new_user()
+CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO profiles (id, email, full_name)
+  INSERT INTO public.profiles (id, email, full_name)
   VALUES (NEW.id, NEW.email, NEW.raw_user_meta_data->>'full_name');
   RETURN NEW;
 END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 CREATE TRIGGER on_auth_user_created
