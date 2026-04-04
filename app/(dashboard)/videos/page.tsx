@@ -145,27 +145,64 @@ export default function VideosPage() {
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="bg-[#FFFFFF] border border-[#EAE8E2] rounded-[10px] p-16 text-center">
-          <div className="w-14 h-14 bg-[#EAE8E2] rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg className="w-6 h-6 text-[#B8B4AE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
-            </svg>
+        search || filter !== 'all' ? (
+          /* Filtered / search empty */
+          <div className="bg-[#FFFFFF] border border-[#EAE8E2] rounded-[10px] p-16 text-center">
+            <div className="w-14 h-14 bg-[#EAE8E2] rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-[#B8B4AE]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+            </div>
+            <h3 className="font-syne font-bold text-lg mb-1.5">
+              {search ? `No results for "${search}"` : `No ${filter} videos`}
+            </h3>
           </div>
-          <h3 className="font-syne font-bold text-lg mb-1.5">
-            {search ? `No results for "${search}"` : filter === 'all' ? 'No videos yet' : `No ${filter} videos`}
-          </h3>
-          <p className="text-[#6B6760] text-sm mb-5">
-            {filter === 'all' && !search ? 'Create your first listing video in under 60 seconds.' : ''}
-          </p>
-          {filter === 'all' && !search && (
-            <Link
-              href="/create"
-              className="inline-flex items-center gap-2 bg-[#F0B429] text-[#1A1714] font-bold px-5 py-2.5 rounded-[6px] text-sm hover:bg-[#F5C842] transition-colors"
-            >
-              Create First Video
-            </Link>
-          )}
-        </div>
+        ) : (
+          /* True zero state — brand new user */
+          <div className="relative overflow-hidden bg-[#FFFFFF] border border-[#EAE8E2] rounded-[16px] p-12 text-center">
+            {/* Background glow */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="w-80 h-80 bg-[#F0B429]/10 rounded-full blur-3xl" />
+            </div>
+
+            <div className="relative">
+              {/* Icon */}
+              <div className="w-20 h-20 mx-auto mb-6 relative">
+                <div className="absolute inset-0 bg-[#F0B429]/20 rounded-full animate-pulse" />
+                <div className="relative w-full h-full bg-[#FDF8EC] border border-[#F0B429]/30 rounded-full flex items-center justify-center">
+                  <svg className="w-9 h-9 text-[#F0B429]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+                  </svg>
+                </div>
+              </div>
+
+              <h3 className="font-syne font-extrabold text-2xl text-[#1A1714] mb-3">
+                Your portfolio is empty
+              </h3>
+              <p className="text-[#6B6760] text-base mb-2 max-w-sm mx-auto">
+                Let&apos;s create your first viral listing video.
+              </p>
+              <p className="text-[#8A8682] text-sm mb-8 max-w-xs mx-auto">
+                Upload photos, pick a template, and get a TikTok-ready reel in under 2 minutes.
+              </p>
+
+              <Link
+                href="/create"
+                className="inline-flex items-center gap-2.5 bg-[#F0B429] hover:bg-[#F5C842] text-[#1A1714] font-bold px-8 py-3.5 rounded-[8px] text-base transition-all shadow-[0_0_30px_rgba(240,180,41,0.35)] hover:shadow-[0_0_45px_rgba(240,180,41,0.55)]"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Create Your First Video
+              </Link>
+
+              {/* Social proof hint */}
+              <p className="text-xs text-[#B8B4AE] mt-6">
+                Agents using Reeltors.ai get 3× more listing inquiries on average
+              </p>
+            </div>
+          </div>
+        )
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((video) => (

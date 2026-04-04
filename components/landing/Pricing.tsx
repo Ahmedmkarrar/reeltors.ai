@@ -6,13 +6,20 @@ import { Button } from '@/components/ui/Button';
 import { FadeIn } from '@/components/ui/FadeIn';
 import { PLANS } from '@/lib/stripe/plans';
 
+// Launch discount: 50% off — original prices are 2x the current prices
+const ORIGINAL_PRICES: Record<string, number> = {
+  starter: 98,
+  growth:  198,
+  pro:     398,
+};
+
 export function Pricing() {
   const [annual, setAnnual] = useState(false);
 
   const plans = [
     { key: 'starter', data: PLANS.starter },
+    { key: 'growth',  data: PLANS.growth },
     { key: 'pro',     data: PLANS.pro },
-    { key: 'team',    data: PLANS.team },
   ] as const;
 
   return (
@@ -28,6 +35,21 @@ export function Pricing() {
           <p className="text-center text-[#8A8682] text-base max-w-xl mx-auto mb-6">
             30-day money-back guarantee. Cancel anytime in 2 clicks.
           </p>
+        </FadeIn>
+
+        {/* 🔥 Launch Banner */}
+        <FadeIn delay={40}>
+          <div className="flex justify-center mb-8">
+            <div className="inline-flex items-center gap-3 bg-[#1A1200] border border-[#F0B429]/40 rounded-full px-6 py-3 shadow-[0_0_40px_rgba(240,180,41,0.15)]">
+              <span className="text-lg">🚀</span>
+              <span className="font-mono font-bold text-[#F0B429] text-sm tracking-wide uppercase">
+                Launch Special — 50% Off
+              </span>
+              <span className="text-[#8A8682] text-xs">
+                · Limited spots · Lock in your price forever
+              </span>
+            </div>
+          </div>
         </FadeIn>
 
         <FadeIn delay={80}>
@@ -48,8 +70,11 @@ export function Pricing() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {plans.map(({ key, data }, i) => {
-            const isPro = key === 'pro';
-            const price = annual && data.price > 0 ? Math.round(data.price * 0.7) : data.price;
+            const isPopular     = key === 'growth';
+            const price         = annual && data.price > 0 ? Math.round(data.price * 0.7) : data.price;
+            const originalPrice = annual
+              ? Math.round(ORIGINAL_PRICES[key] * 0.7)
+              : ORIGINAL_PRICES[key];
             const roi = key === 'pro' ? 'Pays back in 1 lead' : key === 'starter' ? 'Pays back in 1 showing' : '';
 
             return (
@@ -57,20 +82,36 @@ export function Pricing() {
                 <div
                   className={[
                     'relative flex flex-col rounded-[10px] p-6 transition-all h-full',
-                    isPro
+                    isPopular
                       ? 'bg-[#1A1714] border-2 border-[#F0B429] shadow-[0_0_60px_rgba(240,180,41,0.12)] md:scale-[1.03]'
                       : 'bg-[#141210] border border-[#2E2B27] hover:border-[#3E3B37] transition-colors',
                   ].join(' ')}
                 >
-                  {isPro && (
+                  {isPopular && (
                     <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#F0B429] text-[#0D0B08] text-[10px] font-extrabold px-4 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">
-                      Most Popular
+                      ⭐ Most Popular
                     </div>
                   )}
 
+                  {/* 50% OFF badge on every card */}
+                  <div className="absolute top-4 right-4 bg-red-500 text-white text-[9px] font-extrabold px-2 py-0.5 rounded uppercase tracking-widest">
+                    50% OFF
+                  </div>
+
                   <div className="mb-5">
                     <h3 className="font-syne font-bold text-lg text-[#FAFAF8] mb-0.5">{data.name}</h3>
+                    <p className="text-xs text-[#8A8682] mb-2 italic">{data.tagline}</p>
                     {roi && <p className="text-xs text-[#F0B429] mb-3 font-medium">{roi}</p>}
+
+                    {/* Struck-through original price */}
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-[#4A4744] text-sm line-through">${originalPrice}/mo</span>
+                      <span className="bg-red-500/15 text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded">
+                        SAVE ${originalPrice - price}/mo
+                      </span>
+                    </div>
+
+                    {/* Actual discounted price */}
                     <div className="flex items-end gap-1 mb-1">
                       <span className="font-syne font-extrabold text-4xl leading-none text-[#FAFAF8]">
                         ${price}
@@ -97,10 +138,14 @@ export function Pricing() {
                   </ul>
 
                   <Link href="/signup" className="block">
-                    <Button variant={isPro ? 'primary' : 'secondary'} className="w-full" size="md">
-                      {isPro ? 'Get Pro →' : 'Get Started →'}
+                    <Button variant={isPopular ? 'primary' : 'secondary'} className="w-full" size="md">
+                      {key === 'growth' ? 'Claim 50% Off →' : key === 'pro' ? 'Get Pro →' : 'Get Started →'}
                     </Button>
                   </Link>
+
+                  <p className="text-center text-[#4A4744] text-[10px] mt-2">
+                    🔒 Price locked in forever at launch rate
+                  </p>
                 </div>
               </FadeIn>
             );
