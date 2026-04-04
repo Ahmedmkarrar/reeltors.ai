@@ -1,0 +1,75 @@
+export type PlanKey = 'free' | 'starter' | 'pro' | 'team';
+
+export type VideoStatus = 'pending' | 'processing' | 'complete' | 'failed';
+export type VideoFormat = 'vertical' | 'square' | 'horizontal';
+export type SubscriptionStatus = 'free' | 'active' | 'past_due' | 'canceled' | 'trialing';
+
+export interface Profile {
+  id: string;
+  email: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  stripe_customer_id: string | null;
+  subscription_id: string | null;
+  subscription_status: SubscriptionStatus;
+  plan: PlanKey;
+  videos_used_this_month: number;
+  videos_limit: number;
+  billing_cycle_start: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Video {
+  id: string;
+  user_id: string;
+  title: string;
+  status: VideoStatus;
+  creatomate_render_id: string | null;
+  template_id: string;
+  listing_address: string | null;
+  listing_price: string | null;
+  agent_name: string | null;
+  source_images: string[];
+  output_url: string | null;
+  thumbnail_url: string | null;
+  duration_seconds: number | null;
+  format: VideoFormat;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Template {
+  id: string;
+  name: string;
+  description: string;
+  thumbnail: string;
+  duration: number;
+  bestFor: string;
+}
+
+export interface CreateVideoPayload {
+  templateId: string;
+  images: string[];
+  listingAddress?: string;
+  listingPrice?: string;
+  agentName?: string;
+  format?: VideoFormat;
+  title?: string;
+}
+
+export interface GenerateVideoResponse {
+  videoId: string;
+  renderId: string;
+}
+
+export interface RenderStatusResponse {
+  status: string;
+  outputUrl?: string;
+  thumbnailUrl?: string;
+}
+
+export interface ApiError {
+  error: string;
+  message?: string;
+}

@@ -1,16 +1,26 @@
-import type { Config } from "tailwindcss";
+import type { Config } from 'tailwindcss';
 
 const config: Config = {
   content: [
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
+      fontFamily: {
+        syne:  ['var(--font-syne)', 'sans-serif'],
+        inter: ['var(--font-inter)', 'sans-serif'],
+      },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        accent:  '#F0B429',
+        surface: '#F7F5EF',
+        card:    '#FFFFFF',
+        border:  '#E2DED6',
+      },
+      borderRadius: {
+        DEFAULT: '4px',
+        card: '6px',
       },
     },
   },
