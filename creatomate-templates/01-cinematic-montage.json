@@ -1,0 +1,559 @@
+{
+  "name": "Reeltor — Cinematic Montage",
+  "output_format": "mp4",
+  "width": 720,
+  "height": 1280,
+  "duration": 30,
+  "snapshot_time": 1,
+  "fps": 30,
+  "elements": [
+    {
+      "id": "scene-1-container",
+      "type": "composition",
+      "track": 1,
+      "time": 0,
+      "duration": 4.5,
+      "elements": [
+        {
+          "id": "scene-1-photo",
+          "name": "photo-1",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 4.5,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            {
+              "time": 0,
+              "duration": 4.5,
+              "type": "scale",
+              "scope": "element",
+              "start_scale": "110%",
+              "end_scale": "120%",
+              "easing": "linear"
+            },
+            {
+              "time": 0,
+              "duration": 0.6,
+              "transition": true,
+              "type": "fade"
+            }
+          ]
+        },
+        {
+          "id": "scene-1-overlay",
+          "type": "shape",
+          "track": 2,
+          "time": 0,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "100%",
+          "fill_color": "rgba(0,0,0,0.15)",
+          "animations": [
+            {
+              "time": 0,
+              "duration": 0.5,
+              "transition": true,
+              "type": "fade"
+            }
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "time": 3.8,
+          "duration": 0.7,
+          "transition": true,
+          "type": "fade"
+        }
+      ]
+    },
+    {
+      "id": "scene-2-container",
+      "type": "composition",
+      "track": 1,
+      "time": 4.5,
+      "duration": 4.5,
+      "elements": [
+        {
+          "id": "scene-2-photo",
+          "name": "photo-2",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 4.5,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            {
+              "time": 0,
+              "duration": 4.5,
+              "type": "scale",
+              "scope": "element",
+              "start_scale": "100%",
+              "end_scale": "115%",
+              "easing": "linear"
+            },
+            {
+              "time": 0,
+              "duration": 0.4,
+              "transition": true,
+              "type": "fade"
+            }
+          ]
+        },
+        {
+          "id": "scene-2-overlay",
+          "type": "shape",
+          "track": 2,
+          "time": 0,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "100%",
+          "fill_color": "rgba(0,0,0,0.12)",
+          "animations": [
+            {
+              "time": 0,
+              "duration": 0.4,
+              "transition": true,
+              "type": "fade"
+            }
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "time": 3.8,
+          "duration": 0.7,
+          "transition": true,
+          "type": "fade"
+        }
+      ]
+    },
+    {
+      "id": "scene-3-container",
+      "type": "composition",
+      "track": 1,
+      "time": 9,
+      "duration": 4.5,
+      "elements": [
+        {
+          "id": "scene-3-photo",
+          "name": "photo-3",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 4.5,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            {
+              "time": 0,
+              "duration": 4.5,
+              "type": "scale",
+              "scope": "element",
+              "start_scale": "115%",
+              "end_scale": "100%",
+              "easing": "linear"
+            },
+            {
+              "time": 0,
+              "duration": 0.4,
+              "transition": true,
+              "type": "fade"
+            }
+          ]
+        },
+        {
+          "id": "scene-3-overlay",
+          "type": "shape",
+          "track": 2,
+          "time": 0,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "100%",
+          "fill_color": "rgba(0,0,0,0.10)",
+          "animations": [
+            {
+              "time": 0,
+              "duration": 0.4,
+              "transition": true,
+              "type": "fade"
+            }
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "time": 3.8,
+          "duration": 0.7,
+          "transition": true,
+              "type": "fade"
+        }
+      ]
+    },
+    {
+      "id": "scene-4-container",
+      "type": "composition",
+      "track": 1,
+      "time": 13.5,
+      "duration": 4.5,
+      "elements": [
+        {
+          "id": "scene-4-photo",
+          "name": "photo-4",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 4.5,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            {
+              "time": 0,
+              "duration": 4.5,
+              "type": "scale",
+              "scope": "element",
+              "start_scale": "100%",
+              "end_scale": "112%",
+              "easing": "linear"
+            },
+            {
+              "time": 0,
+              "duration": 0.4,
+              "transition": true,
+              "type": "fade"
+            }
+          ]
+        },
+        {
+          "id": "scene-4-overlay",
+          "type": "shape",
+          "track": 2,
+          "time": 0,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "100%",
+          "fill_color": "rgba(0,0,0,0.12)",
+          "animations": [
+            {
+              "time": 0,
+              "duration": 0.4,
+              "transition": true,
+              "type": "fade"
+            }
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "time": 3.8,
+          "duration": 0.7,
+          "transition": true,
+          "type": "fade"
+        }
+      ]
+    },
+    {
+      "id": "scene-5-container",
+      "type": "composition",
+      "track": 1,
+      "time": 18,
+      "duration": 4.5,
+      "elements": [
+        {
+          "id": "scene-5-photo",
+          "name": "photo-5",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 4.5,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            {
+              "time": 0,
+              "duration": 4.5,
+              "type": "scale",
+              "scope": "element",
+              "start_scale": "108%",
+              "end_scale": "118%",
+              "easing": "linear"
+            },
+            {
+              "time": 0,
+              "duration": 0.4,
+              "transition": true,
+              "type": "fade"
+            }
+          ]
+        },
+        {
+          "id": "scene-5-overlay",
+          "type": "shape",
+          "track": 2,
+          "time": 0,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "100%",
+          "fill_color": "rgba(0,0,0,0.15)",
+          "animations": [
+            {
+              "time": 0,
+              "duration": 0.4,
+              "transition": true,
+              "type": "fade"
+            }
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "time": 3.8,
+          "duration": 0.7,
+          "transition": true,
+          "type": "fade"
+        }
+      ]
+    },
+    {
+      "id": "scene-6-container",
+      "type": "composition",
+      "track": 1,
+      "time": 22.5,
+      "duration": 4.5,
+      "elements": [
+        {
+          "id": "scene-6-photo",
+          "name": "photo-6",
+          "type": "image",
+          "track": 1,
+          "time": 0,
+          "duration": 4.5,
+          "width": "100%",
+          "height": "100%",
+          "source": "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?q=80&w=1440&auto=format&fit=crop",
+          "dynamic": true,
+          "clip": true,
+          "animations": [
+            {
+              "time": 0,
+              "duration": 4.5,
+              "type": "scale",
+              "scope": "element",
+              "start_scale": "100%",
+              "end_scale": "120%",
+              "easing": "linear"
+            },
+            {
+              "time": 0,
+              "duration": 0.4,
+              "transition": true,
+              "type": "fade"
+            }
+          ]
+        },
+        {
+          "id": "scene-6-overlay",
+          "type": "shape",
+          "track": 2,
+          "time": 0,
+          "x": "0%",
+          "y": "0%",
+          "width": "100%",
+          "height": "100%",
+          "fill_color": "rgba(0,0,0,0.18)",
+          "animations": [
+            {
+              "time": 0,
+              "duration": 0.4,
+              "transition": true,
+              "type": "fade"
+            }
+          ]
+        }
+      ],
+      "animations": [
+        {
+          "time": 3.8,
+          "duration": 0.7,
+          "transition": true,
+          "type": "fade"
+        }
+      ]
+    },
+    {
+      "id": "text-overlay-master",
+      "type": "composition",
+      "track": 2,
+      "time": 0,
+      "duration": 27,
+      "elements": [
+        {
+          "id": "just-listed-badge",
+          "name": "Pricetext",
+          "type": "text",
+          "track": 1,
+          "time": 0.5,
+          "x": "5%",
+          "y": "8%",
+          "width": "35%",
+          "height": "auto",
+          "x_anchor": "0%",
+          "y_anchor": "0%",
+          "text": "JUST LISTED",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "3.2 vmin",
+          "letter_spacing": "120%",
+          "text_transform": "uppercase",
+          "fill_color": "#F5C518",
+          "background_color": "rgba(26,26,26,0.85)",
+          "background_x_padding": "50%",
+          "background_y_padding": "30%",
+          "dynamic": true,
+          "animations": [
+            {
+              "time": 0,
+              "duration": 0.7,
+              "easing": "quadratic-out",
+              "type": "text-slide",
+              "scope": "split-clip",
+              "split": "line",
+              "direction": "up",
+              "background_effect": "scaling-clip"
+            }
+          ]
+        },
+        {
+          "id": "price-display",
+          "type": "text",
+          "track": 2,
+          "time": 1,
+          "x": "5%",
+          "y": "17%",
+          "width": "60%",
+          "height": "auto",
+          "x_anchor": "0%",
+          "y_anchor": "0%",
+          "text": "$1,250,000",
+          "font_family": "Montserrat",
+          "font_weight": "800",
+          "font_size": "5.5 vmin",
+          "fill_color": "#ffffff",
+          "dynamic": true,
+          "animations": [
+            {
+              "time": 0,
+              "duration": 0.8,
+              "easing": "quadratic-out",
+              "type": "fade"
+            }
+          ]
+        },
+        {
+          "id": "address-block",
+          "name": "Addresstext",
+          "type": "text",
+          "track": 3,
+          "time": 1.5,
+          "x": "5%",
+          "y": "88%",
+          "width": "90%",
+          "height": "auto",
+          "x_anchor": "0%",
+          "y_anchor": "100%",
+          "y_alignment": "50%",
+          "text": "123 Beverly Hills Drive\nLos Angeles, CA 90210",
+          "font_family": "Montserrat",
+          "font_weight": "700",
+          "font_size": "3.8 vmin",
+          "line_height": "180%",
+          "fill_color": "#ffffff",
+          "background_color": "rgba(26,26,26,0.8)",
+          "background_x_padding": "40%",
+          "background_y_padding": "25%",
+          "dynamic": true,
+          "animations": [
+            {
+              "time": 0,
+              "duration": 0.8,
+              "easing": "quadratic-out",
+              "type": "text-slide",
+              "scope": "split-clip",
+              "split": "line",
+              "overlap": "80%",
+              "direction": "up",
+              "background_effect": "scaling-clip"
+            }
+          ]
+        },
+        {
+          "id": "agent-branding",
+          "name": "Brand-Name",
+          "type": "text",
+          "track": 4,
+          "time": 0,
+          "x": "5%",
+          "y": "4%",
+          "width": "auto",
+          "height": "auto",
+          "x_anchor": "0%",
+          "y_anchor": "0%",
+          "text": "AgentName Realty",
+          "font_family": "Inter",
+          "font_weight": "600",
+          "font_size": "2.8 vmin",
+          "fill_color": "rgba(255,255,255,0.7)",
+          "dynamic": true,
+          "animations": [
+            {
+              "time": 0,
+              "duration": 0.6,
+              "transition": true,
+              "type": "fade"
+            }
+          ]
+        },
+        {
+          "id": "reeltor-watermark",
+          "type": "text",
+          "track": 5,
+          "time": 0,
+          "x": "95%",
+          "y": "95%",
+          "width": "auto",
+          "height": "auto",
+          "x_anchor": "100%",
+          "y_anchor": "100%",
+          "text": "Reeltor.ai",
+          "font_family": "Inter",
+          "font_weight": "700",
+          "font_size": "2 vmin",
+          "fill_color": "rgba(245,197,24,0.6)"
+        }
+      ]
+    }
+  ]
+}
