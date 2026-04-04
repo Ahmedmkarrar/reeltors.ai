@@ -46,6 +46,7 @@ export default function CreatePage() {
   const [generating, setGenerating] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState(LOADING_MESSAGES[0]);
   const [progress, setProgress]     = useState(0);
+  const [copied, setCopied]         = useState(false);
 
   const channelRef = useRef<RealtimeChannel | null>(null);
   const msgRef     = useRef(0);
@@ -267,17 +268,17 @@ export default function CreatePage() {
                     disabled={locked}
                     onClick={() => !locked && setFormat(value)}
                     className={[
-                      'relative text-left border rounded p-3 transition-all text-sm',
+                      'relative text-left border rounded p-3 transition-all text-sm bg-white',
                       format === value
-                        ? 'border-[#F0B429] bg-[#F0EDE6]'
+                        ? 'border-[#F0B429] bg-[#FFF8E6] text-[#1A1714]'
                         : locked
-                        ? 'border-[#EAE8E2] opacity-40 cursor-not-allowed'
-                        : 'border-[#E2DED6] hover:border-[#B8B4AE] cursor-pointer',
+                        ? 'border-[#E2DED6] text-[#B8B4AE] cursor-not-allowed bg-[#F7F5EF]'
+                        : 'border-[#D8D4CC] text-[#1A1714] hover:border-[#F0B429]/60 cursor-pointer',
                     ].join(' ')}
                   >
                     <div className="font-medium">{label}</div>
-                    <div className="text-xs text-[#6B6760]">{sub}</div>
-                    {locked && <div className="absolute top-1 right-1 text-[9px] text-[#6B6760]">🔒</div>}
+                    <div className={`text-xs mt-0.5 ${format === value ? 'text-[#C07A00]' : locked ? 'text-[#C8C4BC]' : 'text-[#6B6760]'}`}>{sub}</div>
+                    {locked && <div className="absolute top-1.5 right-1.5 text-[10px]">🔒</div>}
                   </button>
                 );
               })}
@@ -340,44 +341,99 @@ export default function CreatePage() {
     );
   }
 
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(outputUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Could not copy link');
+    }
+  }
+
   // ─── STEP: RESULT ────────────────────────────────────────────────
   if (step === 'result') {
     return (
       <div className="p-6 md:p-8 max-w-2xl">
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="text-[#F0B429]">✓</span>
-            <h2 className="font-syne font-bold text-2xl">Your video is ready!</h2>
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-8 h-8 rounded-full bg-[#F0B429]/20 flex items-center justify-center">
+            <span className="text-[#F0B429] text-lg leading-none">✓</span>
           </div>
-          <p className="text-[#6B6760] text-sm">
-            {listingAddress || 'My Listing Video'}
-          </p>
+          <div>
+            <h2 className="font-syne font-bold text-2xl leading-tight">Your video is ready!</h2>
+            <p className="text-[#6B6760] text-sm">{listingAddress || 'Listing Video'}</p>
+          </div>
         </div>
 
         {/* Video player */}
-        <div className="bg-[#F7F5EF] rounded-[6px] overflow-hidden mb-6">
+        <div className="bg-[#F7F5EF] rounded-[6px] overflow-hidden mb-6 shadow-sm">
           <video
             src={outputUrl}
             controls
+            autoPlay
             className="w-full max-h-[60vh] object-contain"
             poster={images[0]}
           />
         </div>
 
-        {/* Download button */}
-        <div className="flex flex-wrap gap-3 mb-6">
-          <a
-            href={outputUrl}
-            download={`listing-reel-${Date.now()}.mp4`}
-            className="inline-flex items-center gap-2 bg-[#F0B429] text-[#1A1714] font-bold px-5 py-2.5 rounded text-sm hover:bg-[#F5C842] transition-colors"
+        {/* Primary: Download */}
+        <a
+          href={outputUrl}
+          download={`listing-reel-${Date.now()}.mp4`}
+          className="flex items-center justify-center gap-3 w-full bg-[#F0B429] text-[#1A1714] font-bold px-6 py-4 rounded-[6px] text-base hover:bg-[#F5C842] transition-all shadow-[0_0_30px_rgba(240,180,41,0.3)] hover:shadow-[0_0_40px_rgba(240,180,41,0.45)] mb-3"
+        >
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+          </svg>
+          Download HD Video
+        </a>
+
+        {/* Secondary actions */}
+        <div className="flex gap-2 mb-6">
+          <button
+            type="button"
+            onClick={copyLink}
+            className="flex-1 flex items-center justify-center gap-2 border border-[#E2DED6] bg-white text-[#1A1714] font-medium px-4 py-2.5 rounded-[6px] text-sm hover:border-[#C8C4BC] transition-colors"
           >
-            ↓ Download Reel
-          </a>
+            {copied ? (
+              <>
+                <svg className="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                <span className="text-green-700">Copied!</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4 text-[#6B6760]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244" />
+                </svg>
+                Copy Link
+              </>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              // Keep images + details, just swap to template selection
+              setStep('template');
+              setOutputUrl('');
+              setVideoId('');
+              setProgress(0);
+            }}
+            className="flex-1 flex items-center justify-center gap-2 border border-[#E2DED6] bg-white text-[#1A1714] font-medium px-4 py-2.5 rounded-[6px] text-sm hover:border-[#C8C4BC] transition-colors"
+          >
+            <svg className="w-4 h-4 text-[#6B6760]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+            Try Another Style
+          </button>
         </div>
 
         {/* Post tips */}
         <div className="bg-[#FFFFFF] border border-[#E2DED6] rounded-[6px] p-4 mb-6">
-          <p className="text-sm font-medium mb-2">Where to post:</p>
+          <p className="text-xs font-medium text-[#6B6760] uppercase tracking-wide mb-2">Post to</p>
           <div className="flex flex-wrap gap-2">
             {['TikTok', 'Instagram Reels', 'YouTube Shorts', 'MLS Listing'].map((tip) => (
               <span key={tip} className="text-xs border border-[#E2DED6] rounded px-3 py-1.5 text-[#7A7672]">
@@ -387,7 +443,7 @@ export default function CreatePage() {
           </div>
         </div>
 
-        {/* Actions */}
+        {/* Tertiary actions */}
         <div className="flex gap-3">
           <Button variant="secondary" size="md" onClick={() => {
             setStep('upload');
@@ -398,7 +454,7 @@ export default function CreatePage() {
             setVideoId('');
             setProgress(0);
           }}>
-            Create Another
+            New Listing
           </Button>
           <Button variant="ghost" size="md" onClick={() => router.push('/videos')}>
             View All Videos
@@ -415,7 +471,7 @@ function StepHeader({ step, total, title }: { step: number; total: number; title
   return (
     <div className="mb-8">
       <p className="text-xs text-[#6B6760] font-mono mb-2">STEP {step} OF {total}</p>
-      <h1 className="font-syne font-bold text-2xl">{title}</h1>
+      <h1 className="font-syne font-bold text-2xl text-[#1A1714]">{title}</h1>
       <div className="flex gap-2 mt-3">
         {Array.from({ length: total }).map((_, i) => (
           <div
