@@ -121,7 +121,7 @@ export function ROICalculator() {
 
                 <div className="border border-[#F0B429]/20 bg-[#F0B429]/5 rounded-[8px] p-5 text-center mb-5">
                   <p className="text-[#8A8682] text-sm mb-1">
-                    Reeltor.ai Pro costs <span className="text-[#FAFAF8] font-bold">$564/year</span>.
+                    Reeltors.ai Pro costs <span className="text-[#FAFAF8] font-bold">$564/year</span>.
                     Your potential upside is{' '}
                     <span className="text-[#F0B429] font-bold">{fmt(extraRevenuePerYear)}</span>.
                   </p>

@@ -1,10 +1,6 @@
-<<<<<<< HEAD
 /**
  * Creatomate API client — wraps the Render API.
  */
-=======
-const CREATOMATE_API_URL = 'https://api.creatomate.com/v1';
->>>>>>> 40fcd39 (fix: AI drone shot pipeline (v1 API, output_format, default indices))
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 

@@ -169,7 +169,7 @@ export function HowItWorks() {
               <div className="w-px h-16 bg-[#F0B429]/20 hidden sm:block" />
               <div className="max-w-sm text-center sm:text-left">
                 <p className="text-[#C8C4BC] text-base leading-relaxed">
-                  From opening Reeltor.ai to a finished video ready to post on TikTok. We watched a
+                  From opening Reeltors.ai to a finished video ready to post on TikTok. We watched a
                   first-timer do it.{' '}
                   <span className="text-white font-bold">58 seconds.</span>
                 </p>
