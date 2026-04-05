@@ -39,7 +39,7 @@ export default function VideosPage() {
 
       // Subscribe to realtime updates for this user's videos
       channel = supabase
-        .channel('videos-realtime')
+        .channel(`videos-realtime-${Date.now()}`)
         .on(
           'postgres_changes',
           { event: '*', schema: 'public', table: 'videos', filter: `user_id=eq.${user.id}` },
