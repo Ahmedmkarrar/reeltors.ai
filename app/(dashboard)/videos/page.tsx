@@ -23,9 +23,12 @@ export default function VideosPage() {
   const [search,  setSearch]  = useState('');
 
   useEffect(() => {
+    let channel: ReturnType<typeof supabase.channel>;
+
     async function load() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+
       const { data } = await supabase
         .from('videos')
         .select('*')
@@ -33,8 +36,31 @@ export default function VideosPage() {
         .order('created_at', { ascending: false });
       setVideos((data as Video[]) || []);
       setLoading(false);
+
+      // Subscribe to realtime updates for this user's videos
+      channel = supabase
+        .channel('videos-realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'videos', filter: `user_id=eq.${user.id}` },
+          (payload) => {
+            if (payload.eventType === 'INSERT') {
+              setVideos((v) => [payload.new as Video, ...v]);
+            } else if (payload.eventType === 'UPDATE') {
+              setVideos((v) => v.map((vid) => vid.id === (payload.new as Video).id ? payload.new as Video : vid));
+            } else if (payload.eventType === 'DELETE') {
+              setVideos((v) => v.filter((vid) => vid.id !== (payload.old as Video).id));
+            }
+          }
+        )
+        .subscribe();
     }
+
     load();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
   }, [supabase]);
 
   function handleDelete(id: string) {
