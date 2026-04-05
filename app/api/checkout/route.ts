@@ -13,14 +13,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { plan } = await req.json() as { plan: PlanKey };
+    const { plan, annual } = await req.json() as { plan: PlanKey; annual?: boolean };
 
     if (!plan) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
     }
 
     const planData = PLANS[plan];
-    if (!planData.stripePriceId) {
+    const priceId = annual ? planData.stripePriceIdAnnual : planData.stripePriceId;
+    if (!priceId) {
       return NextResponse.json({ error: 'Price not configured' }, { status: 400 });
     }
 
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
       customer: customerId,
       mode: 'subscription',
       payment_method_types: ['card'],
-      line_items: [{ price: planData.stripePriceId, quantity: 1 }],
+      line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?upgraded=1`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
       allow_promotion_codes: true,
