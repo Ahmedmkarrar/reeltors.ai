@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { Button } from '@/components/ui/Button';
-import { ContainerScroll } from '@/components/ui/container-scroll-animation';
+import { FadeIn } from '@/components/ui/FadeIn';
 
 type CellValue = true | false | string;
 
@@ -108,7 +108,6 @@ export function Comparison() {
           </Link>
         </div>
       </div>
-    </ContainerScroll>
-    </section >
+    </section>
   );
 }
