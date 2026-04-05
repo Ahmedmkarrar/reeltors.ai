@@ -224,7 +224,7 @@ export default function VideosPage() {
 
               {/* Social proof hint */}
               <p className="text-xs text-[#B8B4AE] mt-6">
-                Agents using Reeltor.ai get 3× more listing inquiries on average
+                Agents using Reeltors.ai get 3× more listing inquiries on average
               </p>
             </div>
           </div>
