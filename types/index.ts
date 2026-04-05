@@ -1,4 +1,4 @@
-export type PlanKey = 'free' | 'starter' | 'pro' | 'team';
+export type PlanKey = 'free' | 'starter' | 'growth' | 'pro' | 'team';
 
 export type VideoStatus = 'pending' | 'processing' | 'complete' | 'failed';
 export type VideoFormat = 'vertical' | 'square' | 'horizontal';
