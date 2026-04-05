@@ -6,6 +6,7 @@ function getResend() {
 
 const FROM = () => process.env.RESEND_FROM_EMAIL || 'hello@reeltors.ai';
 const APP_URL = () => process.env.NEXT_PUBLIC_APP_URL || 'https://reeltors.ai';
+const baseStyle = 'background:#080808;color:#F0F0EB;font-family:Inter,sans-serif;padding:40px 20px;margin:0;';
 
 export async function sendWelcomeEmail(email: string, name: string) {
   return getResend().emails.send({

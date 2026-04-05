@@ -12,7 +12,7 @@ export default function VideosLoading() {
       {/* Filter pills */}
       <div className="flex gap-2 mb-6">
         {[64, 52, 72, 48].map((w) => (
-          <Pulse key={w} className="h-7 rounded-full" style={{ width: w }} />
+          <div key={w} className="h-7 animate-pulse rounded-full bg-[#E8E4DC]" style={{ width: w }} />
         ))}
       </div>
 

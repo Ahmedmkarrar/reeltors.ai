@@ -19,7 +19,7 @@ export default function CreateLoading() {
       <div className="min-h-[172px] flex items-center justify-center">
         <div className="flex gap-2">
           {[1, 2, 3, 4].map((i) => (
-            <Pulse key={i} className="w-[72px] rounded" style={{ aspectRatio: '9/16' }} />
+            <div key={i} className="w-[72px] animate-pulse rounded bg-[#E8E4DC]" style={{ aspectRatio: '9/16' }} />
           ))}
         </div>
       </div>

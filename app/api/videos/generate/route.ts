@@ -174,17 +174,19 @@ export async function POST(req: NextRequest) {
   const aiRequestedButFullyFailed = falFailed && aiIndices.length > 0;
 
   const ops: Promise<unknown>[] = [
-    admin
-      .from('videos')
-      .update({
-        status:               'processing',
-        creatomate_render_id: render.id,
-      })
-      .eq('id', video.id),
+    Promise.resolve(
+      admin
+        .from('videos')
+        .update({
+          status:               'processing',
+          creatomate_render_id: render.id,
+        })
+        .eq('id', video.id)
+    ),
   ];
 
   if (!aiRequestedButFullyFailed) {
-    ops.push(admin.rpc('increment_videos_used', { p_user_id: user.id }));
+    ops.push(Promise.resolve(admin.rpc('increment_videos_used', { p_user_id: user.id })));
   } else {
     console.info(`AI shots fully failed for video ${video.id} — usage counter not incremented.`);
   }

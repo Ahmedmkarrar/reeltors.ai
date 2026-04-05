@@ -3,6 +3,7 @@
 
 import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
+import { FadeIn } from '@/components/ui/FadeIn';
 
 const steps = [
   {
@@ -111,7 +112,7 @@ function Step({ step, index }: { step: (typeof steps)[0]; index: number }) {
 
 export function HowItWorks() {
   const totalRef = useRef(null);
-  const totalInView = useInView(totalRef, { once: true, margin: '-80px' });
+  useInView(totalRef, { once: true, margin: '-80px' });
 
   return (
     <section id="how-it-works" className="border-t border-[#1E1C18] overflow-hidden">
