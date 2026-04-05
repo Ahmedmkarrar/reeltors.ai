@@ -33,6 +33,16 @@ export default function AccountPage() {
     load();
   }, [supabase]);
 
+  // Scroll to upgrade section when landing via #upgrade anchor
+  useEffect(() => {
+    if (!profile) return;
+    if (window.location.hash === '#upgrade') {
+      setTimeout(() => {
+        document.getElementById('upgrade')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    }
+  }, [profile]);
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     if (!profile) return;
@@ -136,7 +146,7 @@ export default function AccountPage() {
       </section>
 
       {/* ── Subscription ── */}
-      <section className="bg-[#FFFFFF] border border-[#EAE8E2] rounded-[10px] p-6">
+      <section id="upgrade" className="bg-[#FFFFFF] border border-[#EAE8E2] rounded-[10px] p-6 scroll-mt-6">
         <h2 className="font-syne font-semibold text-base mb-5 flex items-center gap-2">
           <svg className="w-4 h-4 text-[#6B6760]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
@@ -248,7 +258,7 @@ export default function AccountPage() {
       {/* ── Sign out ── */}
       <section className="bg-[#FFFFFF] border border-[#EAE8E2] rounded-[10px] p-6">
         <h2 className="font-syne font-semibold text-base mb-1">Sign Out</h2>
-        <p className="text-sm text-[#6B6760] mb-4">Sign out of your Reeltor.ai account on this device.</p>
+        <p className="text-sm text-[#6B6760] mb-4">Sign out of your Reeltors.ai account on this device.</p>
         <button
           onClick={async () => {
             const sb = createClient();

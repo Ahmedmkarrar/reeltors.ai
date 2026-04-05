@@ -65,7 +65,7 @@ export function ValueStack() {
           <div className="border border-[#F0B429]/20 bg-[#F0B429]/5 rounded-[10px] p-6 text-center mb-10 relative overflow-hidden">
             <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.02) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
             <div className="relative">
-              <p className="text-[#8A8682] text-sm mb-2">One listing video made with Reeltor.ai generates</p>
+              <p className="text-[#8A8682] text-sm mb-2">One listing video made with Reeltors.ai generates</p>
               <p className="font-syne font-extrabold text-[#F0B429] text-3xl md:text-4xl mb-2">
                 $9,400+ in potential commission.
               </p>

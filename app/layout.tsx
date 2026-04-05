@@ -18,23 +18,23 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Reeltor.ai — Turn Listing Photos into Viral Videos in 60 Seconds',
+  title: 'Reeltors.ai — Turn Listing Photos into Viral Videos in 60 Seconds',
   description:
-    'Stop losing listings to agents who post better content. Reeltor.ai turns your existing listing photos into cinematic Reels and TikToks — automatically.',
+    'Stop losing listings to agents who post better content. Reeltors.ai turns your existing listing photos into cinematic Reels and TikToks — automatically.',
   keywords: 'real estate video, listing video, realtor marketing, instagram reels real estate, tiktok real estate',
   openGraph: {
-    title: 'Reeltor.ai — Turn Listing Photos into Viral Videos in 60 Seconds',
+    title: 'Reeltors.ai — Turn Listing Photos into Viral Videos in 60 Seconds',
     description:
-      'Stop losing listings to agents who post better content. Reeltor.ai turns your existing listing photos into cinematic Reels and TikToks — automatically.',
-    url: 'https://reeltor.ai',
-    siteName: 'Reeltor.ai',
+      'Stop losing listings to agents who post better content. Reeltors.ai turns your existing listing photos into cinematic Reels and TikToks — automatically.',
+    url: 'https://reeltors.ai',
+    siteName: 'Reeltors.ai',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Reeltor.ai — Turn Listing Photos into Viral Videos in 60 Seconds',
+    title: 'Reeltors.ai — Turn Listing Photos into Viral Videos in 60 Seconds',
     description: 'Turn your listing photos into viral TikToks and Reels in under 60 seconds.',
-    creator: '@reeltorai',
+    creator: '@reeltorsai',
   },
 };
 

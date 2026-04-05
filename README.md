@@ -1,4 +1,4 @@
-# Reeltor.ai
+# Reeltors.ai
 
 > Turn listing photos into viral videos in 60 seconds.
 
@@ -32,7 +32,7 @@ A SaaS product for real estate agents that converts listing photos into cinemati
 
 ```bash
 git clone <your-repo>
-cd reeltor-ai
+cd reeltors-ai
 npm install
 ```
 
@@ -91,7 +91,7 @@ STRIPE_PRICE_TEAM=price_...
 CREATOMATE_API_KEY=...
 
 RESEND_API_KEY=re_...
-RESEND_FROM_EMAIL=hello@reeltor.ai
+RESEND_FROM_EMAIL=hello@reeltors.ai
 
 NEXT_PUBLIC_POSTHOG_KEY=phc_...
 NEXT_PUBLIC_POSTHOG_HOST=https://app.posthog.com

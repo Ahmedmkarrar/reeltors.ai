@@ -24,7 +24,7 @@ const MARQUEE_ROW2 = [
 const cards = [
   {
     result: '$4,400 saved + $1.1M in new listings',
-    quote: 'I used to spend $400 per listing on a video editor. Last month I made 11 videos in Reeltor.ai in one afternoon. But the real win? One of those videos went to 41k views and a buyer called me directly. That turned into a $1.1M listing. Off one TikTok.',
+    quote: 'I used to spend $400 per listing on a video editor. Last month I made 11 videos in Reeltors.ai in one afternoon. But the real win? One of those videos went to 41k views and a buyer called me directly. That turned into a $1.1M listing. Off one TikTok.',
     name: 'Sarah K.',
     role: 'Realtor · Keller Williams',
     location: 'Austin, TX',

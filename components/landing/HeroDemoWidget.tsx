@@ -260,7 +260,7 @@ export function HeroDemoWidget() {
             <div className="w-3 h-3 rounded-full bg-[#28C840]" />
           </div>
           <div className="flex-1 mx-3 bg-[#1a1a1a] rounded-md px-3 py-1.5 text-[10px] text-[#444444] font-mono">
-            reeltor.ai/create
+            reeltors.ai/create
           </div>
           {/* Stage indicator pills */}
           <div className="flex gap-1">

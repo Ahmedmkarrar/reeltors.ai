@@ -69,7 +69,7 @@ export default function LoginPage() {
               </svg>
             </div>
             <span className="font-syne font-extrabold text-[20px] text-[#FAFAF8]">
-              Reeltor<span className="text-[#F0B429]">.</span>ai
+              Reeltors<span className="text-[#F0B429]">.</span>ai
             </span>
           </Link>
         </div>
@@ -115,12 +115,12 @@ export default function LoginPage() {
               </svg>
             </div>
             <span className="font-syne font-extrabold text-xl text-[#1A1714]">
-              Reeltor<span className="text-[#F0B429]">.</span>ai
+              Reeltors<span className="text-[#F0B429]">.</span>ai
             </span>
           </Link>
 
           <h1 className="font-syne font-extrabold text-[28px] text-[#1A1714] mb-1">Welcome back</h1>
-          <p className="text-[#6B6760] text-sm mb-8">Sign in to your Reeltor.ai account</p>
+          <p className="text-[#6B6760] text-sm mb-8">Sign in to your Reeltors.ai account</p>
 
           {/* Google first */}
           <button

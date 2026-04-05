@@ -40,11 +40,11 @@ export function PainSection() {
               </div>
               <div className="space-y-3">
                 {[
-                  { label: 'Inbound leads per month',    value: '2–3',      note: 'word of mouth + Zillow' },
-                  { label: 'Average closings per month', value: '1',        note: 'best case' },
-                  { label: 'Monthly commission',         value: '$9,400',   note: 'avg US commission' },
-                  { label: 'Video content posted',       value: '0 videos', note: '"I\'ll start next month"' },
-                  { label: 'Social media growth',        value: '—',        note: 'zero organic reach' },
+                  { label: 'Inbound leads per month', value: '2–3', note: 'word of mouth + Zillow' },
+                  { label: 'Average closings per month', value: '1', note: 'best case' },
+                  { label: 'Monthly commission', value: '$9,400', note: 'avg US commission' },
+                  { label: 'Video content posted', value: '0 videos', note: '"I\'ll start next month"' },
+                  { label: 'Social media growth', value: '—', note: 'zero organic reach' },
                 ].map(({ label, value, note }) => (
                   <div key={label} className="flex items-center justify-between py-3 border-b border-[#1E1C18] last:border-0">
                     <div>
@@ -69,15 +69,15 @@ export function PainSection() {
               <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-[#F0B429] opacity-[0.06] rounded-full blur-[80px] pointer-events-none" />
               <div className="flex items-center gap-2.5 mb-7 relative">
                 <div className="w-3 h-3 rounded-full bg-[#F0B429] animate-pulse" />
-                <span className="text-sm font-bold text-[#F0B429] uppercase tracking-widest">Realtor using Reeltor.ai</span>
+                <span className="text-sm font-bold text-[#F0B429] uppercase tracking-widest">Realtor using Reeltors.ai</span>
               </div>
               <div className="space-y-3 relative">
                 {[
-                  { label: 'Inbound leads per month',    value: '12–15',      note: 'video drives organic traffic 24/7' },
-                  { label: 'Average closings per month', value: '3–4',        note: '+300% vs no video' },
-                  { label: 'Monthly commission',         value: '$37,600+',   note: '4× more closings' },
-                  { label: 'Video content posted',       value: '1/listing',  note: 'automated in 60 seconds' },
-                  { label: 'Social media growth',        value: '+22k views', note: 'per video on average' },
+                  { label: 'Inbound leads per month', value: '12–15', note: 'video drives organic traffic 24/7' },
+                  { label: 'Average closings per month', value: '3–4', note: '+300% vs no video' },
+                  { label: 'Monthly commission', value: '$37,600+', note: '4× more closings' },
+                  { label: 'Video content posted', value: '1/listing', note: 'automated in 60 seconds' },
+                  { label: 'Social media growth', value: '+22k views', note: 'per video on average' },
                 ].map(({ label, value, note }) => (
                   <div key={label} className="flex items-center justify-between py-3 border-b border-[#2E2B27] last:border-0">
                     <div>
@@ -123,7 +123,7 @@ export function PainSection() {
                     and those who don't.
                   </p>
                   <p className="mt-3 text-[#F0B429] font-semibold text-lg">
-                    Reeltor.ai costs $49/month. That's a <span className="text-white font-extrabold">191x return</span> on a single deal.
+                    Reeltor.ai costs $47/month. That's a <span className="text-white font-extrabold">199x return</span> on a single deal.
                   </p>
                   <p className="text-[#2E2B27] text-sm mt-2">$1.57/day. Less than a bag of chips.</p>
                 </div>

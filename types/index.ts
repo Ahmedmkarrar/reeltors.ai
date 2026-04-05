@@ -58,6 +58,8 @@ export interface CreateVideoPayload {
   agentName?: string;
   format?: VideoFormat;
   title?: string;
+  /** Optional user-written description prepended to the fal.ai drone-shot prompt. */
+  videoPrompt?: string;
 }
 
 export interface GenerateVideoResponse {

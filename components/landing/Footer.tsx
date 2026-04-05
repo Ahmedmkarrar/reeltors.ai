@@ -11,7 +11,7 @@ const LINKS = {
     { label: 'About', href: '/about' },
     { label: 'Blog', href: '/blog' },
     { label: 'Careers', href: '/careers' },
-    { label: 'Contact', href: 'mailto:hello@reeltor.ai' },
+    { label: 'Contact', href: 'mailto:hello@reeltors.ai' },
   ],
   Legal: [
     { label: 'Privacy Policy', href: '/privacy' },
@@ -56,7 +56,7 @@ export function Footer() {
                 </svg>
               </div>
               <span className="font-syne font-extrabold text-[20px] text-[#FAFAF8] group-hover:text-[#F0B429] transition-colors">
-                Reeltor<span className="text-[#F0B429]">.</span>ai
+                Reeltors<span className="text-[#F0B429]">.</span>ai
               </span>
             </Link>
             <p className="text-sm text-[#8A8682] leading-relaxed max-w-[240px] mb-6">
@@ -108,7 +108,7 @@ export function Footer() {
       <div className="border-t border-[#2E2B27]">
         <div className="max-w-6xl mx-auto px-4 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-[11px] text-[#4A4744]">
-            © 2026 Reeltor.ai · All rights reserved.
+            © 2026 Reeltors.ai · All rights reserved.
           </p>
           <p className="text-[11px] text-[#4A4744]">
             Built for real estate agents who want more leads

@@ -7,7 +7,7 @@ import { FadeIn } from '@/components/ui/FadeIn';
 const faqs = [
   {
     q: "I'm not tech-savvy. Is this actually easy?",
-    a: "We watched a 64-year-old realtor open Reeltor.ai for the first time. No tutorial. No demo. She uploaded photos from her phone, typed the address and her name, hit generate. 58 seconds later: professional listing video. If you can attach a photo to an email, you're qualified.",
+    a: "We watched a 64-year-old realtor open Reeltors.ai for the first time. No tutorial. No demo. She uploaded photos from her phone, typed the address and her name, hit generate. 58 seconds later: professional listing video. If you can attach a photo to an email, you're qualified.",
   },
   {
     q: 'Do I really not need to film anything?',

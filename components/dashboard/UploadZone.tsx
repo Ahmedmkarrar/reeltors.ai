@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { createClient } from '@/lib/supabase/client';
 import toast from 'react-hot-toast';
@@ -12,6 +12,45 @@ interface UploadedFile {
   preview: string;
 }
 
+const MAX_WORDS = 300;
+
+function countWords(text: string): number {
+  return text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+}
+
+const PROMPT_TEMPLATES = [
+  {
+    label: 'FPV Walkthrough',
+    preview: 'First-person glide through each room',
+    prompt: 'Smooth first-person drone gliding through each room, revealing the open floor plan. Warm interior lighting, natural fluid motion.',
+  },
+  {
+    label: 'Luxury Reveal',
+    preview: 'Slow push revealing premium finishes',
+    prompt: 'Slow cinematic forward push revealing premium architectural details and luxury finishes. Elegant, refined camera movement.',
+  },
+  {
+    label: 'Golden Hour Aerial',
+    preview: 'Aerial orbit at warm sunset light',
+    prompt: 'Gentle aerial orbit around the property at golden hour. Warm sunset tones, long soft shadows, dramatic sky backdrop.',
+  },
+  {
+    label: 'Interior Showcase',
+    preview: 'Glide highlighting key living spaces',
+    prompt: 'Smooth camera glide highlighting key interior spaces — open kitchen, living area, master suite. Clean, modern movement.',
+  },
+  {
+    label: 'Twilight Drama',
+    preview: 'Push toward lit windows at blue hour',
+    prompt: 'Slow push toward warmly lit windows at twilight blue hour. Dramatic contrast between interior glow and cool exterior tones.',
+  },
+  {
+    label: 'Neighbourhood View',
+    preview: 'Wide pull-back revealing the street',
+    prompt: 'Wide pull-back shot revealing the property within its street and neighbourhood context. Calm, establishing movement.',
+  },
+] as const;
+
 interface UploadZoneProps {
   userId: string;
   onUploadComplete: (urls: string[]) => void;
@@ -20,6 +59,14 @@ interface UploadZoneProps {
   /** Called whenever the user toggles AI on/off for a photo */
   onAiIndicesChange: (indices: number[]) => void;
   maxFiles?: number;
+  /** Controlled prompt value */
+  videoPrompt?: string;
+  /** Called whenever the prompt changes */
+  onPromptChange?: (prompt: string) => void;
+  /** Callback for the embedded Next button */
+  onNext?: () => void;
+  /** Disables the embedded Next button */
+  nextDisabled?: boolean;
 }
 
 export function UploadZone({
@@ -28,10 +75,51 @@ export function UploadZone({
   aiVideoIndices,
   onAiIndicesChange,
   maxFiles = 15,
+  videoPrompt = '',
+  onPromptChange,
+  onNext,
+  nextDisabled = false,
 }: UploadZoneProps) {
   const supabase = createClient();
-  const [files, setFiles]       = useState<UploadedFile[]>([]);
-  const [uploading, setUploading] = useState(false);
+  const [files, setFiles]             = useState<UploadedFile[]>([]);
+  const [uploading, setUploading]     = useState(false);
+  const [showPrompts, setShowPrompts] = useState(false);
+  const [isFocused, setIsFocused]     = useState(false);
+  const [typedText, setTypedText]     = useState('');
+
+  const PLACEHOLDER = 'Describe your vision… or tap ✦ for ready-made prompts';
+
+  // Typewriter animation — runs when the prompt is empty
+  useEffect(() => {
+    if (videoPrompt) { setTypedText(''); return; }
+
+    let index     = 0;
+    let deleting  = false;
+    let timerId: ReturnType<typeof setTimeout>;
+
+    const tick = () => {
+      if (!deleting) {
+        index++;
+        setTypedText(PLACEHOLDER.slice(0, index));
+        if (index === PLACEHOLDER.length) {
+          timerId = setTimeout(() => { deleting = true; tick(); }, 2200);
+          return;
+        }
+        timerId = setTimeout(tick, 48);
+      } else {
+        index--;
+        setTypedText(PLACEHOLDER.slice(0, index));
+        if (index === 0) {
+          timerId = setTimeout(() => { deleting = false; tick(); }, 500);
+          return;
+        }
+        timerId = setTimeout(tick, 22);
+      }
+    };
+
+    timerId = setTimeout(tick, 350);
+    return () => clearTimeout(timerId);
+  }, [videoPrompt]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Native drag-to-reorder state
   const dragIndex = useRef<number | null>(null);
@@ -81,11 +169,12 @@ export function UploadZone({
     [files, maxFiles, userId, supabase, onUploadComplete]
   );
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] },
     maxFiles,
     disabled: uploading || files.length >= maxFiles,
+    noClick: true,
   });
 
   function removeFile(index: number) {
@@ -155,39 +244,35 @@ export function UploadZone({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Dropzone */}
-      <div
-        {...getRootProps()}
-        className={[
-          'border-2 border-dashed rounded-[6px] p-10 text-center cursor-pointer transition-all duration-200',
-          isDragActive
-            ? 'border-[#F0B429] bg-[#F0B429]/5'
-            : files.length >= maxFiles
-            ? 'border-[#E2DED6] opacity-50 cursor-not-allowed'
-            : 'border-[#E2DED6] hover:border-[#F0B429]/50 hover:bg-[#FDFCF8]',
-        ].join(' ')}
-      >
-        <input {...getInputProps()} />
-        <div className="text-4xl mb-3">📸</div>
-        {isDragActive ? (
-          <p className="text-[#F0B429] font-medium">Drop photos here</p>
-        ) : (
-          <>
-            <p className="font-medium text-[#1A1714] mb-1">
-              Drag &amp; drop listing photos here
-            </p>
-            <p className="text-sm text-[#8A8682]">
-              or click to browse · JPG, PNG, WebP · up to 10MB each · max {maxFiles} photos
-            </p>
-          </>
-        )}
-        {uploading && (
-          <p className="mt-3 text-sm text-[#F0B429] animate-pulse">Uploading…</p>
-        )}
-      </div>
+    <div {...getRootProps()} className="space-y-4 outline-none">
+      {/* Hidden file input — drag-and-drop + programmatic open() both use this */}
+      <input {...getInputProps()} />
 
-      {/* Draggable photo strip */}
+      {/* Draggable photo strip — min-h keeps the bar pinned at the same vertical position */}
+      <div className="min-h-[172px]">
+
+      {/* Elegant empty state — feature chips */}
+      {files.length === 0 && (
+        <div className="h-full min-h-[172px] flex flex-col items-center justify-center gap-5">
+          <div className="flex flex-wrap gap-2 justify-center max-w-md">
+            {[
+              { icon: '📸', label: 'Up to 15 listing photos' },
+              { icon: '⚡', label: 'AI-powered drone shots' },
+              { icon: '🎬', label: 'Cinematic Ken Burns motion' },
+              { icon: '📐', label: 'Vertical · Square · Horizontal' },
+            ].map(({ icon, label }) => (
+              <span
+                key={label}
+                className="inline-flex items-center gap-1.5 text-[11px] text-[#9A9690] bg-white/60 border border-[#E8E4DC] rounded-full px-3.5 py-1.5 select-none backdrop-blur-sm shadow-sm"
+              >
+                <span className="text-sm">{icon}</span>
+                <span className="tracking-tight">{label}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {files.length > 0 && (
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -198,14 +283,12 @@ export function UploadZone({
             <p className="text-xs text-[#F0B429] font-medium">#1 = cover frame</p>
           </div>
 
-          {/* AI drone shot legend */}
+          {/* AI legend */}
           <div className="flex items-center gap-1.5 mb-3">
             <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/30 rounded px-2 py-0.5">
               <BoltIcon className="w-2.5 h-2.5" /> AI
             </span>
-            <span className="text-[10px] text-[#8A8682]">
-              = AI drone shot via fal.ai · tap the bolt to toggle · max {MAX_AI_VIDEOS} per video
-            </span>
+            <span className="text-[10px] text-[#8A8682]">animate your video using AI</span>
           </div>
 
           <div className="flex gap-3 overflow-x-auto pb-2 pt-3 pl-2">
@@ -241,20 +324,12 @@ export function UploadZone({
                       className="absolute inset-0 w-full h-full object-cover"
                       draggable={false}
                     />
-
-                    {/* AI overlay tint when selected */}
-                    {isAi && (
-                      <div className="absolute inset-0 bg-[#7C3AED]/10 pointer-events-none" />
-                    )}
-
-                    {/* Cover badge */}
+                    {isAi && <div className="absolute inset-0 bg-[#7C3AED]/10 pointer-events-none" />}
                     {i === 0 && (
                       <div className="absolute top-1 left-1 right-1 bg-[#F0B429] text-[#1A1714] text-[8px] font-bold text-center rounded-sm py-0.5 leading-none">
                         COVER
                       </div>
                     )}
-
-                    {/* AI drone badge */}
                     {isAi && (
                       <div className="absolute bottom-5 left-0 right-0 flex justify-center">
                         <span className="inline-flex items-center gap-0.5 bg-[#7C3AED] text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full leading-none">
@@ -262,15 +337,11 @@ export function UploadZone({
                         </span>
                       </div>
                     )}
-
-                    {/* Drag handle dots */}
                     <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
                       {[0, 1, 2].map((dot) => (
                         <div key={dot} className="w-0.5 h-2 bg-white/60 rounded-full" />
                       ))}
                     </div>
-
-                    {/* Remove button */}
                     <button
                       type="button"
                       onClick={() => removeFile(i)}
@@ -285,7 +356,7 @@ export function UploadZone({
                     {i + 1}
                   </div>
 
-                  {/* AI toggle button */}
+                  {/* AI toggle */}
                   <button
                     type="button"
                     title={isAi ? 'Remove AI drone shot' : 'Generate AI drone shot'}
@@ -303,20 +374,213 @@ export function UploadZone({
               );
             })}
 
-            {/* Add more slot */}
+            {/* Add more slot — click calls open(), drag is caught by outer wrapper */}
             {files.length < maxFiles && (
-              <div
-                {...getRootProps()}
-                className="flex-shrink-0 w-[72px] aspect-[9/16] border-2 border-dashed border-[#E2DED6] rounded flex items-center justify-center cursor-pointer hover:border-[#F0B429]/50 transition-colors"
+              <button
+                type="button"
+                onClick={open}
+                disabled={uploading}
+                className="flex-shrink-0 w-[72px] aspect-[9/16] border-2 border-dashed border-[#E2DED6] rounded flex items-center justify-center hover:border-[#F0B429]/50 transition-colors disabled:opacity-40"
               >
-                <input {...getInputProps()} />
                 <span className="text-xl text-[#C8C4BC]">+</span>
-              </div>
+              </button>
             )}
           </div>
         </div>
       )}
+      </div>
+
+      {/* Video prompt + Next — unified dark bar (also the visual drop target) */}
+      {(() => {
+        const wordCount = countWords(videoPrompt);
+        const isOver = wordCount > MAX_WORDS;
+        return (
+          <div className="relative">
+            <div
+              className={[
+                'flex items-stretch rounded-[8px] overflow-hidden transition-all duration-200',
+                'border',
+                isDragActive
+                  ? 'border-[#F0B429]/60 ring-2 ring-[#F0B429]/15'
+                  : isOver
+                  ? 'border-red-500/60 focus-within:ring-1 focus-within:ring-red-500/20'
+                  : 'border-[#2A2622] focus-within:border-[#F0B429]/40 focus-within:ring-1 focus-within:ring-[#F0B429]/10',
+              ].join(' ')}
+              style={{ background: '#141210' }}
+            >
+              {/* Left action column: upload + prompt templates */}
+              <div className="flex-shrink-0 flex flex-col items-center justify-between py-3 px-3.5 gap-2">
+                <button
+                  type="button"
+                  onClick={open}
+                  disabled={uploading || files.length >= maxFiles}
+                  title="Add photos"
+                  className="text-[#484440] hover:text-[#F0B429] transition-colors duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
+                >
+                  <PlusIcon className="w-[17px] h-[17px]" />
+                </button>
+                <div className="relative group">
+                  <button
+                    type="button"
+                    onClick={() => setShowPrompts((p) => !p)}
+                    className={[
+                      'transition-colors duration-150',
+                      showPrompts ? 'text-[#F0B429]' : 'text-[#484440] hover:text-[#F0B429]',
+                    ].join(' ')}
+                  >
+                    <SparkleIcon className="w-[15px] h-[15px]" />
+                  </button>
+                  {/* Styled tooltip */}
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded-md border border-[#2A2622] text-[10px] text-[#C8C4BC] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none" style={{ background: '#1A1714' }}>
+                    Prompt ideas
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent" style={{ borderTopColor: '#2A2622' }} />
+                  </div>
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="w-px bg-[#2A2622] flex-shrink-0 my-2.5" />
+
+              {/* Textarea */}
+              <div className="relative flex-1 min-w-0">
+                {/* Cursor blink keyframe */}
+                <style>{`@keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}`}</style>
+
+                <textarea
+                  rows={3}
+                  value={videoPrompt}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                  onChange={(e) => {
+                    const next = e.target.value;
+                    if (countWords(next) <= MAX_WORDS || next.length < videoPrompt.length) {
+                      onPromptChange?.(next);
+                    }
+                  }}
+                  className="w-full h-full resize-none bg-transparent px-3 pt-3 pb-7 text-sm text-[#E8E4DE] outline-none"
+                />
+
+                {/* Animated typewriter placeholder */}
+                {!videoPrompt && !isFocused && (
+                  <div className="absolute inset-0 px-3 pt-3 pb-7 text-sm text-[#3A3632] pointer-events-none select-none">
+                    {typedText}
+                    <span
+                      className="inline-block w-px h-[13px] bg-[#4A4642] ml-px align-middle"
+                      style={{ animation: 'cursorBlink 1s steps(1) infinite' }}
+                    />
+                  </div>
+                )}
+                <span
+                  className={[
+                    'absolute bottom-2 left-3 text-[11px] tabular-nums pointer-events-none',
+                    isOver ? 'text-red-400' : 'text-[#3A3632]',
+                  ].join(' ')}
+                >
+                  {wordCount} / {MAX_WORDS} words
+                </span>
+              </div>
+
+              {/* Divider */}
+              <div className="w-px bg-[#2A2622] flex-shrink-0" />
+
+              {/* Next button */}
+              {onNext && (
+                <button
+                  type="button"
+                  onClick={onNext}
+                  disabled={nextDisabled}
+                  className={[
+                    'flex-shrink-0 flex flex-col items-center justify-center gap-0.5 px-5',
+                    'font-semibold text-sm text-[#1A1714] bg-[#F0B429] transition-colors',
+                    'disabled:opacity-35 disabled:cursor-not-allowed',
+                    'hover:bg-[#E8AC22] active:bg-[#D9A01E]',
+                  ].join(' ')}
+                >
+                  <span className="whitespace-nowrap">Next →</span>
+                  <span className="text-[10px] font-normal opacity-70 whitespace-nowrap">
+                    {files.length} photo{files.length !== 1 ? 's' : ''}
+                  </span>
+                </button>
+              )}
+            </div>
+
+            {/* Prompt templates popover */}
+            {showPrompts && (
+              <>
+                {/* Backdrop — closes on outside click */}
+                <div className="fixed inset-0 z-10" onClick={() => setShowPrompts(false)} />
+
+                <div
+                  className="absolute bottom-full left-0 right-0 mb-2 z-20 rounded-[10px] overflow-hidden border border-[#2A2622] shadow-2xl"
+                  style={{ background: '#1A1714' }}
+                >
+                  <div className="p-3">
+                    <p className="text-[10px] text-[#484440] font-medium uppercase tracking-widest mb-2.5 px-1">
+                      Prompt templates
+                    </p>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {PROMPT_TEMPLATES.map((t) => (
+                        <button
+                          key={t.label}
+                          type="button"
+                          onClick={() => {
+                            onPromptChange?.(t.prompt);
+                            setShowPrompts(false);
+                          }}
+                          className="text-left px-3 py-2.5 rounded-[7px] border border-[#2A2622] hover:border-[#F0B429]/30 transition-all group"
+                          style={{ background: '#141210' }}
+                        >
+                          <p className="text-[11px] font-semibold text-[#C8C4BC] group-hover:text-[#F0B429] transition-colors leading-tight">
+                            {t.label}
+                          </p>
+                          <p className="text-[10px] text-[#484440] mt-0.5 leading-tight">
+                            {t.preview}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Drag-active overlay on the bar */}
+            {isDragActive && (
+              <div className="absolute inset-0 rounded-[8px] flex items-center justify-center pointer-events-none" style={{ background: 'rgba(240,180,41,0.06)' }}>
+                <p className="text-[#F0B429] text-sm font-medium tracking-wide">Drop photos here</p>
+              </div>
+            )}
+          </div>
+        );
+      })()}
+
+      {/* Hint / uploading state */}
+      {uploading ? (
+        <p className="text-center text-[11px] text-[#F0B429] animate-pulse tracking-wide">Uploading…</p>
+      ) : (
+        <p className="text-center text-[11px] text-[#B8B4AE] select-none tracking-wide">
+          {files.length === 0
+            ? 'drag & drop photos anywhere · or click + to browse'
+            : `${files.length} photo${files.length !== 1 ? 's' : ''} added · drag to reorder · min 3 to continue`}
+        </p>
+      )}
     </div>
+  );
+}
+
+function SparkleIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M12 2c-.28 3.1-1.9 5.6-4.7 6.9C4.5 10.2 2.2 10.3 2 10.5c.2.2 2.5.3 5.3 1.6 2.8 1.3 4.4 3.8 4.7 6.9.28-3.1 1.9-5.6 4.7-6.9 2.8-1.3 5.1-1.4 5.3-1.6-.2-.2-2.5-.3-5.3-1.6C13.9 7.6 12.28 5.1 12 2z" />
+    </svg>
+  );
+}
+
+function PlusIcon({ className }: { className?: string }) {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
   );
 }
 

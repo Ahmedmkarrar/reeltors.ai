@@ -43,6 +43,7 @@ export default function CreatePage() {
   // Form state
   const [images, setImages]                 = useState<string[]>([]);
   const [aiVideoIndices, setAiVideoIndices] = useState<number[]>([]);
+  const [videoPrompt, setVideoPrompt]       = useState('');
   const [listingAddress, setListingAddress] = useState('');
   const [listingPrice, setListingPrice]     = useState('');
   const [agentName, setAgentName]           = useState('');
@@ -155,6 +156,7 @@ export default function CreatePage() {
           agentName,
           format,
           title: listingAddress || 'My Listing Video',
+          videoPrompt: videoPrompt.trim() || undefined,
         }),
       });
 
@@ -168,8 +170,15 @@ export default function CreatePage() {
 
       if (!res.ok) throw new Error('Failed to start generation');
 
-      const { videoId: vid } = await res.json();
+      const { videoId: vid, aiVideosFailed } = await res.json();
       setVideoId(vid);
+
+      if (aiVideosFailed) {
+        toast('AI drone shot generation failed — we created a standard video instead. This didn\'t count against your monthly limit.', {
+          duration: 8000,
+          icon: '⚠️',
+        });
+      }
 
       // Subscribe to Realtime for instant completion notification
       subscribeToVideo(vid);
@@ -219,27 +228,91 @@ export default function CreatePage() {
   // ─── STEP: UPLOAD ────────────────────────────────────────────────
   if (step === 'upload') {
     return (
-      <div className="p-6 md:p-8 max-w-3xl">
-        <StepHeader step={1} total={3} title="Upload Listing Photos" />
-        <UploadZone
-          userId={userId}
-          onUploadComplete={setImages}
-          aiVideoIndices={aiVideoIndices}
-          onAiIndicesChange={setAiVideoIndices}
+      <div className="relative min-h-screen overflow-hidden">
+
+        {/* ── Animated background ─────────────────────────────────────── */}
+        <style>{`
+          @keyframes orbDrift1 {
+            0%,100% { transform: translate(0,0) scale(1); }
+            35%     { transform: translate(-45px, 35px) scale(1.06); }
+            70%     { transform: translate(30px,-20px) scale(0.96); }
+          }
+          @keyframes orbDrift2 {
+            0%,100% { transform: translate(0,0) scale(1); }
+            40%     { transform: translate(40px,-30px) scale(1.04); }
+            75%     { transform: translate(-20px, 40px) scale(0.97); }
+          }
+          @keyframes orbDrift3 {
+            0%,100% { transform: translate(0,0); }
+            50%     { transform: translate(25px, 20px); }
+          }
+        `}</style>
+
+        {/* Dot grid */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: 'radial-gradient(circle, rgba(26,23,20,0.055) 1px, transparent 1px)',
+            backgroundSize: '28px 28px',
+          }}
         />
-        <div className="flex justify-end mt-6">
-          <Button
-            variant="primary"
-            size="md"
-            disabled={images.length < 3}
-            onClick={() => setStep('details')}
-          >
-            Next → ({images.length} photos)
-          </Button>
+
+        {/* Ambient orbs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          {/* Gold — top-right */}
+          <div
+            className="absolute -top-32 -right-32 w-[560px] h-[560px] rounded-full"
+            style={{
+              background: 'radial-gradient(circle, rgba(240,180,41,0.13) 0%, transparent 65%)',
+              filter: 'blur(72px)',
+              animation: 'orbDrift1 14s ease-in-out infinite',
+            }}
+          />
+          {/* Purple — bottom-left */}
+          <div
+            className="absolute -bottom-24 -left-24 w-[480px] h-[480px] rounded-full"
+            style={{
+              background: 'radial-gradient(circle, rgba(124,58,237,0.09) 0%, transparent 65%)',
+              filter: 'blur(80px)',
+              animation: 'orbDrift2 18s ease-in-out infinite',
+            }}
+          />
+          {/* Warm centre wash */}
+          <div
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[340px] rounded-full"
+            style={{
+              background: 'radial-gradient(ellipse, rgba(240,180,41,0.05) 0%, transparent 70%)',
+              filter: 'blur(60px)',
+              animation: 'orbDrift3 22s ease-in-out infinite',
+            }}
+          />
         </div>
-        {images.length < 3 && images.length > 0 && (
-          <p className="text-xs text-[#6B6760] text-right mt-2">Upload at least 3 photos to continue</p>
-        )}
+
+        {/* Edge vignette for depth */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(20,18,16,0.06) 100%)',
+          }}
+        />
+
+        {/* ── Content ─────────────────────────────────────────────────── */}
+        <div className="relative p-6 md:p-8 max-w-3xl">
+          <StepHeader step={1} total={3} title="Upload Listing Photos" />
+          <p className="text-sm text-[#8A8682] -mt-2 mb-6">
+            Add your best listing shots — we&apos;ll turn them into a cinematic property video.
+          </p>
+          <UploadZone
+            userId={userId}
+            onUploadComplete={setImages}
+            aiVideoIndices={aiVideoIndices}
+            onAiIndicesChange={setAiVideoIndices}
+            videoPrompt={videoPrompt}
+            onPromptChange={setVideoPrompt}
+            onNext={() => setStep('details')}
+            nextDisabled={images.length < 3}
+          />
+        </div>
       </div>
     );
   }

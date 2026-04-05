@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { VideoCard } from '@/components/dashboard/VideoCard';
+import { UpgradeButton, UpgradeLink } from '@/components/dashboard/UpgradeCTA';
 import type { Profile, Video } from '@/types';
 
 function getGreeting(): string {
@@ -45,12 +46,9 @@ export default async function DashboardPage() {
             </svg>
             <p className="text-sm text-[#FF5500]">You&apos;ve used your free video this month.</p>
           </div>
-          <Link
-            href="/account"
-            className="shrink-0 text-sm font-bold text-[#FAFAF8] bg-[#FF5500] hover:bg-[#ff7744] px-4 py-1.5 rounded-[5px] transition-colors"
-          >
+          <UpgradeButton className="shrink-0 text-sm font-bold text-[#FAFAF8] bg-[#FF5500] hover:bg-[#ff7744] px-4 py-1.5 rounded-[5px] transition-colors">
             Upgrade to Pro
-          </Link>
+          </UpgradeButton>
         </div>
       )}
 
@@ -143,9 +141,9 @@ export default async function DashboardPage() {
           {profile.plan === 'free' && (
             <p className="text-xs text-[#8A8682] mt-2">
               On the free plan.{' '}
-              <Link href="/account" className="text-[#F0B429] hover:underline">
+              <UpgradeLink className="text-[#F0B429] hover:underline">
                 Upgrade for unlimited →
-              </Link>
+              </UpgradeLink>
             </p>
           )}
         </div>

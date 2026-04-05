@@ -95,7 +95,7 @@ export default function SignupPage() {
               </svg>
             </div>
             <span className="font-syne font-extrabold text-[20px] text-[#FAFAF8]">
-              Reeltor<span className="text-[#F0B429]">.</span>ai
+              Reeltors<span className="text-[#F0B429]">.</span>ai
             </span>
           </Link>
         </div>
@@ -152,7 +152,7 @@ export default function SignupPage() {
               </svg>
             </div>
             <span className="font-syne font-extrabold text-xl text-[#1A1714]">
-              Reeltor<span className="text-[#F0B429]">.</span>ai
+              Reeltors<span className="text-[#F0B429]">.</span>ai
             </span>
           </Link>
 

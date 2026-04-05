@@ -155,35 +155,27 @@ export function HowItWorks() {
       <div ref={totalRef} className="bg-[#1A1714] border-t border-[#2E2B27] relative overflow-hidden">
         <div className="absolute inset-0 dot-grid opacity-10" />
         <div className="max-w-5xl mx-auto px-4 py-12 relative">
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={totalInView ? { opacity: 1, scale: 1 } : {}}
-              transition={{ duration: 0.6, type: 'spring', bounce: 0.3 }}
-              className="text-center"
-            >
-              <div
-                className="font-syne font-extrabold text-[#F0B429] leading-none"
-                style={{ fontSize: 'clamp(4rem, 8vw, 6rem)' }}
-              >
-                58
+          <FadeIn delay={400}>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-8">
+              <div className="text-center">
+                <div
+                  className="font-syne font-extrabold text-[#F0B429] leading-none"
+                  style={{ fontSize: 'clamp(4rem, 8vw, 6rem)' }}
+                >
+                  58
+                </div>
+                <div className="text-sm text-[#6B6760] font-mono uppercase tracking-widest mt-1">seconds total</div>
               </div>
-              <div className="text-sm text-[#6B6760] font-mono uppercase tracking-widest mt-1">seconds total</div>
-            </motion.div>
-            <div className="w-px h-16 bg-[#F0B429]/20 hidden sm:block" />
-            <motion.div
-              initial={{ opacity: 0, x: 30 }}
-              animate={totalInView ? { opacity: 1, x: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="max-w-sm text-center sm:text-left"
-            >
-              <p className="text-[#C8C4BC] text-base leading-relaxed">
-                From opening Reeltor.ai to a finished video ready to post on TikTok. We watched a
-                first-timer do it.{' '}
-                <span className="text-white font-bold">58 seconds.</span>
-              </p>
-            </motion.div>
-          </div>
+              <div className="w-px h-16 bg-[#F0B429]/20 hidden sm:block" />
+              <div className="max-w-sm text-center sm:text-left">
+                <p className="text-[#C8C4BC] text-base leading-relaxed">
+                  From opening Reeltor.ai to a finished video ready to post on TikTok. We watched a
+                  first-timer do it.{' '}
+                  <span className="text-white font-bold">58 seconds.</span>
+                </p>
+              </div>
+            </div>
+          </FadeIn>
         </div>
       </div>
 

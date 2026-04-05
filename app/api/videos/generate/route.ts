@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
-  const { templateId, images, aiVideoIndices: rawAiIndices, listingAddress, listingPrice, agentName, format, title } = body;
+  const { templateId, images, aiVideoIndices: rawAiIndices, listingAddress, listingPrice, agentName, format, title, videoPrompt } = body;
 
   if (!templateId || typeof templateId !== 'string') {
     return NextResponse.json({ error: 'templateId is required' }, { status: 400 });
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
 
   if (aiIndices.length > 0 && process.env.FAL_KEY) {
     try {
-      falVideoMap = await generateDroneShotsForIndices(images, aiIndices);
+      falVideoMap = await generateDroneShotsForIndices(images, aiIndices, videoPrompt);
       if (falVideoMap.size === 0) {
         console.warn(`fal.ai: all ${aiIndices.length} generation(s) failed — falling back to images`);
         falFailed = true;
@@ -166,8 +166,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to start video generation' }, { status: 500 });
   }
 
-  // ── 8. Update record with render ID + increment usage ─────────────────────
-  const [updateResult] = await Promise.allSettled([
+  // ── 8. Update record with render ID + conditionally increment usage ──────
+  // If the user requested AI shots but every single one failed, we fall back
+  // to a plain static video — don't penalise them by counting it against their
+  // monthly limit. Only skip when ALL AI shots failed (falFailed=true); partial
+  // success (some shots generated) still counts normally.
+  const aiRequestedButFullyFailed = falFailed && aiIndices.length > 0;
+
+  const ops: Promise<unknown>[] = [
     admin
       .from('videos')
       .update({
@@ -175,8 +181,15 @@ export async function POST(req: NextRequest) {
         creatomate_render_id: render.id,
       })
       .eq('id', video.id),
-    admin.rpc('increment_videos_used', { p_user_id: user.id }),
-  ]);
+  ];
+
+  if (!aiRequestedButFullyFailed) {
+    ops.push(admin.rpc('increment_videos_used', { p_user_id: user.id }));
+  } else {
+    console.info(`AI shots fully failed for video ${video.id} — usage counter not incremented.`);
+  }
+
+  const [updateResult] = await Promise.allSettled(ops);
 
   if (updateResult.status === 'rejected') {
     console.error('Failed to update video record after render start:', updateResult.reason);
@@ -184,9 +197,9 @@ export async function POST(req: NextRequest) {
   }
 
   return NextResponse.json({
-    videoId:     video.id,
-    renderId:    render.id,
+    videoId:           video.id,
+    renderId:          render.id,
     aiVideosGenerated: falVideoMap.size,
-    aiVideosFailed:    falFailed,
+    aiVideosFailed:    aiRequestedButFullyFailed,
   });
 }

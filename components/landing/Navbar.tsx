@@ -39,7 +39,7 @@ export function Navbar() {
               </svg>
             </div>
             <span className="font-syne font-extrabold text-[17px] tracking-tight text-[#FAFAF8]">
-              Reeltor<span className="text-[#F0B429]">.</span>ai
+              Reeltors<span className="text-[#F0B429]">.</span>ai
             </span>
           </Link>
 

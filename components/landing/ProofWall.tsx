@@ -61,7 +61,7 @@ const CARDS = [
   },
   {
     type: 'quote',
-    quote: "Sold a $2.1M listing in 6 days. The buyer found me on TikTok — never would have happened before. I was invisible online before Reeltor.ai.",
+    quote: "Sold a $2.1M listing in 6 days. The buyer found me on TikTok — never would have happened before. I was invisible online before Reeltors.ai.",
     name: 'Marcus T.',
     role: 'Compass · Miami, FL',
     initials: 'MT',
@@ -197,7 +197,7 @@ export function ProofWall() {
             <span className="text-[#C07A00]">about Zillow leads.</span>
           </h2>
           <p className="text-center text-[#1A1714] text-base max-w-xl mx-auto mb-14">
-            Every one of these agents had zero video experience before Reeltor.ai.
+            Every one of these agents had zero video experience before Reeltors.ai.
             Every single one. Here&apos;s what happened next.
           </p>
         </FadeIn>

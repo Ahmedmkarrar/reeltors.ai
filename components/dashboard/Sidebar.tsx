@@ -1,8 +1,10 @@
 'use client';
 
 import Link from 'next/link';
+import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { UpgradeModal } from '@/components/dashboard/UpgradeModal';
 import type { Profile } from '@/types';
 
 interface SidebarProps {
@@ -57,6 +59,7 @@ export function Sidebar({ profile }: SidebarProps) {
   const pathname = usePathname();
   const router   = useRouter();
   const supabase = createClient();
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const usedPct   = Math.min((profile.videos_used_this_month / Math.max(profile.videos_limit, 1)) * 100, 100);
   const isUnlimited = profile.plan === 'pro' || profile.plan === 'team';
@@ -81,7 +84,7 @@ export function Sidebar({ profile }: SidebarProps) {
             </svg>
           </div>
           <span className="font-syne font-extrabold text-[17px] text-[#1A1714] group-hover:text-[#F0B429] transition-colors">
-            Reeltor<span className="text-[#F0B429]">.</span>ai
+            Reeltors<span className="text-[#F0B429]">.</span>ai
           </span>
         </Link>
       </div>
@@ -164,18 +167,20 @@ export function Sidebar({ profile }: SidebarProps) {
 
           {/* Upgrade nudge */}
           {profile.plan === 'free' && (
-            <Link
-              href="/account"
-              className="flex items-center gap-1.5 mt-3 text-[11px] text-[#FF5500] hover:text-[#ff7744] transition-colors font-medium"
+            <button
+              onClick={() => setUpgradeOpen(true)}
+              className="flex items-center gap-1.5 mt-3 text-[11px] text-[#FF5500] hover:text-[#ff7744] transition-colors font-medium w-full text-left"
             >
-              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
               </svg>
               Upgrade for unlimited videos
-            </Link>
+            </button>
           )}
         </div>
       </div>
+
+      <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
 
       {/* ── User ── */}
       <div className="px-4 py-4 border-t border-[#E2DED6] flex items-center gap-3">
