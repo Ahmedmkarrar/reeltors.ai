@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase/server';
 import { getStripe } from '@/lib/stripe/client';
 import { PLANS } from '@/lib/stripe/plans';
@@ -15,14 +16,14 @@ export async function POST(req: NextRequest) {
 
     const { plan, annual } = await req.json() as { plan: PlanKey; annual?: boolean };
 
-    if (!plan) {
+    if (!plan || !(plan in PLANS)) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
     }
 
     const planData = PLANS[plan];
     const priceId = annual ? planData.stripePriceIdAnnual : planData.stripePriceId;
     if (!priceId) {
-      return NextResponse.json({ error: 'Price not configured' }, { status: 400 });
+      return NextResponse.json({ error: 'Price not configured for this plan' }, { status: 400 });
     }
 
     const { data: profile } = await supabase
@@ -36,7 +37,7 @@ export async function POST(req: NextRequest) {
 
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: profile?.email || user.email,
+        email: profile?.email || user.email || undefined,
         metadata: { supabase_user_id: user.id },
       });
       customerId = customer.id;
@@ -46,16 +47,25 @@ export async function POST(req: NextRequest) {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
-      payment_method_types: ['card'],
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?upgraded=1`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/account`,
       allow_promotion_codes: true,
     });
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
-    console.error('Checkout error:', err);
-    return NextResponse.json({ error: 'Failed to create checkout session' }, { status: 500 });
+    console.error('[CHECKOUT_ERROR]', err);
+
+    // Surface Stripe errors clearly
+    if (err instanceof Stripe.errors.StripeError) {
+      return NextResponse.json(
+        { error: err.message },
+        { status: err.statusCode ?? 500 }
+      );
+    }
+
+    const message = err instanceof Error ? err.message : 'Failed to create checkout session';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

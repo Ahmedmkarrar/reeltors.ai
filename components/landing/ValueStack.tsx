@@ -70,7 +70,7 @@ export function ValueStack() {
                 $9,400+ in potential commission.
               </p>
               <p className="text-[#8A8682] text-sm">
-                Growth costs <span className="text-[#FAFAF8] font-semibold">$99/month</span>.
+                Growth costs <span className="text-[#FAFAF8] font-semibold">$99.99/month</span>.
                 Your first video pays for <span className="text-[#FAFAF8] font-semibold">94 months</span> of Growth.
               </p>
             </div>
@@ -81,7 +81,7 @@ export function ValueStack() {
           <div className="flex justify-center">
             <Link href="/signup">
               <Button variant="primary" size="lg" className="text-base font-bold px-10 shadow-[0_0_40px_rgba(240,180,41,0.25)] hover:shadow-[0_0_60px_rgba(240,180,41,0.4)] transition-shadow">
-                Get Started — From $49/month
+                Get Started — From $49.99.99/month
               </Button>
             </Link>
           </div>

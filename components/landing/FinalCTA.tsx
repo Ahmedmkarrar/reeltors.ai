@@ -55,7 +55,7 @@ export function FinalCTA() {
           </p>
 
           <p className="text-[#4A4744] text-base mb-12 leading-relaxed">
-            Starts at $49/month. Takes 60 seconds. If it doesn't work —
+            Starts at $49.99.99/month. Takes 60 seconds. If it doesn't work —
             email us within 30 days for a full refund. No questions asked.
           </p>
         </motion.div>
@@ -73,13 +73,13 @@ export function FinalCTA() {
                 variant="primary"
                 className="text-base font-bold px-12 py-5 shadow-[0_0_60px_rgba(240,180,41,0.3)] hover:shadow-[0_0_90px_rgba(240,180,41,0.5)] transition-shadow"
               >
-                Get Started — From $49/month →
+                Get Started — From $49.99.99/month →
               </Button>
             </Link>
           </motion.div>
 
           <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
-            {['From $49/month', '30-day money back', 'Cancel anytime', 'Ready in 60 seconds'].map((item, i, arr) => (
+            {['From $49.99.99/month', '30-day money back', 'Cancel anytime', 'Ready in 60 seconds'].map((item, i, arr) => (
               <span key={item} className="flex items-center gap-3">
                 <span className="text-xs text-[#4A4744]">{item}</span>
                 {i < arr.length - 1 && <span className="text-[#2E2B27]">&middot;</span>}

@@ -158,7 +158,7 @@ export default function SignupPage() {
 
           <h1 className="font-syne font-extrabold text-[28px] text-[#1A1714] mb-1">Create your account</h1>
           <p className="text-[#6B6760] text-sm mb-8">
-            Plans from $49/month —{' '}
+            Plans from $49.99.99/month —{' '}
             <span className="text-[#1A1714] font-medium">30-day money-back guarantee</span>
           </p>
 

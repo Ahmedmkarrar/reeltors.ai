@@ -23,7 +23,7 @@ const faqs = [
   },
   {
     q: "What's the catch? Why is it so cheap?",
-    a: "We built the software once. It does the work of a videographer, editor, and motion designer automatically, every time, in 60 seconds. We have zero per-video labor costs. That's why we can charge $49/month instead of $500/video.",
+    a: "We built the software once. It does the work of a videographer, editor, and motion designer automatically, every time, in 60 seconds. We have zero per-video labor costs. That's why we can charge $49.99/month instead of $500/video.",
   },
   {
     q: "What if I try it and it doesn't work for me?",

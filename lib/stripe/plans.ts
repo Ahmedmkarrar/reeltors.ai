@@ -2,7 +2,7 @@ export const PLANS = {
   starter: {
     name:          'Starter',
     tagline:       'For agents just getting started with content',
-    price:         49,
+    price:         49.99,
     videosPerMonth: 20,
     features: [
       'Up to 20 videos/month',
@@ -18,7 +18,7 @@ export const PLANS = {
   growth: {
     name:          'Growth',
     tagline:       'For agents posting consistently',
-    price:         99,
+    price:         99.99,
     videosPerMonth: 75,
     features: [
       'Up to 75 videos/month',
@@ -35,7 +35,7 @@ export const PLANS = {
   pro: {
     name:          'Pro',
     tagline:       'For serious agents scaling listings',
-    price:         199,
+    price:         199.99,
     videosPerMonth: 200,
     features: [
       'Up to 200 videos/month',

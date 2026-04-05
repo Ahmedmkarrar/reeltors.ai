@@ -14,7 +14,7 @@ export function ROICalculator() {
   const extraDealsPerMonth = Math.round(listings * 0.35);
   const extraRevenuePerMonth = extraDealsPerMonth * commission;
   const extraRevenuePerYear = extraRevenuePerMonth * 12;
-  const costPerYear = 49 * 12;
+  const costPerYear = 49.99 * 12;
   const roi = Math.round((extraRevenuePerYear / costPerYear) * 100);
 
   const fmt = (n: number) =>
@@ -121,7 +121,7 @@ export function ROICalculator() {
 
                 <div className="border border-[#F0B429]/20 bg-[#F0B429]/5 rounded-[8px] p-5 text-center mb-5">
                   <p className="text-[#8A8682] text-sm mb-1">
-                    Reeltors.ai Pro costs <span className="text-[#FAFAF8] font-bold">$588/year</span>.
+                    Reeltors.ai Pro costs <span className="text-[#FAFAF8] font-bold">$599.88/year</span>.
                     Your potential upside is{' '}
                     <span className="text-[#F0B429] font-bold">{fmt(extraRevenuePerYear)}</span>.
                   </p>
@@ -140,7 +140,7 @@ export function ROICalculator() {
                 </Link>
 
                 <p className="text-center text-xs text-[#4A4744] mt-3">
-                  From $49/month. Cancel anytime. 30-day money-back guarantee.
+                  From $49.99.99/month. Cancel anytime. 30-day money-back guarantee.
                 </p>
               </div>
             )}

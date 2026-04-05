@@ -69,7 +69,7 @@ export function Comparison() {
                   <th className="px-4 py-4 text-center bg-[#1A1714] border-x border-[#F0B429]/20 relative">
                     <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#F0B429]" />
                     <div className="font-syne font-extrabold text-[#F0B429] text-sm">Reeltors.ai</div>
-                    <div className="text-[10px] text-[#8A8682] mt-0.5">$49/month</div>
+                    <div className="text-[10px] text-[#8A8682] mt-0.5">$49.99/month</div>
                   </th>
                   <th className="px-4 py-4 text-center bg-[#141210]">
                     <div className="font-semibold text-[#4A4744] text-xs">Videographer</div>
@@ -99,7 +99,7 @@ export function Comparison() {
         <div className="sticky bottom-0 bg-[#141210] border-t border-[#F0B429]/20 px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div>
             <p className="font-syne font-bold text-[#FAFAF8] text-sm">One extra closing covers 200 months of Pro.</p>
-            <p className="text-xs text-[#8A8682]">$9,400 avg commission ÷ $49/month = 191x ROI on a single deal.</p>
+            <p className="text-xs text-[#8A8682]">$9,400 avg commission ÷ $49.99/month = 191x ROI on a single deal.</p>
           </div>
           <Link href="/signup" className="shrink-0">
             <Button variant="primary" size="md" className="font-bold whitespace-nowrap shadow-[0_0_30px_rgba(240,180,41,0.2)]">
