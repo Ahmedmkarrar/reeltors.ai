@@ -4,16 +4,5 @@
       "path": "/api/cron/reset-usage",
       "schedule": "0 0 1 * *"
     }
-  ],
-  "functions": {
-    "app/api/videos/generate/route.ts": {
-      "maxDuration": 300
-    },
-    "app/api/videos/status/[renderId]/route.ts": {
-      "maxDuration": 60
-    },
-    "app/api/webhooks/creatomate/route.ts": {
-      "maxDuration": 60
-    }
-  }
+  ]
 }
