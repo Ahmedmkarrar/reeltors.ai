@@ -1,7 +1,7 @@
 import { Navbar } from '@/components/landing/Navbar';
 import { Hero } from '@/components/landing/Hero';
 import { Ticker } from '@/components/landing/Ticker';
-import { VideoShowcase } from '@/components/landing/VideoShowcase';
+import { DemoSection } from '@/components/landing/DemoSection';
 import { BrokerageLogos } from '@/components/landing/BrokerageLogos';
 import { PainSection } from '@/components/landing/PainSection';
 import { HowItWorks } from '@/components/landing/HowItWorks';
@@ -21,7 +21,7 @@ export default function LandingPage() {
       <Navbar />
       <Hero />
       <Ticker />
-      <VideoShowcase />
+      <DemoSection />
       <BrokerageLogos />
       <PainSection />
       <HowItWorks />
