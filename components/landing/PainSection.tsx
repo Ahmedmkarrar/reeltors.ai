@@ -123,7 +123,7 @@ export function PainSection() {
                     and those who don't.
                   </p>
                   <p className="mt-3 text-[#F0B429] font-semibold text-lg">
-                    Reeltor.ai costs $47/month. That's a <span className="text-white font-extrabold">199x return</span> on a single deal.
+                    Reeltor.ai costs $49/month. That's a <span className="text-white font-extrabold">191x return</span> on a single deal.
                   </p>
                   <p className="text-[#2E2B27] text-sm mt-2">$1.57/day. Less than a bag of chips.</p>
                 </div>

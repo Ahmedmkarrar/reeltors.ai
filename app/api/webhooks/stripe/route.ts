@@ -6,9 +6,12 @@ import { sendPaymentFailedEmail } from '@/lib/resend/emails';
 import type Stripe from 'stripe';
 
 function getPlanFromPriceId(priceId: string): string {
-  if (priceId === process.env.STRIPE_PRICE_STARTER) return 'starter';
-  if (priceId === process.env.STRIPE_PRICE_PRO) return 'pro';
-  if (priceId === process.env.STRIPE_PRICE_TEAM) return 'team';
+  if (priceId === process.env.STRIPE_PRICE_STARTER)        return 'starter';
+  if (priceId === process.env.STRIPE_PRICE_STARTER_ANNUAL) return 'starter';
+  if (priceId === process.env.STRIPE_PRICE_PRO)            return 'growth';  // env var named PRO maps to growth plan
+  if (priceId === process.env.STRIPE_PRICE_GROWTH_ANNUAL)  return 'growth';
+  if (priceId === process.env.STRIPE_PRICE_TEAM)           return 'pro';     // env var named TEAM maps to pro plan
+  if (priceId === process.env.STRIPE_PRICE_PRO_ANNUAL)     return 'pro';
   return 'free';
 }
 

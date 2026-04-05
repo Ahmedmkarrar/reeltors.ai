@@ -181,7 +181,7 @@ export default function LoginPage() {
 
           {/* Trust signals */}
           <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-8 pt-6 border-t border-[#E2DED6]">
-            {['From $19/month', '30-day money back', 'Cancel anytime'].map((t) => (
+            {['From $49/month', '30-day money back', 'Cancel anytime'].map((t) => (
               <span key={t} className="flex items-center gap-1 text-[11px] text-[#8A8682]">
                 <span className="text-[#C07A00] font-bold">✓</span> {t}
               </span>
