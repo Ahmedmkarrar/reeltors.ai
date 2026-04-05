@@ -25,7 +25,7 @@ const STATS = [
   { n: '60s',   label: 'Avg. Render Time' },
   { n: '403%',  label: 'More Buyer Inquiries' },
   { n: '3',     label: 'Platforms Per Video' },
-  { n: '$19',   label: 'To Start' },
+  { n: '$49',   label: 'To Start' },
 ];
 
 export function Footer() {

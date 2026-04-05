@@ -1,17 +1,15 @@
 import { Navbar } from '@/components/landing/Navbar';
 import { Hero } from '@/components/landing/Hero';
 import { Ticker } from '@/components/landing/Ticker';
-import { StatsStrip } from '@/components/landing/StatsStrip';
+import { VideoShowcase } from '@/components/landing/VideoShowcase';
 import { BrokerageLogos } from '@/components/landing/BrokerageLogos';
 import { PainSection } from '@/components/landing/PainSection';
 import { HowItWorks } from '@/components/landing/HowItWorks';
-import { VideoShowcase } from '@/components/landing/VideoShowcase';
 import { ROICalculator } from '@/components/landing/ROICalculator';
 import { ValueStack } from '@/components/landing/ValueStack';
 import { Comparison } from '@/components/landing/Comparison';
 import { Pricing } from '@/components/landing/Pricing';
 import { FAQ } from '@/components/landing/FAQ';
-import { FinalCTA } from '@/components/landing/FinalCTA';
 import { Footer } from '@/components/landing/Footer';
 import { StickyCTA } from '@/components/landing/StickyCTA';
 import { CursorGlow } from '@/components/landing/CursorGlow';
@@ -23,18 +21,16 @@ export default function LandingPage() {
       <Navbar />
       <Hero />
       <Ticker />
-      <StatsStrip />
+      <VideoShowcase />
       <BrokerageLogos />
       <PainSection />
       <HowItWorks />
-      <VideoShowcase />
       <ROICalculator />
       <ValueStack />
       <Comparison />
       <Pricing />
       <FAQ />
-      <FinalCTA />
-      <Footer />
+<Footer />
       {/* Floating UI */}
       <StickyCTA />
     </main>

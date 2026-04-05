@@ -2,11 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
-import { FadeIn } from '@/components/ui/FadeIn';
 import { PLANS } from '@/lib/stripe/plans';
 
-// Launch discount: 50% off — original prices are 2x the current prices
 const ORIGINAL_PRICES: Record<string, number> = {
   starter: 98,
   growth:  198,
@@ -26,7 +25,12 @@ export function Pricing() {
     <section id="pricing" className="py-24 px-4 bg-[#0D0B08] border-t border-[#1E1C18]">
       <div className="max-w-5xl mx-auto">
 
-        <FadeIn>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7 }}
+        >
           <p className="text-center font-mono text-[11px] tracking-[0.3em] text-[#4A4744] uppercase mb-5">PRICING</p>
           <h2 className="font-syne font-extrabold text-center text-[#FAFAF8] mb-5" style={{ fontSize: 'clamp(2.6rem, 6vw, 5rem)', lineHeight: 1.0 }}>
             Less than one Starbucks order<br />
@@ -35,65 +39,77 @@ export function Pricing() {
           <p className="text-center text-[#8A8682] text-base max-w-xl mx-auto mb-6">
             30-day money-back guarantee. Cancel anytime in 2 clicks.
           </p>
-        </FadeIn>
+        </motion.div>
 
-        {/* 🔥 Launch Banner */}
-        <FadeIn delay={40}>
-          <div className="flex justify-center mb-8">
-            <div className="inline-flex items-center gap-3 bg-[#1A1200] border border-[#F0B429]/40 rounded-full px-6 py-3 shadow-[0_0_40px_rgba(240,180,41,0.15)]">
-              <span className="text-lg">🚀</span>
-              <span className="font-mono font-bold text-[#F0B429] text-sm tracking-wide uppercase">
-                Launch Special — 50% Off
-              </span>
-              <span className="text-[#8A8682] text-xs">
-                · Limited spots · Lock in your price forever
-              </span>
-            </div>
-          </div>
-        </FadeIn>
-
-        <FadeIn delay={80}>
-          <div className="flex justify-center items-center gap-3 mb-12">
-            <span className={`text-sm font-medium ${!annual ? 'text-[#FAFAF8]' : 'text-[#4A4744]'}`}>Monthly</span>
-            <button
-              onClick={() => setAnnual((v) => !v)}
-              className={['relative w-12 h-6 rounded-full transition-colors duration-200 cursor-pointer', annual ? 'bg-[#F0B429]' : 'bg-[#2E2B27]'].join(' ')}
-              aria-label="Toggle billing period"
-            >
-              <span className={['absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform duration-200', annual ? 'translate-x-6' : ''].join(' ')} />
-            </button>
-            <span className={`text-sm font-medium ${annual ? 'text-[#FAFAF8]' : 'text-[#4A4744]'}`}>
-              Annual <span className="text-[#F0B429] font-bold ml-1">Save 30%</span>
+        {/* Launch Banner */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="flex justify-center mb-8"
+        >
+          <div className="inline-flex items-center gap-3 bg-[#1A1200] border border-[#F0B429]/40 rounded-full px-6 py-3 shadow-[0_0_40px_rgba(240,180,41,0.15)]">
+            <span className="text-lg">🚀</span>
+            <span className="font-mono font-bold text-[#F0B429] text-sm tracking-wide uppercase">
+              Launch Special — 50% Off
             </span>
+            <span className="text-[#8A8682] text-xs">· Limited spots · Lock in your price forever</span>
           </div>
-        </FadeIn>
+        </motion.div>
+
+        {/* Billing toggle */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex justify-center items-center gap-3 mb-12"
+        >
+          <span className={`text-sm font-medium ${!annual ? 'text-[#FAFAF8]' : 'text-[#4A4744]'}`}>Monthly</span>
+          <button
+            onClick={() => setAnnual((v) => !v)}
+            className={['relative w-12 h-6 rounded-full transition-colors duration-200 cursor-pointer', annual ? 'bg-[#F0B429]' : 'bg-[#2E2B27]'].join(' ')}
+            aria-label="Toggle billing period"
+          >
+            <span className={['absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform duration-200 shadow-sm', annual ? 'translate-x-6' : ''].join(' ')} />
+          </button>
+          <span className={`text-sm font-medium ${annual ? 'text-[#FAFAF8]' : 'text-[#4A4744]'}`}>
+            Annual <span className="text-[#F0B429] font-bold ml-1">Save 30%</span>
+          </span>
+        </motion.div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {plans.map(({ key, data }, i) => {
             const isPopular     = key === 'growth';
             const price         = annual && data.price > 0 ? Math.round(data.price * 0.7) : data.price;
-            const originalPrice = annual
-              ? Math.round(ORIGINAL_PRICES[key] * 0.7)
-              : ORIGINAL_PRICES[key];
+            const originalPrice = annual ? Math.round(ORIGINAL_PRICES[key] * 0.7) : ORIGINAL_PRICES[key];
             const roi = key === 'pro' ? 'Pays back in 1 lead' : key === 'starter' ? 'Pays back in 1 showing' : '';
 
             return (
-              <FadeIn key={key} delay={i * 80}>
+              <motion.div
+                key={key}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: i * 0.1 }}
+                whileHover={{ y: isPopular ? -6 : -4, transition: { duration: 0.2 } }}
+                className={isPopular ? 'animated-border-glow md:scale-[1.03]' : ''}
+              >
                 <div
                   className={[
-                    'relative flex flex-col rounded-[10px] p-6 transition-all h-full',
+                    'relative flex flex-col rounded-[12px] p-6 transition-all h-full',
                     isPopular
-                      ? 'bg-[#1A1714] border-2 border-[#F0B429] shadow-[0_0_60px_rgba(240,180,41,0.12)] md:scale-[1.03]'
-                      : 'bg-[#141210] border border-[#2E2B27] hover:border-[#3E3B37] transition-colors',
+                      ? 'bg-[#1A1714] border border-[#F0B429]/30 shadow-[0_0_60px_rgba(240,180,41,0.15)]'
+                      : 'bg-[#141210] border border-[#2E2B27] hover:border-[#3E3B37]',
                   ].join(' ')}
                 >
                   {isPopular && (
-                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#F0B429] text-[#0D0B08] text-[10px] font-extrabold px-4 py-1 rounded-full uppercase tracking-widest whitespace-nowrap">
+                    <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-[#F0B429] text-[#0D0B08] text-[10px] font-extrabold px-4 py-1 rounded-full uppercase tracking-widest whitespace-nowrap shadow-[0_0_20px_rgba(240,180,41,0.4)]">
                       ⭐ Most Popular
                     </div>
                   )}
 
-                  {/* 50% OFF badge on every card */}
                   <div className="absolute top-4 right-4 bg-red-500 text-white text-[9px] font-extrabold px-2 py-0.5 rounded uppercase tracking-widest">
                     50% OFF
                   </div>
@@ -103,7 +119,6 @@ export function Pricing() {
                     <p className="text-xs text-[#8A8682] mb-2 italic">{data.tagline}</p>
                     {roi && <p className="text-xs text-[#F0B429] mb-3 font-medium">{roi}</p>}
 
-                    {/* Struck-through original price */}
                     <div className="flex items-center gap-2 mb-1">
                       <span className="text-[#4A4744] text-sm line-through">${originalPrice}/mo</span>
                       <span className="bg-red-500/15 text-red-400 text-[10px] font-bold px-1.5 py-0.5 rounded">
@@ -111,11 +126,8 @@ export function Pricing() {
                       </span>
                     </div>
 
-                    {/* Actual discounted price */}
                     <div className="flex items-end gap-1 mb-1">
-                      <span className="font-syne font-extrabold text-4xl leading-none text-[#FAFAF8]">
-                        ${price}
-                      </span>
+                      <span className="font-syne font-extrabold text-4xl leading-none text-[#FAFAF8]">${price}</span>
                       <span className="text-[#4A4744] text-sm mb-0.5">/mo</span>
                     </div>
                     {annual && data.price > 0 && (
@@ -147,28 +159,32 @@ export function Pricing() {
                     🔒 Price locked in forever at launch rate
                   </p>
                 </div>
-              </FadeIn>
+              </motion.div>
             );
           })}
         </div>
 
-        <FadeIn delay={100}>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {[
-              { icon: '🛡️', title: '30-Day Money Back', desc: "If it doesn't work for you, email us. Full refund. No questions asked." },
-              { icon: '🔓', title: 'Cancel Anytime',    desc: 'No annual lock-in. Cancel in 2 clicks from your account page.' },
-              { icon: '⚡', title: 'Works Immediately', desc: 'Sign up, upload your listing photos, and have a video ready in 60 seconds.' },
-            ].map(({ icon, title, desc }) => (
-              <div key={title} className="bg-[#141210] border border-[#2E2B27] rounded-[8px] p-5 flex gap-4">
-                <span className="text-2xl shrink-0">{icon}</span>
-                <div>
-                  <p className="font-semibold text-[#FAFAF8] text-sm mb-1">{title}</p>
-                  <p className="text-xs text-[#4A4744] leading-relaxed">{desc}</p>
-                </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-4"
+        >
+          {[
+            { icon: '🛡️', title: '30-Day Money Back', desc: "If it doesn't work for you, email us. Full refund. No questions asked." },
+            { icon: '🔓', title: 'Cancel Anytime',    desc: 'No annual lock-in. Cancel in 2 clicks from your account page.' },
+            { icon: '⚡', title: 'Works Immediately', desc: 'Sign up, upload your listing photos, and have a video ready in 60 seconds.' },
+          ].map(({ icon, title, desc }) => (
+            <div key={title} className="bg-[#141210] border border-[#2E2B27] rounded-[10px] p-5 flex gap-4 hover:border-[#3E3B37] transition-colors">
+              <span className="text-2xl shrink-0">{icon}</span>
+              <div>
+                <p className="font-semibold text-[#FAFAF8] text-sm mb-1">{title}</p>
+                <p className="text-xs text-[#4A4744] leading-relaxed">{desc}</p>
               </div>
-            ))}
-          </div>
-        </FadeIn>
+            </div>
+          ))}
+        </motion.div>
 
       </div>
     </section>

@@ -1,4 +1,7 @@
 /* eslint-disable react/no-unescaped-entities */
+'use client';
+
+import { motion } from 'framer-motion';
 import { AnimatedCounter } from '@/components/landing/AnimatedCounter';
 import { FadeIn } from '@/components/ui/FadeIn';
 
@@ -30,7 +33,7 @@ export function PainSection() {
       <div className="px-4 pb-0">
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4 mb-0">
           <FadeIn delay={0}>
-            <div className="bg-[#141210] border border-[#2E2B27] rounded-[10px] p-7 h-full">
+            <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="bg-[#141210] border border-[#2E2B27] rounded-[10px] p-7 h-full">
               <div className="flex items-center gap-2.5 mb-7">
                 <div className="w-3 h-3 rounded-full bg-[#CC3D00]/70" />
                 <span className="text-sm font-bold text-[#CC3D00] uppercase tracking-widest">Realtor without video</span>
@@ -58,11 +61,11 @@ export function PainSection() {
                   <span className="font-syne font-extrabold text-3xl text-[#4A4744]">~$113k</span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </FadeIn>
 
           <FadeIn delay={120}>
-            <div className="bg-[#1A1714] border border-[#F0B429]/15 rounded-[10px] p-7 h-full relative overflow-hidden">
+            <motion.div whileHover={{ y: -4 }} transition={{ duration: 0.2 }} className="bg-[#1A1714] border border-[#F0B429]/15 rounded-[10px] p-7 h-full relative overflow-hidden">
               <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-[#F0B429] opacity-[0.06] rounded-full blur-[80px] pointer-events-none" />
               <div className="flex items-center gap-2.5 mb-7 relative">
                 <div className="w-3 h-3 rounded-full bg-[#F0B429] animate-pulse" />
@@ -91,7 +94,7 @@ export function PainSection() {
                   <span className="font-syne font-extrabold text-3xl text-[#F0B429]">~$451k</span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </FadeIn>
         </div>
       </div>
