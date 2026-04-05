@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { PLANS } from '@/lib/stripe/plans';
 import toast from 'react-hot-toast';
 
@@ -13,8 +14,25 @@ const PLAN_ORDER = ['starter', 'growth', 'pro'] as const;
 
 export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
   const [loading, setLoading] = useState('');
+  const [mounted, setMounted] = useState(false);
+  const portalRef = useRef<Element | null>(null);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    portalRef.current = document.body;
+    setMounted(true);
+  }, []);
+
+  // Lock body scroll while open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [isOpen]);
+
+  if (!isOpen || !mounted) return null;
 
   async function handleUpgrade(plan: string) {
     setLoading(plan);
@@ -34,10 +52,10 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
+  const modal = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" onClick={onClose}>
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+      <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" />
 
       {/* Modal */}
       <div
@@ -137,4 +155,6 @@ export function UpgradeModal({ isOpen, onClose }: UpgradeModalProps) {
       </div>
     </div>
   );
+
+  return createPortal(modal, document.body);
 }
