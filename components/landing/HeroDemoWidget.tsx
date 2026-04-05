@@ -68,7 +68,7 @@ function DetailsScreen({ active }: { active: boolean }) {
   return (
     <Screen visible={active}>
       <div className="p-4">
-        <p className="text-[10px] text-[#555555] font-mono uppercase tracking-wider mb-3">Step 2 — 3 fields. That's it.</p>
+        <p className="text-[10px] text-[#555555] font-mono uppercase tracking-wider mb-3">Step 2 — 3 fields. That&apos;s it.</p>
         <div className="flex flex-col gap-2">
           {[
             { label: 'Address', value: '2847 Oak Drive, Austin TX', delay: 0 },

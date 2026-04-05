@@ -151,7 +151,7 @@ export default function AccountPage() {
         >
           <div>
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="font-bold text-[#1A1714]">{(PLANS as any)[profile.plan]?.name ?? profile.plan} Plan</span>
+              <span className="font-bold text-[#1A1714]">{profile.plan in PLANS ? PLANS[profile.plan as keyof typeof PLANS].name : profile.plan} Plan</span>
               <span
                 className="text-[10px] font-bold px-2 py-0.5 rounded-full"
                 style={{ color: planMeta.color, background: planMeta.bg, border: `1px solid ${planMeta.border}` }}
@@ -160,8 +160,8 @@ export default function AccountPage() {
               </span>
             </div>
             <p className="text-sm" style={{ color: planMeta.color }}>
-              {(PLANS as any)[profile.plan]
-                ? `$${(PLANS as any)[profile.plan].price}/month`
+              {profile.plan in PLANS
+                ? `$${PLANS[profile.plan as keyof typeof PLANS].price}/month`
                 : 'No active plan'}
             </p>
           </div>

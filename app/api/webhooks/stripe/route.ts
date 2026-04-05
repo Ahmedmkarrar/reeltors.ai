@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
 
         // Look up by stripe_customer_id (set during checkout session creation)
         // Fall back to customer metadata.supabase_user_id if not yet saved
-        let updateQuery = admin
+        const { count } = await admin
           .from('profiles')
           .update({
             stripe_customer_id:   customerId,
@@ -60,9 +60,8 @@ export async function POST(req: NextRequest) {
             plan,
             videos_limit: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? 1,
           })
-          .eq('stripe_customer_id', customerId);
-
-        const { count } = await (updateQuery as any).select('id', { count: 'exact' });
+          .eq('stripe_customer_id', customerId)
+          .select('id', { count: 'exact' });
 
         // If no row matched (customer_id not yet written), fall back to user metadata
         if (!count) {

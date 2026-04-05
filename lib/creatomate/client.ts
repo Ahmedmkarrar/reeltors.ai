@@ -112,6 +112,69 @@ export async function getRenderStatus(renderId: string): Promise<CreatomateRende
   };
 }
 
+// ─── Higher-level helpers ────────────────────────────────────────────────────
+
+export interface MediaItem {
+  type: 'video' | 'image';
+  url: string;
+}
+
+export interface GenerateVideoOptions {
+  templateId: string;
+  images: string[];
+  listingAddress?: string;
+  listingPrice?: string;
+  agentName?: string;
+  format?: 'vertical' | 'square' | 'horizontal';
+  webhookUrl?: string;
+  metadata?: Record<string, string>;
+}
+
+export interface GenerateMixedMediaOptions {
+  mediaItems: MediaItem[];
+  listingAddress?: string;
+  listingPrice?: string;
+  agentName?: string;
+  format?: 'vertical' | 'square' | 'horizontal';
+  webhookUrl?: string;
+  metadata?: Record<string, string>;
+}
+
+export async function generateVideo(opts: GenerateVideoOptions): Promise<CreatomateRenderResponse> {
+  const modifications = buildModifications({
+    photos:    opts.images,
+    address:   opts.listingAddress,
+    price:     opts.listingPrice,
+    agentName: opts.agentName,
+  });
+
+  return createRender({
+    templateId:  opts.templateId,
+    modifications,
+    webhookUrl:  opts.webhookUrl,
+    metadata:    opts.metadata,
+  });
+}
+
+export async function generateMixedMediaVideo(opts: GenerateMixedMediaOptions): Promise<CreatomateRenderResponse> {
+  const templateId = process.env.CREATOMATE_TEMPLATE_CINEMATIC ?? '';
+  if (!templateId) throw new CreatomateError('CREATOMATE_TEMPLATE_CINEMATIC is not set');
+
+  const modifications = buildModifications({
+    photos:    opts.mediaItems.map((m) => m.url),
+    address:   opts.listingAddress,
+    price:     opts.listingPrice,
+    agentName: opts.agentName,
+  });
+
+  return createRender({
+    templateId,
+    modifications,
+    webhookUrl: opts.webhookUrl,
+    metadata:   opts.metadata,
+  });
+}
+
 // ─── Build modifications from user inputs ──────────────────────────────────
 
 /** Maps user input to Creatomate dynamic element names */
