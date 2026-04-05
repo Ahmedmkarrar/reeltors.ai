@@ -6,7 +6,7 @@ const items = [
   { text: 'TikTok · Instagram Reels · YouTube Shorts — one click' },
   { text: 'MLS compliant · no editing · no filming required' },
   { text: 'Vertical · Square · Horizontal — all formats included' },
-  { text: '$47/month replaces a $500/video editor' },
+  { text: '$49/month replaces a $500/video editor' },
   { text: 'Works with iPhone photos · MLS downloads · any image' },
   { text: 'Agent branding on every video automatically' },
   { text: '30-day money-back guarantee · cancel anytime' },
