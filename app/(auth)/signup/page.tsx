@@ -4,19 +4,14 @@ export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { LogoIcon } from '@/components/ui/LogoIcon';
-import toast from 'react-hot-toast';
 
 const FEATURES = [
   { icon: '⚡', text: 'Video ready in under 60 seconds' },
   { icon: '📸', text: 'Upload listing photos — we do the rest' },
   { icon: '📱', text: 'Export directly to TikTok & Instagram Reels' },
   { icon: '🎬', text: '3 professional templates included' },
-  { icon: '💰', text: 'First video completely free' },
   { icon: '🛡️', text: '30-day money-back guarantee' },
 ];
 
@@ -27,12 +22,7 @@ const FACTS = [
 ];
 
 export default function SignupPage() {
-  const router = useRouter();
   const supabase = createClient();
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
   async function handleGoogle() {
@@ -41,43 +31,6 @@ export default function SignupPage() {
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/dashboard` },
     });
-  }
-
-  async function handleSignup(e: React.FormEvent) {
-    e.preventDefault();
-    if (password.length < 8) {
-      toast.error('Password must be at least 8 characters.');
-      return;
-    }
-    setLoading(true);
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName },
-          emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
-        },
-      });
-      if (error) {
-        toast.error(error.message);
-        return;
-      }
-
-      await fetch('/api/users/welcome', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name: fullName }),
-      }).catch(() => null);
-
-      toast.success('Account created! Check your email to confirm.');
-      router.push('/dashboard');
-      router.refresh();
-    } catch {
-      toast.error('Something went wrong. Please try again.');
-    } finally {
-      setLoading(false);
-    }
   }
 
   return (
@@ -108,7 +61,6 @@ export default function SignupPage() {
             <span className="text-[#F0B429]">60 seconds away.</span>
           </h2>
 
-          {/* Features */}
           <div className="space-y-3 mb-8">
             {FEATURES.map(({ icon, text }) => (
               <div key={text} className="flex items-center gap-3">
@@ -118,7 +70,6 @@ export default function SignupPage() {
             ))}
           </div>
 
-          {/* Key facts */}
           <div className="bg-[#252220] border border-[#2E2B27] rounded-[8px] p-4">
             <p className="text-[10px] font-mono tracking-widest text-[#6B6760] uppercase mb-3">Why it works</p>
             <div className="space-y-2.5">
@@ -132,7 +83,6 @@ export default function SignupPage() {
           </div>
         </div>
 
-        {/* Bottom note */}
         <p className="relative text-[11px] text-[#4A4744]">
           No filming. No editor. No monthly commitment to start.
         </p>
@@ -151,15 +101,14 @@ export default function SignupPage() {
 
           <h1 className="font-syne font-extrabold text-[28px] text-[#1A1714] mb-1">Create your account</h1>
           <p className="text-[#6B6760] text-sm mb-8">
-            Plans from $49.99.99/month —{' '}
+            Plans from $49.99/month —{' '}
             <span className="text-[#1A1714] font-medium">30-day money-back guarantee</span>
           </p>
 
-          {/* Google first */}
           <button
             onClick={handleGoogle}
             disabled={googleLoading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-[#E2DED6] rounded-[8px] text-sm font-semibold text-[#1A1714] hover:bg-[#F5F3EF] hover:border-[#D4D0C8] transition-colors disabled:opacity-60 shadow-sm mb-4"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3.5 bg-white border border-[#E2DED6] rounded-[8px] text-sm font-semibold text-[#1A1714] hover:bg-[#F5F3EF] hover:border-[#D4D0C8] transition-colors disabled:opacity-60 shadow-sm"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -170,45 +119,6 @@ export default function SignupPage() {
             {googleLoading ? 'Redirecting...' : 'Continue with Google'}
           </button>
 
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-[#E2DED6]" />
-            <span className="text-[11px] text-[#8A8682] font-mono">OR</span>
-            <div className="flex-1 h-px bg-[#E2DED6]" />
-          </div>
-
-          <form onSubmit={handleSignup} className="flex flex-col gap-4">
-            <Input
-              label="Full Name"
-              type="text"
-              placeholder="Sarah Johnson"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-              autoComplete="name"
-            />
-            <Input
-              label="Email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
-            <Input
-              label="Password"
-              type="password"
-              placeholder="Min. 8 characters"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="new-password"
-            />
-            <Button type="submit" variant="primary" size="md" loading={loading} className="w-full mt-1">
-              Create account →
-            </Button>
-          </form>
-
           <p className="text-[11px] text-[#8A8682] text-center mt-4">
             By signing up, you agree to our{' '}
             <Link href="/terms" className="text-[#6B6760] hover:text-[#1A1714] underline">
@@ -216,7 +126,7 @@ export default function SignupPage() {
             </Link>
           </p>
 
-          <p className="text-center text-sm text-[#6B6760]">
+          <p className="text-center text-sm text-[#6B6760] mt-3">
             Already have an account?{' '}
             <Link href="/login" className="text-[#C07A00] font-semibold hover:underline">
               Log in →
