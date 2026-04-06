@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { PLANS } from '@/lib/stripe/plans';
+import { PLANS, PLAN_LIMITS } from '@/lib/stripe/plans';
 import toast from 'react-hot-toast';
 import type { Profile } from '@/types';
 
@@ -78,7 +78,7 @@ export default function AccountPage() {
     }
   }
 
-  // ── Loading skeleton ──
+  // loading skeleton
   if (!profile) {
     return (
       <div className="max-w-2xl mx-auto p-6 md:p-8 space-y-4">
@@ -90,8 +90,8 @@ export default function AccountPage() {
   }
 
   const planMeta    = PLAN_META[profile.plan] ?? PLAN_META.free;
-  const usedPct     = Math.min((profile.videos_used_this_month / Math.max(profile.videos_limit, 1)) * 100, 100);
-  const isUnlimited = profile.plan === 'pro' || profile.plan === 'growth';
+  const videoLimit  = PLAN_LIMITS[profile.plan] ?? profile.videos_limit;
+  const usedPct     = Math.min((profile.videos_used_this_month / Math.max(videoLimit, 1)) * 100, 100);
   const isPaid      = profile.plan !== 'free';
   const nameUnchanged = fullName === (profile.full_name || '');
   const initials    = (profile.full_name || profile.email || 'R').charAt(0).toUpperCase();
@@ -99,18 +99,14 @@ export default function AccountPage() {
   return (
     <div className="max-w-2xl mx-auto p-6 md:p-8 space-y-6">
 
-      {/* ── Page header ── */}
       <div className="pb-1">
         <h1 className="font-syne font-extrabold text-[22px] text-[#0F0D0A] tracking-tight">Account Settings</h1>
         <p className="text-[13px] text-[#8A8682] mt-1">Manage your profile and subscription.</p>
       </div>
 
-      {/* ══════════════════════════════════════
-          PROFILE CARD
-      ══════════════════════════════════════ */}
+      {/* profile */}
       <section className="rounded-xl border border-[#E2DED6] bg-white overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
 
-        {/* Card header */}
         <div className="px-6 py-4 border-b border-[#F0EDE6] flex items-center gap-2">
           <svg className="w-4 h-4 text-[#8A8682]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
@@ -118,11 +114,9 @@ export default function AccountPage() {
           <span className="text-[13px] font-semibold text-[#1A1714]">Profile</span>
         </div>
 
-        {/* Card body */}
         <form onSubmit={handleSave}>
           <div className="px-6 py-6 space-y-5">
 
-            {/* Avatar row */}
             <div className="flex items-center gap-4">
               <div
                 className="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold shrink-0 select-none"
@@ -184,7 +178,6 @@ export default function AccountPage() {
             </div>
           </div>
 
-          {/* Card footer */}
           <div className="px-6 py-4 bg-[#FAFAF8] border-t border-[#F0EDE6] flex items-center justify-between">
             <p className="text-[11px] text-[#B8B4AE]">Changes are saved immediately.</p>
             <button
@@ -208,12 +201,9 @@ export default function AccountPage() {
         </form>
       </section>
 
-      {/* ══════════════════════════════════════
-          SUBSCRIPTION CARD
-      ══════════════════════════════════════ */}
+      {/* subscription */}
       <section id="upgrade" className="rounded-xl border border-[#E2DED6] bg-white overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.05)] scroll-mt-6">
 
-        {/* Card header */}
         <div className="px-6 py-4 border-b border-[#F0EDE6] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <svg className="w-4 h-4 text-[#8A8682]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
@@ -232,7 +222,6 @@ export default function AccountPage() {
           )}
         </div>
 
-        {/* Current plan row */}
         <div className="px-6 py-5 border-b border-[#F0EDE6]">
           <div className="flex items-center justify-between">
             <div>
@@ -256,29 +245,24 @@ export default function AccountPage() {
             </span>
           </div>
 
-          {/* Usage bar */}
           <div className="mt-4">
             <div className="flex justify-between text-[11px] mb-1.5">
               <span className="text-[#8A8682]">Videos this month</span>
               <span className="font-mono font-semibold text-[#1A1714]">
                 {profile.videos_used_this_month}
-                <span className="text-[#C8C4BC] font-normal">
-                  {isUnlimited ? ' / ∞' : ` / ${profile.videos_limit}`}
-                </span>
+                <span className="text-[#C8C4BC] font-normal"> / {videoLimit}</span>
               </span>
             </div>
-            {!isUnlimited && (
-              <div className="h-1.5 bg-[#F0EDE6] rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{
-                    width: `${usedPct}%`,
-                    background: usedPct >= 90 ? '#FF5500' : usedPct >= 70 ? '#f59e0b' : '#F0B429',
-                  }}
-                />
-              </div>
-            )}
-            {!isUnlimited && usedPct >= 80 && (
+            <div className="h-1.5 bg-[#F0EDE6] rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${usedPct}%`,
+                  background: usedPct >= 90 ? '#FF5500' : usedPct >= 70 ? '#f59e0b' : '#F0B429',
+                }}
+              />
+            </div>
+            {usedPct >= 80 && (
               <p className="text-[11px] mt-1.5" style={{ color: usedPct >= 90 ? '#FF5500' : '#C07A00' }}>
                 {usedPct >= 90 ? 'Almost at your limit — upgrade to keep creating.' : 'Getting close to your limit.'}
               </p>
@@ -286,7 +270,6 @@ export default function AccountPage() {
           </div>
         </div>
 
-        {/* Upgrade plans — only for free users */}
         {!isPaid && (
           <div className="px-6 py-5">
             <p className="text-[11px] font-semibold text-[#8A8682] uppercase tracking-wider mb-4">Upgrade Your Plan</p>
@@ -357,9 +340,7 @@ export default function AccountPage() {
         )}
       </section>
 
-      {/* ══════════════════════════════════════
-          DANGER ZONE
-      ══════════════════════════════════════ */}
+      {/* session / sign out */}
       <section className="rounded-xl border border-[#E2DED6] bg-white overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
         <div className="px-6 py-4 border-b border-[#F0EDE6] flex items-center gap-2">
           <svg className="w-4 h-4 text-[#8A8682]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>

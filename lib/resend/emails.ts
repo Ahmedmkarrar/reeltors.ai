@@ -88,6 +88,44 @@ export async function sendUpgradeNudgeEmail(email: string, name: string) {
   });
 }
 
+export async function sendFeedbackEmail({
+  fromName,
+  fromEmail,
+  category,
+  message,
+}: {
+  fromName: string;
+  fromEmail: string;
+  category: string;
+  message: string;
+}) {
+  return getResend().emails.send({
+    from: FROM(),
+    to: 'support@reeltors.ai',
+    replyTo: fromEmail,
+    subject: `[${category}] Feedback from ${fromName}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <body style="${baseStyle}">
+        <div style="max-width:560px;margin:0 auto;">
+          <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:8px;">Reeltor.ai</h1>
+          <p style="color:#6B6760;margin-bottom:32px;font-size:14px;">User Feedback</p>
+          <table style="width:100%;border-collapse:collapse;margin-bottom:24px;">
+            <tr><td style="padding:8px 0;color:#8A8682;font-size:13px;width:100px;">From</td><td style="padding:8px 0;color:#F0F0EB;font-size:13px;">${fromName} &lt;${fromEmail}&gt;</td></tr>
+            <tr><td style="padding:8px 0;color:#8A8682;font-size:13px;">Category</td><td style="padding:8px 0;color:#F0B429;font-size:13px;font-weight:700;">${category}</td></tr>
+          </table>
+          <div style="background:#1A1714;border-radius:8px;padding:20px;margin-bottom:32px;">
+            <p style="color:#F0F0EB;font-size:15px;line-height:1.7;margin:0;">${message.replace(/\n/g, '<br/>')}</p>
+          </div>
+          <p style="color:#2E2B27;font-size:12px;margin-top:48px;">© 2026 Reeltor.ai</p>
+        </div>
+      </body>
+      </html>
+    `,
+  });
+}
+
 export async function sendPaymentFailedEmail(email: string, name: string) {
   return getResend().emails.send({
     from: FROM(),

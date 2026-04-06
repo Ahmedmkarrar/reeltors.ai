@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { UpgradeModal } from '@/components/dashboard/UpgradeModal';
+import { PLAN_LIMITS } from '@/lib/stripe/plans';
 import type { Profile } from '@/types';
 
 interface SidebarProps {
@@ -39,6 +40,15 @@ const NAV = [
       </svg>
     ),
   },
+  {
+    href: '/feedback',
+    label: 'Feedback',
+    icon: (
+      <svg className="w-[17px] h-[17px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.226C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z" />
+      </svg>
+    ),
+  },
 ];
 
 const PLAN_LABELS: Record<string, string> = {
@@ -61,9 +71,9 @@ export function Sidebar({ profile }: SidebarProps) {
   const supabase = createClient();
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
-  const usedPct   = Math.min((profile.videos_used_this_month / Math.max(profile.videos_limit, 1)) * 100, 100);
-  const isUnlimited = profile.plan === 'pro' || profile.plan === 'growth';
-  const planColor   = PLAN_COLORS[profile.plan] ?? '#6B6760';
+  const videoLimit = PLAN_LIMITS[profile.plan] ?? profile.videos_limit;
+  const usedPct    = Math.min((profile.videos_used_this_month / Math.max(videoLimit, 1)) * 100, 100);
+  const planColor  = PLAN_COLORS[profile.plan] ?? '#6B6760';
   const initial     = (profile.full_name || profile.email || 'R').charAt(0).toUpperCase();
 
   async function handleSignOut() {
@@ -75,7 +85,7 @@ export function Sidebar({ profile }: SidebarProps) {
   return (
     <aside className="w-[220px] shrink-0 hidden md:flex flex-col h-screen sticky top-0 border-r border-[#E2DED6]" style={{ background: '#F5F3EF' }}>
 
-      {/* ── Logo ── */}
+      {/* logo */}
       <div className="px-5 py-5 border-b border-[#E2DED6]">
         <Link href="/" className="flex items-center gap-2 group">
           <div className="w-7 h-7 bg-[#F0B429] rounded-[5px] flex items-center justify-center shadow-[0_0_12px_rgba(240,180,41,0.3)]">
@@ -89,7 +99,7 @@ export function Sidebar({ profile }: SidebarProps) {
         </Link>
       </div>
 
-      {/* ── Create CTA ── */}
+      {/* create cta */}
       <div className="px-4 py-4 border-b border-[#E2DED6]">
         <Link
           href="/create"
@@ -102,7 +112,7 @@ export function Sidebar({ profile }: SidebarProps) {
         </Link>
       </div>
 
-      {/* ── Nav ── */}
+      {/* nav */}
       <nav className="flex-1 px-3 py-3 flex flex-col gap-0.5">
         {NAV.map(({ href, label, icon }) => {
           const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
@@ -129,10 +139,9 @@ export function Sidebar({ profile }: SidebarProps) {
         })}
       </nav>
 
-      {/* ── Plan + Usage ── */}
+      {/* plan + usage */}
       <div className="px-4 pb-3">
         <div className="bg-[#FFFFFF] border border-[#EAE8E2] rounded-[8px] p-3.5">
-          {/* Plan row */}
           <div className="flex items-center justify-between mb-3">
             <span className="text-[11px] text-[#6B6760] font-medium uppercase tracking-wider">Plan</span>
             <span
@@ -143,29 +152,23 @@ export function Sidebar({ profile }: SidebarProps) {
             </span>
           </div>
 
-          {/* Usage */}
           <div className="flex justify-between text-[11px] mb-2">
             <span className="text-[#6B6760]">Videos this month</span>
             <span className="text-[#888888] font-mono">
-              {profile.videos_used_this_month}
-              {!isUnlimited && ` / ${profile.videos_limit}`}
-              {isUnlimited && ' / ∞'}
+              {profile.videos_used_this_month} / {videoLimit}
             </span>
           </div>
 
-          {!isUnlimited && (
-            <div className="h-1 bg-[#EAE8E2] rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{
-                  width: `${usedPct}%`,
-                  background: usedPct >= 90 ? '#FF5500' : usedPct >= 70 ? '#f59e0b' : '#F0B429',
-                }}
-              />
-            </div>
-          )}
+          <div className="h-1 bg-[#EAE8E2] rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${usedPct}%`,
+                background: usedPct >= 90 ? '#FF5500' : usedPct >= 70 ? '#f59e0b' : '#F0B429',
+              }}
+            />
+          </div>
 
-          {/* Upgrade nudge */}
           {profile.plan === 'free' && (
             <button
               onClick={() => setUpgradeOpen(true)}
@@ -182,9 +185,8 @@ export function Sidebar({ profile }: SidebarProps) {
 
       <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
 
-      {/* ── User ── */}
+      {/* user row */}
       <div className="px-4 py-4 border-t border-[#E2DED6] flex items-center gap-3">
-        {/* Avatar */}
         <div
           className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
           style={{
