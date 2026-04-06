@@ -33,6 +33,7 @@ export default function SubscriptionPage() {
   const [profile,         setProfile]         = useState<Profile | null>(null);
   const [portalLoading,   setPortalLoading]   = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState('');
+  const [annual,          setAnnual]          = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -59,7 +60,7 @@ export default function SubscriptionPage() {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan }),
+        body: JSON.stringify({ plan, annual }),
       });
       const { url, error } = await res.json();
       if (error) { toast.error(error); return; }
@@ -99,8 +100,8 @@ export default function SubscriptionPage() {
         <p className="text-[13px] text-[#8A8682] mt-1">Your plan, usage, and billing.</p>
       </div>
 
-      {/* current plan hero */}
-      <section className="rounded-xl border border-[#E2DED6] bg-white overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
+      {/* current plan hero — only for paid users */}
+      {isPaid && <section className="rounded-xl border border-[#E2DED6] bg-white overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
 
         <div className="px-6 py-4 border-b border-[#F0EDE6] flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -138,7 +139,7 @@ export default function SubscriptionPage() {
                 <p className="text-[12px] text-[#8A8682] mt-1">{planData.tagline}</p>
               )}
               {!isPaid && (
-                <p className="text-[12px] text-[#8A8682] mt-1">You&apos;re on the free plan. Upgrade to create more videos.</p>
+                <p className="text-[12px] text-[#8A8682] mt-1">Choose a plan below to start creating videos.</p>
               )}
             </div>
             <span
@@ -199,16 +200,32 @@ export default function SubscriptionPage() {
             </div>
           )}
         </div>
-      </section>
+      </section>}
 
       {/* upgrade plans */}
       {upgrades.length > 0 && (
         <section className="rounded-xl border border-[#E2DED6] bg-white overflow-hidden shadow-[0_1px_4px_rgba(0,0,0,0.05)]">
 
-          <div className="px-6 py-4 border-b border-[#F0EDE6]">
+          <div className="px-6 py-4 border-b border-[#F0EDE6] flex items-center justify-between gap-4">
             <span className="text-[13px] font-semibold text-[#1A1714]">
               {isPaid ? 'Upgrade Your Plan' : 'Choose a Plan'}
             </span>
+            {/* billing toggle */}
+            <div className="flex items-center gap-2 bg-[#F5F3EF] rounded-lg p-1">
+              <button
+                onClick={() => setAnnual(false)}
+                className={`px-3 py-1 rounded-md text-[12px] font-medium transition-all ${!annual ? 'bg-white text-[#1A1714] shadow-sm' : 'text-[#8A8682] hover:text-[#1A1714]'}`}
+              >
+                Monthly
+              </button>
+              <button
+                onClick={() => setAnnual(true)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[12px] font-medium transition-all ${annual ? 'bg-white text-[#1A1714] shadow-sm' : 'text-[#8A8682] hover:text-[#1A1714]'}`}
+              >
+                Annual
+                <span className="text-[9px] font-bold bg-[#F0B429] text-[#1A1714] px-1.5 py-0.5 rounded-full">SAVE 32%</span>
+              </button>
+            </div>
           </div>
 
           <div className="p-6">
@@ -242,14 +259,19 @@ export default function SubscriptionPage() {
                       </div>
                       <p className="text-[11px] text-[#8A8682] mb-4 leading-relaxed">{p.tagline}</p>
 
-                      <div className="flex items-baseline gap-0.5 mb-5">
-                        <span
-                          className="font-syne font-extrabold text-[28px] leading-none"
-                          style={{ color: isPopular ? '#F0B429' : '#1A1714' }}
-                        >
-                          ${p.price}
-                        </span>
-                        <span className="text-[11px] text-[#8A8682] ml-1">/mo</span>
+                      <div className="mb-5">
+                        <div className="flex items-baseline gap-0.5">
+                          <span
+                            className="font-syne font-extrabold text-[28px] leading-none"
+                            style={{ color: isPopular ? '#F0B429' : '#1A1714' }}
+                          >
+                            ${annual && p.priceAnnual ? (p.priceAnnual / 12).toFixed(2) : p.price}
+                          </span>
+                          <span className="text-[11px] text-[#8A8682] ml-1">/mo</span>
+                        </div>
+                        {annual && p.priceAnnual && (
+                          <p className="text-[10px] text-[#8A8682] mt-1">billed ${p.priceAnnual}/yr</p>
+                        )}
                       </div>
 
                       <ul className="space-y-2 mb-5">
@@ -288,11 +310,6 @@ export default function SubscriptionPage() {
                           ? `Get ${p.name} →`
                           : `Start with ${p.name} →`}
                       </button>
-                      {p.priceAnnual && (
-                        <p className="text-center text-[10px] text-[#B8B4AE] mt-2">
-                          ${p.priceAnnual}/yr — save {Math.round((1 - p.priceAnnual / (p.price * 12)) * 100)}%
-                        </p>
-                      )}
                     </div>
                   </div>
                 );
