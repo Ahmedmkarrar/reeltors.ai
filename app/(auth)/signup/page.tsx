@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { LogoIcon } from '@/components/ui/LogoIcon';
 import toast from 'react-hot-toast';
 
 const FEATURES = [
@@ -89,11 +90,7 @@ export default function SignupPage() {
         {/* Logo */}
         <div className="relative">
           <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-[#F0B429] rounded-[5px] flex items-center justify-center shadow-[0_0_16px_rgba(240,180,41,0.35)]">
-              <svg className="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </div>
+            <LogoIcon className="w-9 h-9 drop-shadow-[0_0_10px_rgba(240,180,41,0.4)]" />
             <span className="font-syne font-extrabold text-[20px] text-[#FAFAF8]">
               Reeltors<span className="text-[#F0B429]">.</span>ai
             </span>
@@ -146,11 +143,7 @@ export default function SignupPage() {
         <div className="w-full max-w-[380px]">
           {/* Mobile logo */}
           <Link href="/" className="flex lg:hidden items-center gap-2 mb-10 justify-center">
-            <div className="w-7 h-7 bg-[#F0B429] rounded-[5px] flex items-center justify-center">
-              <svg className="w-3.5 h-3.5 text-black" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </div>
+            <LogoIcon className="w-8 h-8" />
             <span className="font-syne font-extrabold text-xl text-[#1A1714]">
               Reeltors<span className="text-[#F0B429]">.</span>ai
             </span>

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { VideoCard } from '@/components/dashboard/VideoCard';
 import { UpgradeButton, UpgradeLink } from '@/components/dashboard/UpgradeCTA';
+import { PLAN_LIMITS } from '@/lib/stripe/plans';
 import type { Profile, Video } from '@/types';
 
 function getGreeting(): string {
@@ -30,15 +31,16 @@ export default async function DashboardPage() {
   const totalVideos  = allVideos.length;
   const readyVideos  = allVideos.filter((v) => v.status === 'complete').length;
   const isUnlimited  = profile.plan === 'pro' || profile.plan === 'growth';
-  const usedPct      = Math.min((profile.videos_used_this_month / Math.max(profile.videos_limit, 1)) * 100, 100);
-  const remaining    = isUnlimited ? '∞' : Math.max(0, profile.videos_limit - profile.videos_used_this_month);
+  const videoLimit   = PLAN_LIMITS[profile.plan] ?? profile.videos_limit;
+  const usedPct      = Math.min((profile.videos_used_this_month / Math.max(videoLimit, 1)) * 100, 100);
+  const remaining    = isUnlimited ? '∞' : Math.max(0, videoLimit - profile.videos_used_this_month);
   const firstName    = profile.full_name?.split(' ')[0] || 'Realtor';
 
   return (
     <div className="p-6 md:p-8 max-w-5xl">
 
       {/* ── Limit-reached banner ── */}
-      {profile.plan === 'free' && profile.videos_used_this_month >= profile.videos_limit && (
+      {profile.plan === 'free' && profile.videos_used_this_month >= videoLimit && (
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#1a0800] border border-[#FF5500]/30 rounded-[8px] px-5 py-3.5">
           <div className="flex items-center gap-2.5">
             <svg className="w-4 h-4 text-[#FF5500] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -125,7 +127,7 @@ export default async function DashboardPage() {
             <span className="text-sm font-medium text-[#6B6760]">Monthly video quota</span>
             <span className="text-sm font-mono text-[#1A1714]">
               <span className="text-[#C07A00] font-bold">{profile.videos_used_this_month}</span>
-              <span className="text-[#8A8682]"> / {profile.videos_limit}</span>
+              <span className="text-[#8A8682]"> / {videoLimit}</span>
             </span>
           </div>
           <div className="h-2 bg-[#EAE8E2] rounded-full overflow-hidden">

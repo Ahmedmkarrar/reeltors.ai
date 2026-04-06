@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { LogoIcon } from '@/components/ui/LogoIcon';
 
 const NAV_LINKS = [
   { href: '#proof',        label: 'Results' },
@@ -33,11 +34,7 @@ export function Navbar() {
 
           {/* ── Logo ── */}
           <Link href="/" className="flex items-center gap-2 shrink-0 group">
-            <div className="w-6 h-6 bg-[#F0B429] rounded-[4px] flex items-center justify-center shadow-[0_0_12px_rgba(240,180,41,0.4)] group-hover:shadow-[0_0_20px_rgba(240,180,41,0.6)] transition-shadow">
-              <svg className="w-3.5 h-3.5 text-black" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
-            </div>
+            <LogoIcon className="w-7 h-7 drop-shadow-[0_0_8px_rgba(240,180,41,0.5)] group-hover:drop-shadow-[0_0_14px_rgba(240,180,41,0.7)] transition-[filter]" />
             <span className="font-syne font-extrabold text-[17px] tracking-tight text-[#FAFAF8]">
               Reeltors<span className="text-[#F0B429]">.</span>ai
             </span>

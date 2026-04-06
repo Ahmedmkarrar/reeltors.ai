@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { LogoIcon } from '@/components/ui/LogoIcon';
 
 const LINKS = {
   Product: [
@@ -50,11 +51,7 @@ export function Footer() {
           {/* Brand col */}
           <div>
             <Link href="/" className="inline-flex items-center gap-2 mb-5 group">
-              <div className="w-8 h-8 bg-[#F0B429] rounded-[5px] flex items-center justify-center shadow-[0_0_16px_rgba(240,180,41,0.35)]">
-                <svg className="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z" />
-                </svg>
-              </div>
+              <LogoIcon className="w-9 h-9 drop-shadow-[0_0_10px_rgba(240,180,41,0.4)]" />
               <span className="font-syne font-extrabold text-[20px] text-[#FAFAF8] group-hover:text-[#F0B429] transition-colors">
                 Reeltors<span className="text-[#F0B429]">.</span>ai
               </span>

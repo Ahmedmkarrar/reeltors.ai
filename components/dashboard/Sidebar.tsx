@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { LogoIcon } from '@/components/ui/LogoIcon';
 import { useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -97,11 +98,7 @@ export function Sidebar({ profile }: SidebarProps) {
       {/* logo */}
       <div className="px-5 py-5 border-b border-[#E2DED6]">
         <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-7 h-7 bg-[#F0B429] rounded-[5px] flex items-center justify-center shadow-[0_0_12px_rgba(240,180,41,0.3)]">
-            <svg className="w-4 h-4 text-black" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </div>
+          <LogoIcon className="w-8 h-8" />
           <span className="font-syne font-extrabold text-[17px] text-[#1A1714] group-hover:text-[#F0B429] transition-colors">
             Reeltor<span className="text-[#F0B429]">.</span>ai
           </span>
