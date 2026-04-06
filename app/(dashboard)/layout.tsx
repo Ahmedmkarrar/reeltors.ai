@@ -4,6 +4,8 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { Sidebar } from '@/components/dashboard/Sidebar';
+import { PaywallModal } from '@/components/dashboard/PaywallModal';
+import { PLAN_LIMITS } from '@/lib/stripe/plans';
 import type { Profile } from '@/types';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -20,8 +22,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!profile) redirect('/login');
 
+  const isPaid = !!PLAN_LIMITS[profile.plan];
+
   return (
     <div className="flex min-h-screen" style={{ background: '#FAFAF8' }}>
+      {!isPaid && <PaywallModal />}
       <Sidebar profile={profile} />
 
       {/* Mobile bottom nav */}
