@@ -19,6 +19,10 @@ export default function LoginPage() {
   const supabase = createClient();
   const [googleLoading, setGoogleLoading] = useState(false);
 
+  const errorMsg = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('error')
+    : null;
+
   async function handleGoogle() {
     setGoogleLoading(true);
     await supabase.auth.signInWithOAuth({
@@ -85,6 +89,12 @@ export default function LoginPage() {
 
           <h1 className="font-syne font-extrabold text-[28px] text-[#1A1714] mb-1">Welcome back</h1>
           <p className="text-[#6B6760] text-sm mb-8">Sign in to your Reeltor.ai account</p>
+
+          {errorMsg && (
+            <div className="mb-4 px-3 py-2 bg-red-50 border border-red-200 rounded-[6px] text-[12px] text-red-600 font-mono break-all">
+              {errorMsg}
+            </div>
+          )}
 
           <button
             onClick={handleGoogle}
