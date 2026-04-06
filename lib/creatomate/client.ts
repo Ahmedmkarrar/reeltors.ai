@@ -177,9 +177,8 @@ export async function generateMixedMediaVideo(opts: GenerateMixedMediaOptions): 
 
 // ─── Build modifications from user inputs ──────────────────────────────────
 
-/** Maps user input to Creatomate dynamic element names */
 export function buildModifications(opts: {
-  photos?: string[];         // photo-1, photo-2, ...
+  photos?: string[];
   address?: string;
   price?: string;
   agentName?: string;
@@ -193,10 +192,10 @@ export function buildModifications(opts: {
     });
   }
 
-  if (opts.address)  mods.push({ find: 'Addresstext', value: opts.address });
-  if (opts.price)    mods.push({ find: 'Pricetext',   value: opts.price });
-  if (opts.agentName) mods.push({ find: 'Agent-Name', value: opts.agentName });
-  if (opts.brandName)  mods.push({ find: 'Brand-Name',  value: opts.brandName });
+  if (opts.address)   mods.push({ find: 'Addresstext', value: opts.address });
+  if (opts.price)     mods.push({ find: 'Pricetext',   value: opts.price });
+  if (opts.agentName) mods.push({ find: 'Agent-Name',  value: opts.agentName });
+  if (opts.brandName) mods.push({ find: 'Brand-Name',  value: opts.brandName });
 
   return mods;
 }

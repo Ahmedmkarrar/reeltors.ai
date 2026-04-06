@@ -8,9 +8,10 @@ const FAL_MODEL      = 'fal-ai/kling-video/v1.6/standard/image-to-video';
 export const MAX_AI_VIDEOS = 3;
 
 export const DRONE_SHOT_PROMPT =
-  'Smooth, cinematic pushing slowly forward toward the main subject. ' +
-  'Ultra-realistic architectural photography, sharp focus, 8k resolution. ' +
-  'Highly stable camera movement. Maintain strict structural integrity, no morphing, no melting.';
+  'Smooth cinematic camera push slowly forward toward the property. ' +
+  'Photorealistic architectural real estate photography. ' +
+  'Ultra-stable motion, sharp focus throughout, natural lighting. ' +
+  'Strict structural integrity — no morphing, no melting, no warping of walls or windows.';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -75,7 +76,7 @@ export async function generateDroneShot(
       image_url:    imageUrl,
       prompt,
       duration:     '5',
-      aspect_ratio: '16:9',
+      aspect_ratio: '9:16',  // vertical — matches the final video format
     }),
   });
 

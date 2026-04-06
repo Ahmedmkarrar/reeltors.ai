@@ -23,8 +23,10 @@ export async function POST(req: NextRequest) {
     const planData = PLANS[plan];
     const priceId = annual ? planData.stripePriceIdAnnual : planData.stripePriceId;
     if (!priceId) {
+      console.error(`[CHECKOUT] Missing price ID for plan="${plan}" annual=${annual}. Check STRIPE_PRICE_* env vars.`);
       return NextResponse.json({ error: 'Price not configured for this plan' }, { status: 400 });
     }
+    console.log(`[CHECKOUT] plan=${plan} priceId=${priceId}`);
 
     const { data: profile } = await supabase
       .from('profiles')
@@ -49,20 +51,20 @@ export async function POST(req: NextRequest) {
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?upgraded=1`,
-      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/account`,
+      cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/subscription`,
       allow_promotion_codes: true,
     });
 
     return NextResponse.json({ url: session.url });
   } catch (err) {
-    console.error('[CHECKOUT_ERROR]', err);
-
-    // Surface Stripe errors clearly
     if (err instanceof Stripe.errors.StripeError) {
-      return NextResponse.json(
-        { error: err.message },
-        { status: err.statusCode ?? 500 }
-      );
+      console.error(`[CHECKOUT_ERROR] Stripe ${err.statusCode} — ${err.message}`);
+    } else {
+      console.error('[CHECKOUT_ERROR]', err);
+    }
+
+    if (err instanceof Stripe.errors.StripeError) {
+      return NextResponse.json({ error: err.message }, { status: err.statusCode ?? 500 });
     }
 
     const message = err instanceof Error ? err.message : 'Failed to create checkout session';
