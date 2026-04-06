@@ -4,7 +4,6 @@ export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import { LogoIcon } from '@/components/ui/LogoIcon';
 
 const FEATURES = [
@@ -16,22 +15,15 @@ const FEATURES = [
 ];
 
 export default function LoginPage() {
-  const supabase = createClient();
   const [googleLoading, setGoogleLoading] = useState(false);
 
   const errorMsg = typeof window !== 'undefined'
     ? new URLSearchParams(window.location.search).get('error')
     : null;
 
-  async function handleGoogle() {
+  function handleGoogle() {
     setGoogleLoading(true);
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
-    if (error) {
-      window.location.href = `/login?error=${encodeURIComponent(error.message)}`;
-    }
+    window.location.href = '/api/auth/google';
   }
 
   return (

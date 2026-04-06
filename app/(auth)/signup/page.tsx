@@ -4,7 +4,6 @@ export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import { LogoIcon } from '@/components/ui/LogoIcon';
 
 const FEATURES = [
@@ -22,15 +21,11 @@ const FACTS = [
 ];
 
 export default function SignupPage() {
-  const supabase = createClient();
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  async function handleGoogle() {
+  function handleGoogle() {
     setGoogleLoading(true);
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
+    window.location.href = '/api/auth/google';
   }
 
   return (
