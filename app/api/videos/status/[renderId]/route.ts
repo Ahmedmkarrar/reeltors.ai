@@ -45,8 +45,8 @@ export async function GET(
     const render = await getRenderStatus(renderId);
     return NextResponse.json({
       status:       render.status,
-      outputUrl:    render.outputUrl ?? null,
-      thumbnailUrl: null,
+      outputUrl:    render.url ?? null,
+      thumbnailUrl: render.snapshot_url ?? null,
     });
   } catch (err) {
     console.error('Status check error:', err);

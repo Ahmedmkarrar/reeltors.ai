@@ -120,8 +120,11 @@ export async function POST(req: NextRequest) {
   const hasAiVideos = falVideoMap.size > 0;
 
   // ── 7. Call Creatomate ─────────────────────────────────────────────────────
-  const webhookUrl = process.env.NEXT_PUBLIC_APP_URL
-    ? `${process.env.NEXT_PUBLIC_APP_URL}/api/webhooks/creatomate?token=${process.env.WEBHOOK_SECRET ?? ''}`
+  // Only send a webhook if we have a publicly reachable URL (not localhost)
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+  const isPublic = appUrl.startsWith('https://');
+  const webhookUrl = isPublic
+    ? `${appUrl}/api/webhooks/creatomate${process.env.WEBHOOK_SECRET ? `?token=${process.env.WEBHOOK_SECRET}` : ''}`
     : undefined;
 
   const sharedParams = {

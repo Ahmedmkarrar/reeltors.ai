@@ -16,10 +16,11 @@ function parseMetadata(raw: unknown): Record<string, string> {
 export async function POST(req: NextRequest) {
   // ── 1. Verify webhook token ──────────────────────────────────────────────────
   const token = req.nextUrl.searchParams.get('token');
-  const expectedToken = process.env.WEBHOOK_SECRET ?? '';
+  const expectedToken = process.env.WEBHOOK_SECRET;
 
-  if (!expectedToken || token !== expectedToken) {
-    console.warn('Creatomate webhook: invalid or missing token');
+  // Only enforce token check when WEBHOOK_SECRET is configured
+  if (expectedToken && token !== expectedToken) {
+    console.warn('Creatomate webhook: invalid token');
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 

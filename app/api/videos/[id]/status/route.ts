@@ -44,11 +44,12 @@ export async function GET(
     return NextResponse.json({ status: video.status });
   }
 
-  if (render.status === 'completed' && render.outputUrl) {
+  if (render.status === 'succeeded' && render.url) {
     // Store permanently in Supabase Storage
-    let finalUrl = render.outputUrl;
+    let finalUrl = render.url;
     try {
-      finalUrl = await downloadAndStoreVideo(video.creatomate_render_id, render.outputUrl!, user.id);
+      finalUrl = await downloadAndStoreVideo(video.creatomate_render_id, render.url!, user.id);
+
     } catch (e) {
       console.error('Failed to store video, using CDN URL as fallback:', e);
     }
@@ -61,7 +62,7 @@ export async function GET(
     return NextResponse.json({ status: 'complete', output_url: finalUrl });
   }
 
-  if (render.status === 'failed') {
+  if (render.status === 'failed' || render.error) {
     await admin
       .from('videos')
       .update({ status: 'failed' })
