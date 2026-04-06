@@ -147,46 +147,46 @@ export function Sidebar({ profile }: SidebarProps) {
 
       {/* plan + usage */}
       <div className="px-4 pb-3">
-        <div className="bg-[#FFFFFF] border border-[#EAE8E2] rounded-[8px] p-3.5">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[11px] text-[#6B6760] font-medium uppercase tracking-wider">Plan</span>
-            <span
-              className="text-[11px] font-bold px-2 py-0.5 rounded-full"
-              style={{ color: planColor, background: `${planColor}18`, border: `1px solid ${planColor}30` }}
-            >
-              {PLAN_LABELS[profile.plan] ?? 'Free'}
-            </span>
-          </div>
+        {PLAN_LIMITS[profile.plan] ? (
+          <div className="bg-[#FFFFFF] border border-[#EAE8E2] rounded-[8px] p-3.5">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] text-[#6B6760] font-medium uppercase tracking-wider">Plan</span>
+              <span
+                className="text-[11px] font-bold px-2 py-0.5 rounded-full"
+                style={{ color: planColor, background: `${planColor}18`, border: `1px solid ${planColor}30` }}
+              >
+                {PLAN_LABELS[profile.plan]}
+              </span>
+            </div>
 
-          <div className="flex justify-between text-[11px] mb-2">
-            <span className="text-[#6B6760]">Videos this month</span>
-            <span className="text-[#888888] font-mono">
-              {profile.videos_used_this_month} / {videoLimit}
-            </span>
-          </div>
+            <div className="flex justify-between text-[11px] mb-2">
+              <span className="text-[#6B6760]">Videos this month</span>
+              <span className="text-[#888888] font-mono">
+                {profile.videos_used_this_month} / {videoLimit}
+              </span>
+            </div>
 
-          <div className="h-1 bg-[#EAE8E2] rounded-full overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{
-                width: `${usedPct}%`,
-                background: usedPct >= 90 ? '#FF5500' : usedPct >= 70 ? '#f59e0b' : '#F0B429',
-              }}
-            />
+            <div className="h-1 bg-[#EAE8E2] rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: `${usedPct}%`,
+                  background: usedPct >= 90 ? '#FF5500' : usedPct >= 70 ? '#f59e0b' : '#F0B429',
+                }}
+              />
+            </div>
           </div>
-
-          {profile.plan === 'free' && (
-            <button
-              onClick={() => setUpgradeOpen(true)}
-              className="flex items-center gap-1.5 mt-3 text-[11px] text-[#FF5500] hover:text-[#ff7744] transition-colors font-medium w-full text-left"
-            >
-              <svg className="w-3 h-3 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
-              </svg>
-              Upgrade for unlimited videos
-            </button>
-          )}
-        </div>
+        ) : (
+          <button
+            onClick={() => setUpgradeOpen(true)}
+            className="w-full flex items-center justify-center gap-2 bg-[#F0B429] hover:bg-[#F5C842] text-[#1A1714] font-bold text-[12px] rounded-[6px] py-2.5 transition-all shadow-[0_0_16px_rgba(240,180,41,0.2)]"
+          >
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
+            </svg>
+            Upgrade to Get Started
+          </button>
+        )}
       </div>
 
       <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
