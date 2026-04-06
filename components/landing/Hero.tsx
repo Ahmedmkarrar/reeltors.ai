@@ -32,7 +32,7 @@ export function Hero() {
               <div className="flex items-center gap-2 border border-[#F0B429]/30 bg-[#F0B429]/8 rounded-full px-4 py-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#F0B429] animate-pulse shrink-0" />
                 <span className="text-[11px] font-bold text-[#F0B429] tracking-wider uppercase">
-                  Free to start · No camera needed
+                  Plans from $49.99 · No camera needed
                 </span>
               </div>
             </motion.div>
@@ -77,7 +77,7 @@ export function Hero() {
                   variant="primary"
                   className="w-full sm:w-auto font-bold px-8 text-[15px] shadow-[0_0_40px_rgba(240,180,41,0.4)] hover:shadow-[0_0_60px_rgba(240,180,41,0.6)] transition-all"
                 >
-                  Make My First Video Free →
+                  Get Started →
                 </Button>
               </Link>
               <a href="#how-it-works">

@@ -5,12 +5,12 @@ import { useState, useEffect } from 'react';
 const activities = [
   { name: 'Sarah K.', city: 'Austin, TX',      action: 'just created a video',   time: '2 min ago' },
   { name: 'Marcus D.', city: 'Miami, FL',       action: 'got 4 new leads',        time: '5 min ago' },
-  { name: 'Jennifer L.', city: 'Los Angeles, CA', action: 'just signed up free',  time: '8 min ago' },
+  { name: 'Jennifer L.', city: 'Los Angeles, CA', action: 'just joined Reeltor.ai', time: '8 min ago' },
   { name: 'Ryan T.', city: 'Nashville, TN',     action: 'just created a video',   time: '11 min ago' },
   { name: 'Ashley B.', city: 'Denver, CO',      action: 'upgraded to Pro',        time: '14 min ago' },
   { name: 'Chris P.', city: 'Seattle, WA',      action: 'got 22k views on TikTok', time: '18 min ago' },
   { name: 'Melissa W.', city: 'Phoenix, AZ',    action: 'just created a video',   time: '21 min ago' },
-  { name: 'David H.', city: 'Chicago, IL',      action: 'just signed up free',    time: '24 min ago' },
+  { name: 'David H.', city: 'Chicago, IL',      action: 'just joined Reeltor.ai',  time: '24 min ago' },
 ];
 
 export function LiveActivity() {
