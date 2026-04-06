@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — Reeltors.ai',
+  title: 'Privacy Policy — Reeltor.ai',
 };
 
 const EFFECTIVE_DATE = 'April 4, 2025';
@@ -12,7 +12,7 @@ export default function PrivacyPage() {
     <div className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-3xl mx-auto px-6 py-16">
         <Link href="/" className="text-sm text-[#8A8682] hover:text-[#1A1714] transition-colors mb-8 inline-block">
-          ← Back to Reeltors.ai
+          ← Back to Reeltor.ai
         </Link>
 
         <h1 className="font-syne font-extrabold text-4xl text-[#1A1714] mb-2">Privacy Policy</h1>
@@ -22,7 +22,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="font-syne font-bold text-xl text-[#1A1714] mb-3">1. Who we are</h2>
-            <p>Reeltors.ai (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) is a video generation service for real estate professionals. We are operated by the Reeltors.ai team. Questions? Email us at <a href="mailto:hello@reeltors.ai" className="text-[#F0B429] underline">hello@reeltors.ai</a>.</p>
+            <p>Reeltor.ai (&ldquo;we&rdquo;, &ldquo;us&rdquo;, &ldquo;our&rdquo;) is a video generation service for real estate professionals. We are operated by the Reeltor.ai team. Questions? Email us at <a href="mailto:hello@reeltors.ai" className="text-[#F0B429] underline">hello@reeltors.ai</a>.</p>
           </section>
 
           <section>
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-syne font-bold text-xl text-[#1A1714] mb-3">3. How we use your information</h2>
             <ul className="list-disc pl-5 space-y-2">
-              <li>To provide, operate, and improve Reeltors.ai.</li>
+              <li>To provide, operate, and improve Reeltor.ai.</li>
               <li>To process payments and manage your subscription.</li>
               <li>To send transactional emails (receipts, video ready notifications).</li>
               <li>To detect and prevent fraud or abuse.</li>
@@ -79,7 +79,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2 className="font-syne font-bold text-xl text-[#1A1714] mb-3">9. Changes to this policy</h2>
-            <p>We may update this Privacy Policy from time to time. We will notify you of significant changes via email or an in-app notice. Continued use of Reeltors.ai after changes constitutes acceptance.</p>
+            <p>We may update this Privacy Policy from time to time. We will notify you of significant changes via email or an in-app notice. Continued use of Reeltor.ai after changes constitutes acceptance.</p>
           </section>
 
           <section>

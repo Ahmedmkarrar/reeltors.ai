@@ -18,21 +18,21 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Reeltors.ai — Turn Listing Photos into Viral Videos in 60 Seconds',
+  title: 'Reeltor.ai — Turn Listing Photos into Viral Videos in 60 Seconds',
   description:
-    'Stop losing listings to agents who post better content. Reeltors.ai turns your existing listing photos into cinematic Reels and TikToks — automatically.',
+    'Stop losing listings to agents who post better content. Reeltor.ai turns your existing listing photos into cinematic Reels and TikToks — automatically.',
   keywords: 'real estate video, listing video, realtor marketing, instagram reels real estate, tiktok real estate',
   openGraph: {
-    title: 'Reeltors.ai — Turn Listing Photos into Viral Videos in 60 Seconds',
+    title: 'Reeltor.ai — Turn Listing Photos into Viral Videos in 60 Seconds',
     description:
-      'Stop losing listings to agents who post better content. Reeltors.ai turns your existing listing photos into cinematic Reels and TikToks — automatically.',
+      'Stop losing listings to agents who post better content. Reeltor.ai turns your existing listing photos into cinematic Reels and TikToks — automatically.',
     url: 'https://reeltors.ai',
-    siteName: 'Reeltors.ai',
+    siteName: 'Reeltor.ai',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Reeltors.ai — Turn Listing Photos into Viral Videos in 60 Seconds',
+    title: 'Reeltor.ai — Turn Listing Photos into Viral Videos in 60 Seconds',
     description: 'Turn your listing photos into viral TikToks and Reels in under 60 seconds.',
     creator: '@reeltorsai',
   },
@@ -55,7 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 fontFamily: 'Inter, sans-serif',
                 fontSize: '14px',
               },
-              success: { iconTheme: { primary: '#C8FF00', secondary: '#080808' } },
+              success: { iconTheme: { primary: '#F0B429', secondary: '#080808' } },
               error: { iconTheme: { primary: '#FF5500', secondary: '#080808' } },
             }}
           />

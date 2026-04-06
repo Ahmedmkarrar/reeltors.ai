@@ -6,10 +6,11 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { PLANS } from '@/lib/stripe/plans';
 
+// "original" prices shown crossed out (before launch discount)
 const ORIGINAL_PRICES: Record<string, number> = {
-  starter: 98,
-  growth:  198,
-  pro:     398,
+  starter: 99,
+  growth:  199,
+  pro:     399,
 };
 
 export function Pricing() {
@@ -82,7 +83,8 @@ export function Pricing() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {plans.map(({ key, data }, i) => {
             const isPopular     = key === 'growth';
-            const price         = annual && data.price > 0 ? Math.round(data.price * 0.7) : data.price;
+            const annualTotal   = 'priceAnnual' in data ? (data as typeof data & { priceAnnual: number }).priceAnnual : 0;
+            const price         = annual && annualTotal > 0 ? +(annualTotal / 12).toFixed(2) : data.price;
             const originalPrice = annual ? Math.round(ORIGINAL_PRICES[key] * 0.7) : ORIGINAL_PRICES[key];
             const roi = key === 'pro' ? 'Pays back in 1 lead' : key === 'starter' ? 'Pays back in 1 showing' : '';
 
@@ -130,8 +132,8 @@ export function Pricing() {
                       <span className="font-syne font-extrabold text-4xl leading-none text-[#FAFAF8]">${price}</span>
                       <span className="text-[#4A4744] text-sm mb-0.5">/mo</span>
                     </div>
-                    {annual && data.price > 0 && (
-                      <p className="text-xs text-[#4A4744]">billed ${Math.round(price * 12)}/yr</p>
+                    {annual && annualTotal > 0 && (
+                      <p className="text-xs text-[#4A4744]">billed ${annualTotal}/yr</p>
                     )}
                     {!annual && data.price > 0 && (
                       <p className="text-xs text-[#4A4744]">

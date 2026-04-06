@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Terms of Service — Reeltors.ai',
+  title: 'Terms of Service — Reeltor.ai',
 };
 
 const EFFECTIVE_DATE = 'April 4, 2025';
@@ -12,7 +12,7 @@ export default function TermsPage() {
     <div className="min-h-screen bg-[#FAFAF8]">
       <div className="max-w-3xl mx-auto px-6 py-16">
         <Link href="/" className="text-sm text-[#8A8682] hover:text-[#1A1714] transition-colors mb-8 inline-block">
-          ← Back to Reeltors.ai
+          ← Back to Reeltor.ai
         </Link>
 
         <h1 className="font-syne font-extrabold text-4xl text-[#1A1714] mb-2">Terms of Service</h1>
@@ -22,18 +22,18 @@ export default function TermsPage() {
 
           <section>
             <h2 className="font-syne font-bold text-xl text-[#1A1714] mb-3">1. Acceptance of terms</h2>
-            <p>By creating an account or using Reeltors.ai, you agree to these Terms of Service. If you do not agree, do not use the service.</p>
+            <p>By creating an account or using Reeltor.ai, you agree to these Terms of Service. If you do not agree, do not use the service.</p>
           </section>
 
           <section>
             <h2 className="font-syne font-bold text-xl text-[#1A1714] mb-3">2. Description of service</h2>
-            <p>Reeltors.ai is a subscription-based platform that allows real estate professionals to generate listing videos from photos using AI. Features and pricing are subject to change with reasonable notice.</p>
+            <p>Reeltor.ai is a subscription-based platform that allows real estate professionals to generate listing videos from photos using AI. Features and pricing are subject to change with reasonable notice.</p>
           </section>
 
           <section>
             <h2 className="font-syne font-bold text-xl text-[#1A1714] mb-3">3. Your account</h2>
             <ul className="list-disc pl-5 space-y-2">
-              <li>You must be at least 18 years old to use Reeltors.ai.</li>
+              <li>You must be at least 18 years old to use Reeltor.ai.</li>
               <li>You are responsible for maintaining the security of your account credentials.</li>
               <li>You must provide accurate account information.</li>
               <li>One account per person — do not share accounts.</li>
@@ -58,33 +58,33 @@ export default function TermsPage() {
               <li>Upload content you do not have rights to use.</li>
               <li>Generate videos containing illegal, defamatory, or misleading content.</li>
               <li>Attempt to reverse engineer, scrape, or abuse the platform.</li>
-              <li>Resell or sublicense access to Reeltors.ai without written consent.</li>
+              <li>Resell or sublicense access to Reeltor.ai without written consent.</li>
             </ul>
           </section>
 
           <section>
             <h2 className="font-syne font-bold text-xl text-[#1A1714] mb-3">6. Your content</h2>
-            <p>You retain ownership of all photos and content you upload. By using Reeltors.ai, you grant us a limited license to process your content solely for the purpose of generating your videos. We do not use your listing content to train AI models.</p>
+            <p>You retain ownership of all photos and content you upload. By using Reeltor.ai, you grant us a limited license to process your content solely for the purpose of generating your videos. We do not use your listing content to train AI models.</p>
           </section>
 
           <section>
             <h2 className="font-syne font-bold text-xl text-[#1A1714] mb-3">7. Generated videos</h2>
-            <p>Videos generated through Reeltors.ai are yours to use for lawful real estate marketing purposes. You are responsible for ensuring the content complies with MLS rules, fair housing laws, and any applicable advertising regulations in your jurisdiction.</p>
+            <p>Videos generated through Reeltor.ai are yours to use for lawful real estate marketing purposes. You are responsible for ensuring the content complies with MLS rules, fair housing laws, and any applicable advertising regulations in your jurisdiction.</p>
           </section>
 
           <section>
             <h2 className="font-syne font-bold text-xl text-[#1A1714] mb-3">8. Intellectual property</h2>
-            <p>Reeltors.ai and its original content, features, and functionality are owned by us and protected by applicable intellectual property laws. Our name, logo, and product are our trademarks.</p>
+            <p>Reeltor.ai and its original content, features, and functionality are owned by us and protected by applicable intellectual property laws. Our name, logo, and product are our trademarks.</p>
           </section>
 
           <section>
             <h2 className="font-syne font-bold text-xl text-[#1A1714] mb-3">9. Disclaimer of warranties</h2>
-            <p>Reeltors.ai is provided &ldquo;as is&rdquo; without warranties of any kind. We do not guarantee uninterrupted service, specific video output quality, or that the service will meet every use case.</p>
+            <p>Reeltor.ai is provided &ldquo;as is&rdquo; without warranties of any kind. We do not guarantee uninterrupted service, specific video output quality, or that the service will meet every use case.</p>
           </section>
 
           <section>
             <h2 className="font-syne font-bold text-xl text-[#1A1714] mb-3">10. Limitation of liability</h2>
-            <p>To the maximum extent permitted by law, Reeltors.ai shall not be liable for indirect, incidental, or consequential damages. Our total liability to you for any claim shall not exceed the amount you paid us in the three months preceding the claim.</p>
+            <p>To the maximum extent permitted by law, Reeltor.ai shall not be liable for indirect, incidental, or consequential damages. Our total liability to you for any claim shall not exceed the amount you paid us in the three months preceding the claim.</p>
           </section>
 
           <section>

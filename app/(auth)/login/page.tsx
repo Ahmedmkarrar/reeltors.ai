@@ -120,7 +120,7 @@ export default function LoginPage() {
           </Link>
 
           <h1 className="font-syne font-extrabold text-[28px] text-[#1A1714] mb-1">Welcome back</h1>
-          <p className="text-[#6B6760] text-sm mb-8">Sign in to your Reeltors.ai account</p>
+          <p className="text-[#6B6760] text-sm mb-8">Sign in to your Reeltor.ai account</p>
 
           {/* Google first */}
           <button

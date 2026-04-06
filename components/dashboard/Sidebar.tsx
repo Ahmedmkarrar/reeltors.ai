@@ -44,15 +44,15 @@ const NAV = [
 const PLAN_LABELS: Record<string, string> = {
   free:    'Free',
   starter: 'Starter',
+  growth:  'Growth',
   pro:     'Pro',
-  team:    'Team',
 };
 
 const PLAN_COLORS: Record<string, string> = {
   free:    '#6B6760',
   starter: '#5C5853',
-  pro:     '#C07A00',
-  team:    '#059669',
+  growth:  '#C07A00',
+  pro:     '#059669',
 };
 
 export function Sidebar({ profile }: SidebarProps) {
@@ -62,7 +62,7 @@ export function Sidebar({ profile }: SidebarProps) {
   const [upgradeOpen, setUpgradeOpen] = useState(false);
 
   const usedPct   = Math.min((profile.videos_used_this_month / Math.max(profile.videos_limit, 1)) * 100, 100);
-  const isUnlimited = profile.plan === 'pro' || profile.plan === 'team';
+  const isUnlimited = profile.plan === 'pro' || profile.plan === 'growth';
   const planColor   = PLAN_COLORS[profile.plan] ?? '#6B6760';
   const initial     = (profile.full_name || profile.email || 'R').charAt(0).toUpperCase();
 
@@ -84,7 +84,7 @@ export function Sidebar({ profile }: SidebarProps) {
             </svg>
           </div>
           <span className="font-syne font-extrabold text-[17px] text-[#1A1714] group-hover:text-[#F0B429] transition-colors">
-            Reeltors<span className="text-[#F0B429]">.</span>ai
+            Reeltor<span className="text-[#F0B429]">.</span>ai
           </span>
         </Link>
       </div>
