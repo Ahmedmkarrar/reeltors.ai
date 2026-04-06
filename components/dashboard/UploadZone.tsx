@@ -481,26 +481,25 @@ export function UploadZone({
               </div>
 
               {/* Divider */}
-              <div className="w-px bg-[#2A2622] flex-shrink-0" />
-
               {/* Next button */}
               {onNext && (
-                <button
-                  type="button"
-                  onClick={onNext}
-                  disabled={nextDisabled}
-                  className={[
-                    'flex-shrink-0 flex flex-col items-center justify-center gap-0.5 px-5',
-                    'font-semibold text-sm text-[#1A1714] bg-[#F0B429] transition-colors',
-                    'disabled:opacity-35 disabled:cursor-not-allowed',
-                    'hover:bg-[#E8AC22] active:bg-[#D9A01E]',
-                  ].join(' ')}
-                >
-                  <span className="whitespace-nowrap">Next →</span>
-                  <span className="text-[10px] font-normal opacity-70 whitespace-nowrap">
-                    {files.length} photo{files.length !== 1 ? 's' : ''}
-                  </span>
-                </button>
+                <div className="flex-shrink-0 flex items-center px-3">
+                  <button
+                    type="button"
+                    onClick={onNext}
+                    disabled={nextDisabled}
+                    className={[
+                      'w-10 h-10 rounded-full flex items-center justify-center',
+                      'font-bold text-sm text-[#1A1714] bg-[#F0B429] transition-all',
+                      'disabled:opacity-35 disabled:cursor-not-allowed',
+                      'hover:bg-[#E8AC22] hover:scale-105 active:scale-95 active:bg-[#D9A01E]',
+                      'shadow-[0_0_16px_rgba(240,180,41,0.35)]',
+                    ].join(' ')}
+                    title={`Next — ${files.length} photo${files.length !== 1 ? 's' : ''}`}
+                  >
+                    →
+                  </button>
+                </div>
               )}
             </div>
 
