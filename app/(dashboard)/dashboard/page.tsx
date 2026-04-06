@@ -40,16 +40,16 @@ export default async function DashboardPage() {
     <div className="p-6 md:p-8 max-w-5xl">
 
       {/* ── Limit-reached banner ── */}
-      {profile.plan === 'free' && profile.videos_used_this_month >= videoLimit && (
+      {profile.videos_used_this_month >= videoLimit && !isUnlimited && (
         <div className="mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#1a0800] border border-[#FF5500]/30 rounded-[8px] px-5 py-3.5">
           <div className="flex items-center gap-2.5">
             <svg className="w-4 h-4 text-[#FF5500] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
             </svg>
-            <p className="text-sm text-[#FF5500]">You&apos;ve used your free video this month.</p>
+            <p className="text-sm text-[#FF5500]">You&apos;ve reached your monthly video limit.</p>
           </div>
           <UpgradeButton className="shrink-0 text-sm font-bold text-[#FAFAF8] bg-[#FF5500] hover:bg-[#ff7744] px-4 py-1.5 rounded-[5px] transition-colors">
-            Upgrade to Pro
+            Upgrade Plan
           </UpgradeButton>
         </div>
       )}
@@ -140,11 +140,10 @@ export default async function DashboardPage() {
               }}
             />
           </div>
-          {profile.plan === 'free' && (
+          {!isUnlimited && (
             <p className="text-xs text-[#8A8682] mt-2">
-              On the free plan.{' '}
               <UpgradeLink className="text-[#F0B429] hover:underline">
-                Upgrade for unlimited →
+                Upgrade for more videos →
               </UpgradeLink>
             </p>
           )}
