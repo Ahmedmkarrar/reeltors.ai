@@ -70,14 +70,14 @@ export async function sendUpgradeNudgeEmail(email: string, name: string) {
   return getResend().emails.send({
     from: FROM(),
     to: email,
-    subject: "You've used your free video — upgrade to keep going",
+    subject: "You've reached your video limit — upgrade to keep going",
     html: `
       <!DOCTYPE html>
       <html>
       <body style="${baseStyle}">
         <div style="max-width:560px;margin:0 auto;">
           <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:8px;">Reeltor.ai</h1>
-          <h2 style="font-size:22px;font-weight:700;margin-bottom:16px;">You've hit your free limit, ${name}.</h2>
+          <h2 style="font-size:22px;font-weight:700;margin-bottom:16px;">You've hit your monthly limit, ${name}.</h2>
           <p style="color:#8A8682;line-height:1.7;margin-bottom:24px;">Upgrade to Pro to create unlimited videos and access all templates.</p>
           <a href="${APP_URL()}/dashboard?upgrade=1" style="display:inline-block;background:#F0B429;color:#0D0B08;font-weight:700;padding:14px 28px;border-radius:4px;text-decoration:none;font-size:15px;">Upgrade to Pro — $49/month →</a>
           <p style="color:#2E2B27;font-size:12px;margin-top:48px;">© 2026 Reeltor.ai</p>
