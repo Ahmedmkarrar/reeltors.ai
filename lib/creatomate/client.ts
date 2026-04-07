@@ -57,7 +57,7 @@ export async function createRender(req: {
     payload.metadata = JSON.stringify(req.metadata);
   }
 
-  const res = await fetch('https://api.creatomate.com/v1/renders', {
+  const res = await fetch('https://api.creatomate.com/v2/renders', {
     method: 'POST',
     headers: {
       Authorization:  `Bearer ${apiKey}`,
@@ -167,19 +167,28 @@ export function buildModifications(opts: {
   price?: string;
   agentName?: string;
   brandName?: string;
+  email?: string;
+  phone?: string;
 }): Record<string, string> {
   const mods: Record<string, string> = {};
 
+  // Template has Video-1 through Video-4 slots
   if (opts.photos) {
-    opts.photos.forEach((url, i) => {
-      if (url) mods[`photo-${i + 1}.source`] = url;
+    opts.photos.slice(0, 4).forEach((url, i) => {
+      if (url) mods[`Video-${i + 1}.source`] = url;
     });
   }
 
-  if (opts.address)   mods['Addresstext.text'] = opts.address;
-  if (opts.price)     mods['Pricetext.text']   = opts.price;
-  if (opts.agentName) mods['Name.text']         = opts.agentName;
-  if (opts.brandName) mods['Brand-Name.text']   = opts.brandName;
+  // Description = address. Append price if provided.
+  const description = [opts.address, opts.price].filter(Boolean).join('\n');
+  if (description) mods['Description.text'] = description;
+
+  // Subtext = price label or "Just Listed"
+  if (opts.price)     mods['Subtext.text']      = opts.price;
+  if (opts.agentName) mods['Name.text']          = opts.agentName;
+  if (opts.brandName) mods['Brand-Name.text']    = opts.brandName;
+  if (opts.email)     mods['Email.text']         = opts.email;
+  if (opts.phone)     mods['Phone-Number.text']  = opts.phone;
 
   return mods;
 }
