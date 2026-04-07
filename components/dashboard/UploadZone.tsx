@@ -150,7 +150,7 @@ export function UploadZone({
           .upload(path, file, { cacheControl: '3600', upsert: false });
 
         if (error) {
-          toast.error(`Failed to upload ${file.name}`);
+          toast.error(`Upload failed: ${error.message}`);
           continue;
         }
 
@@ -174,7 +174,7 @@ export function UploadZone({
     accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] },
     maxFiles,
     disabled: uploading || files.length >= maxFiles,
-    noClick: files.length > 0, // clickable when empty, use + button when photos exist
+    noClick: true, // click handled explicitly via open() on the zone div and + button
   });
 
   function removeFile(index: number) {
@@ -254,6 +254,7 @@ export function UploadZone({
       {/* Empty state — big obvious upload zone */}
       {files.length === 0 && (
         <div
+          onClick={open}
           className={[
             'h-full min-h-[220px] rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all duration-200 select-none',
             isDragActive

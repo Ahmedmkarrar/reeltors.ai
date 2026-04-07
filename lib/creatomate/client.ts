@@ -71,12 +71,12 @@ export async function createRender(req: {
     throw new CreatomateError(`HTTP ${res.status}: ${text}`, res.status);
   }
 
-  // API returns an array with one item
-  const json = await res.json() as CreatomateRenderResponse[];
-  const render = json[0];
+  // v1 API returns an array [{}], v2 API returns a single object {}
+  const json = await res.json();
+  const render = (Array.isArray(json) ? json[0] : json) as CreatomateRenderResponse;
 
   if (!render?.id) {
-    throw new CreatomateError('Creatomate returned an empty response');
+    throw new CreatomateError(`Creatomate returned an empty response: ${JSON.stringify(json)}`);
   }
 
   return render;
