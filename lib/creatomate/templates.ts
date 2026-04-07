@@ -6,12 +6,12 @@
  */
 
 export const TEMPLATE_IDS = {
-  CINEMATIC:     process.env.CREATOMATE_TEMPLATE_CINEMATIC      ?? '',
-  LUXURY_REVEAL: process.env.CREATOMATE_TEMPLATE_LUXURY_REVEAL ?? '',
-  MODERN_MINIMAL: process.env.CREATOMATE_TEMPLATE_MODERN_MINIMAL ?? '',
-  TIKTOK_FAST:   process.env.CREATOMATE_TEMPLATE_TIKTOK_FAST   ?? '',
-  LUXURY_MANSION: process.env.CREATOMATE_TEMPLATE_LUXURY_MANSION ?? '',
-  STORY:         process.env.CREATOMATE_TEMPLATE_STORY         ?? '',
+  CINEMATIC:      '9a562ec6-000e-4a92-ad76-bd9adfdc750d',
+  LUXURY_REVEAL:  '89ef7ef9-6e4b-42b7-b3d6-75189cad945d',
+  MODERN_MINIMAL: 'cd273862-81f6-4318-8618-cba2fbdcf920',
+  TIKTOK_FAST:    'cd273862-81f6-4318-8618-cba2fbdcf920',
+  LUXURY_MANSION: 'cd273862-81f6-4318-8618-cba2fbdcf920',
+  STORY:          'cd273862-81f6-4318-8618-cba2fbdcf920',
 } as const;
 
 export type TemplateStyle = keyof typeof TEMPLATE_IDS;

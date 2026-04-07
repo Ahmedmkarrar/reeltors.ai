@@ -6,6 +6,14 @@
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+export interface CreatomateRenderRequest {
+  templateId: string;
+  modifications: Record<string, string>;
+  webhookUrl?: string;
+  metadata?: Record<string, string> | string;
+}
+
+
 export interface CreatomateRenderResponse {
   id: string;
   status: 'planned' | 'waiting' | 'transcribing' | 'rendering' | 'succeeded' | 'failed';
@@ -42,10 +50,14 @@ export async function createRender(req: {
     modifications: req.modifications,
   };
 
-  if (req.webhookUrl) payload.webhook_url = req.webhookUrl;
-  if (req.metadata)   payload.metadata    = req.metadata;
+  if (req.webhookUrl) {
+    payload.webhook_url = req.webhookUrl;
+  }
+  if (req.metadata) {
+    payload.metadata = JSON.stringify(req.metadata);
+  }
 
-  const res = await fetch('https://api.creatomate.com/v1/renders', {
+  const res = await fetch('https://api.creatomate.com/v2/renders', {
     method: 'POST',
     headers: {
       Authorization:  `Bearer ${apiKey}`,
@@ -160,14 +172,14 @@ export function buildModifications(opts: {
 
   if (opts.photos) {
     opts.photos.forEach((url, i) => {
-      if (url) mods[`photo-${i + 1}`] = url;
+      if (url) mods[`photo-${i + 1}.source`] = url;
     });
   }
 
-  if (opts.address)   mods['Addresstext'] = opts.address;
-  if (opts.price)     mods['Pricetext']   = opts.price;
-  if (opts.agentName) mods['Agent-Name']  = opts.agentName;
-  if (opts.brandName) mods['Brand-Name']  = opts.brandName;
+  if (opts.address)   mods['Addresstext.text'] = opts.address;
+  if (opts.price)     mods['Pricetext.text']   = opts.price;
+  if (opts.agentName) mods['Name.text']         = opts.agentName;
+  if (opts.brandName) mods['Brand-Name.text']   = opts.brandName;
 
   return mods;
 }

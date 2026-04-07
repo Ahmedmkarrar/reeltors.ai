@@ -49,7 +49,7 @@ export function TemplateSelector({ selected, onSelect, plan }: TemplateSelectorP
 
         return (
           <button
-            key={template.id}
+            key={template.id || `template-${i}`}
             type="button"
             onClick={() => unlocked && onSelect(template.id)}
             className={[
