@@ -138,13 +138,19 @@ export default function LoginPage() {
             {googleLoading ? 'Redirecting...' : 'Continue with Google'}
           </button>
 
-          <div className="mt-4 text-center">
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px bg-[#E2DED6]" />
+            <span className="text-xs text-[#B0ABA3]">or</span>
+            <div className="flex-1 h-px bg-[#E2DED6]" />
+          </div>
+
+          <div className="text-center">
             {!showEmail ? (
               <button
                 onClick={() => setShowEmail(true)}
                 className="text-xs text-[#8A8682] hover:text-[#6B6760] underline underline-offset-2 transition-colors"
               >
-                or sign in with email
+                sign in with email
               </button>
             ) : emailSent ? (
               <p className="text-xs text-[#6B6760]">Check your inbox — we sent a magic link to <strong>{email}</strong></p>
