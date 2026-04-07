@@ -9,6 +9,7 @@ export async function GET(request: Request) {
     provider: 'google',
     options: {
       redirectTo: `${origin}/auth/callback`,
+      skipBrowserRedirect: true,
       queryParams: { access_type: 'offline', prompt: 'consent' },
     },
   });
