@@ -2,10 +2,10 @@
 import { useState, useEffect } from 'react';
 
 const PHOTOS = [
-  { bg: 'from-slate-700 to-slate-900',   label: 'Living Rm' },
-  { bg: 'from-emerald-900 to-slate-900', label: 'Kitchen' },
-  { bg: 'from-amber-900 to-slate-900',   label: 'Master' },
-  { bg: 'from-blue-900 to-slate-900',    label: 'Exterior' },
+  { src: '/demoo/img1.jpg',          label: 'Exterior' },
+  { src: '/demoo/imgdemo.jpg',       label: 'Living Rm' },
+  { src: '/demoo/knfkenwfjkne.jpg',  label: 'Lounge' },
+  { src: '/demoo/fjkneknfjn.jpg',    label: 'Staircase' },
 ];
 
 const STAGE_DURATIONS = [2800, 2400, 2200, 3200]; // ms
@@ -32,32 +32,32 @@ function UploadScreen({ active }: { active: boolean }) {
   return (
     <Screen visible={active}>
       <div className="p-4">
-        <p className="text-[10px] text-[#555555] font-mono uppercase tracking-wider mb-3">Step 1 — Upload photos</p>
+        <p className="text-[11px] text-[#777777] font-mono uppercase tracking-wider mb-3">Step 1 — Upload photos</p>
         <div className="grid grid-cols-4 gap-1.5 mb-3">
           {PHOTOS.map((p, i) => (
             <div
               key={p.label}
-              className={`aspect-square rounded bg-gradient-to-br ${p.bg} flex items-end p-1 relative overflow-hidden`}
+              className="aspect-square rounded relative overflow-hidden"
               style={{
                 opacity: active ? 1 : 0,
                 transform: active ? 'scale(1)' : 'scale(0.8)',
                 transition: `opacity 0.3s ease ${i * 150}ms, transform 0.3s ease ${i * 150}ms`,
               }}
             >
-              <span className="text-[7px] text-white/40">{p.label}</span>
-              <div
-                className="absolute top-1 right-1 w-3 h-3 bg-[#F0B429] rounded-full flex items-center justify-center"
-                style={{ transitionDelay: `${i * 150 + 200}ms` }}
-              >
-                <span className="text-[6px] text-black font-bold">✓</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={p.src} alt={p.label} className="absolute inset-0 w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <span className="absolute bottom-1 left-1 text-[9px] text-white/80">{p.label}</span>
+              <div className="absolute top-1 right-1 w-4 h-4 bg-[#F0B429] rounded-full flex items-center justify-center">
+                <span className="text-[8px] text-black font-bold">✓</span>
               </div>
             </div>
           ))}
         </div>
-        <div className="bg-[#111111] border border-[#1a1a1a] border-dashed rounded px-3 py-2 flex items-center gap-2">
-          <span className="text-[#333333] text-sm">⬆</span>
-          <span className="text-[10px] text-[#444444]">4 photos ready</span>
-          <span className="ml-auto text-[9px] text-[#F0B429] font-semibold">✓ Uploaded</span>
+        <div className="bg-[#111111] border border-[#222222] border-dashed rounded px-3 py-2 flex items-center gap-2">
+          <span className="text-[#666666] text-sm">⬆</span>
+          <span className="text-[11px] text-[#666666]">4 photos ready</span>
+          <span className="ml-auto text-[10px] text-[#F0B429] font-semibold">✓ Uploaded</span>
         </div>
       </div>
     </Screen>
@@ -68,7 +68,7 @@ function DetailsScreen({ active }: { active: boolean }) {
   return (
     <Screen visible={active}>
       <div className="p-4">
-        <p className="text-[10px] text-[#555555] font-mono uppercase tracking-wider mb-3">Step 2 — 3 fields. That&apos;s it.</p>
+        <p className="text-[11px] text-[#777777] font-mono uppercase tracking-wider mb-3">Step 2 — 3 fields. That&apos;s it.</p>
         <div className="flex flex-col gap-2">
           {[
             { label: 'Address', value: '2847 Oak Drive, Austin TX', delay: 0 },
@@ -76,16 +76,16 @@ function DetailsScreen({ active }: { active: boolean }) {
             { label: 'Agent',   value: 'Sarah K.',                  delay: 400 },
           ].map(({ label, value, delay }) => (
             <div key={label}>
-              <p className="text-[9px] text-[#444444] mb-1">{label}</p>
+              <p className="text-[10px] text-[#666666] mb-1">{label}</p>
               <div
-                className="bg-[#0d0d0d] border border-[#F0B429]/30 rounded px-2.5 py-2"
+                className="bg-[#0d0d0d] border border-[#F0B429]/40 rounded px-2.5 py-2"
                 style={{
                   opacity: active ? 1 : 0,
                   transition: `opacity 0.3s ease ${delay}ms`,
                 }}
               >
-                <span className="text-[11px] text-[#F0B429] font-mono">{value}</span>
-                <span className="inline-block w-px h-3 bg-[#F0B429] ml-0.5 animate-pulse" />
+                <span className="text-[12px] text-[#F0B429] font-mono">{value}</span>
+                <span className="inline-block w-px h-3.5 bg-[#F0B429] ml-0.5 animate-pulse" />
               </div>
             </div>
           ))}
@@ -115,15 +115,15 @@ function GeneratingScreen({ active }: { active: boolean }) {
   return (
     <Screen visible={active}>
       <div className="p-4">
-        <p className="text-[10px] text-[#555555] font-mono uppercase tracking-wider mb-4">Generating your video...</p>
+        <p className="text-[11px] text-[#777777] font-mono uppercase tracking-wider mb-4">Generating your video...</p>
 
         {/* Template selected */}
         <div className="flex gap-1.5 mb-4">
           {['Cinematic', 'Quick Reel', 'Luxury'].map((t, i) => (
             <div
               key={t}
-              className={`flex-1 rounded py-1.5 text-center border text-[8px] font-semibold ${
-                i === 0 ? 'border-[#F0B429] bg-[#F0B429]/10 text-[#F0B429] shadow-[0_0_12px_rgba(240,180,41,0.15)]' : 'border-[#1a1a1a] text-[#333333]'
+              className={`flex-1 rounded py-1.5 text-center border text-[9px] font-semibold ${
+                i === 0 ? 'border-[#F0B429] bg-[#F0B429]/10 text-[#F0B429] shadow-[0_0_12px_rgba(240,180,41,0.15)]' : 'border-[#1a1a1a] text-[#555555]'
               }`}
             >
               {['🎬','⚡','✨'][i]} {t}
@@ -139,8 +139,8 @@ function GeneratingScreen({ active }: { active: boolean }) {
           />
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-[9px] text-[#555555]">Applying cinematic effects...</span>
-          <span className="text-[9px] text-[#F0B429] font-mono">{Math.round(progress)}%</span>
+          <span className="text-[10px] text-[#777777]">Applying cinematic effects...</span>
+          <span className="text-[10px] text-[#F0B429] font-mono">{Math.round(progress)}%</span>
         </div>
 
         {/* Steps */}
@@ -151,10 +151,10 @@ function GeneratingScreen({ active }: { active: boolean }) {
             { label: 'Branding overlaid',      done: progress > 85 },
           ].map(({ label, done }) => (
             <div key={label} className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full flex items-center justify-center text-[7px] shrink-0 transition-colors ${done ? 'bg-[#F0B429] text-black' : 'bg-[#1a1a1a] text-[#333333]'}`}>
+              <div className={`w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] shrink-0 transition-colors ${done ? 'bg-[#F0B429] text-black' : 'bg-[#222222] text-[#555555]'}`}>
                 {done ? '✓' : '·'}
               </div>
-              <span className={`text-[9px] transition-colors ${done ? 'text-[#888888]' : 'text-[#333333]'}`}>{label}</span>
+              <span className={`text-[10px] transition-colors ${done ? 'text-[#aaaaaa]' : 'text-[#555555]'}`}>{label}</span>
             </div>
           ))}
         </div>
@@ -169,15 +169,16 @@ function ReadyScreen({ active }: { active: boolean }) {
       <div className="p-4">
         <div className="flex items-center gap-2 mb-3">
           <div className="w-5 h-5 rounded-full bg-[#F0B429] flex items-center justify-center">
-            <span className="text-[9px] text-black font-bold">✓</span>
+            <span className="text-[10px] text-black font-bold">✓</span>
           </div>
-          <span className="text-[11px] font-semibold text-[#F0B429]">Video ready in 58 seconds</span>
+          <span className="text-[13px] font-semibold text-[#F0B429]">Video ready in 58 seconds</span>
         </div>
 
         {/* Phone preview inline */}
         <div className="flex gap-3 items-start mb-3">
           <div className="relative w-[60px] h-[106px] bg-[#0d0d0d] rounded-[10px] border border-[#F0B429]/30 overflow-hidden shrink-0 shadow-[0_0_20px_rgba(240,180,41,0.12)]">
-            <div className="absolute inset-0 bg-gradient-to-b from-slate-700 via-emerald-950 to-slate-900" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/demoo/img1.jpg" alt="Preview" className="absolute inset-0 w-full h-full object-cover" />
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="w-6 h-6 bg-[#F0B429] rounded-full flex items-center justify-center shadow-[0_0_16px_rgba(240,180,41,0.5)]">
                 <svg className="w-2.5 h-2.5 text-black ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
@@ -197,9 +198,9 @@ function ReadyScreen({ active }: { active: boolean }) {
               { icon: '🎬', value: '9:16',     label: 'TikTok format' },
             ].map(({ icon, value, label }) => (
               <div key={label} className="flex items-center gap-1.5">
-                <span className="text-[10px]">{icon}</span>
-                <span className="text-[10px] font-bold text-[#F0B429] font-syne">{value}</span>
-                <span className="text-[9px] text-[#444444]">{label}</span>
+                <span className="text-[11px]">{icon}</span>
+                <span className="text-[12px] font-bold text-[#F0B429] font-syne">{value}</span>
+                <span className="text-[10px] text-[#666666]">{label}</span>
               </div>
             ))}
           </div>
@@ -208,8 +209,8 @@ function ReadyScreen({ active }: { active: boolean }) {
         {/* Download row */}
         <div className="flex gap-1.5">
           {['TikTok ↗', 'Reels ↗', 'YouTube ↗'].map((p) => (
-            <div key={p} className="flex-1 bg-[#111111] border border-[#1a1a1a] rounded py-1.5 text-center">
-              <span className="text-[8px] text-[#888888]">{p}</span>
+            <div key={p} className="flex-1 bg-[#111111] border border-[#222222] rounded py-1.5 text-center">
+              <span className="text-[10px] text-[#aaaaaa]">{p}</span>
             </div>
           ))}
         </div>
@@ -279,7 +280,7 @@ export function HeroDemoWidget() {
           {([0, 1, 2, 3] as Stage[]).map((s) => (
             <div
               key={s}
-              className={`flex-1 py-2 text-center text-[9px] font-semibold transition-colors ${stage === s ? 'text-[#F0B429] bg-[#F0B429]/05' : stage > s ? 'text-[#7A5200]' : 'text-[#2a2a2a]'}`}
+              className={`flex-1 py-2 text-center text-[10px] font-semibold transition-colors ${stage === s ? 'text-[#F0B429] bg-[#F0B429]/05' : stage > s ? 'text-[#8A6200]' : 'text-[#444444]'}`}
             >
               {stageLabels[s]}
             </div>
@@ -287,7 +288,7 @@ export function HeroDemoWidget() {
         </div>
 
         {/* Animated content area */}
-        <div className="relative" style={{ height: 200 }}>
+        <div className="relative" style={{ height: 230 }}>
           <UploadScreen     active={stage === 0} />
           <DetailsScreen    active={stage === 1} />
           <GeneratingScreen active={stage === 2} />

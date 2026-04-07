@@ -14,14 +14,14 @@ function parseMetadata(raw: unknown): Record<string, string> {
 }
 
 export async function POST(req: NextRequest) {
-  // ── 1. Verify webhook token (skip check if WEBHOOK_SECRET not configured) ────
-  const expectedToken = process.env.WEBHOOK_SECRET ?? '';
-  if (expectedToken) {
-    const token = req.nextUrl.searchParams.get('token');
-    if (token !== expectedToken) {
-      console.warn('Creatomate webhook: invalid or missing token');
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    }
+  // ── 1. Verify webhook token ──────────────────────────────────────────────────
+  const token = req.nextUrl.searchParams.get('token');
+  const expectedToken = process.env.WEBHOOK_SECRET;
+
+  // Only enforce token check when WEBHOOK_SECRET is configured
+  if (expectedToken && token !== expectedToken) {
+    console.warn('Creatomate webhook: invalid token');
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   // ── 2. Parse payload ─────────────────────────────────────────────────────────

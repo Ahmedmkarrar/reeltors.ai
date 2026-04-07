@@ -1,5 +1,7 @@
 /**
  * Creatomate API client — wraps the Render API.
+ * Modifications must be sent as a plain object { "element-name": "value" }
+ * not as an array. The API returns status "planned" not "queued".
  */
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -11,10 +13,12 @@ export interface CreatomateRenderRequest {
   metadata?: Record<string, string> | string;
 }
 
+
 export interface CreatomateRenderResponse {
   id: string;
-  status: 'queued' | 'processing' | 'completed' | 'failed';
-  outputUrl?: string;
+  status: 'planned' | 'waiting' | 'transcribing' | 'rendering' | 'succeeded' | 'failed';
+  url?: string;
+  snapshot_url?: string;
   error?: string;
 }
 
@@ -56,7 +60,7 @@ export async function createRender(req: {
   const res = await fetch('https://api.creatomate.com/v2/renders', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${apiKey}`,
+      Authorization:  `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(payload),
@@ -67,19 +71,15 @@ export async function createRender(req: {
     throw new CreatomateError(`HTTP ${res.status}: ${text}`, res.status);
   }
 
-  const json = (await res.json()) as {
-    id: string;
-    status: string;
-    output?: { url: string };
-    error?: string;
-  };
+  // API returns an array with one item
+  const json = await res.json() as CreatomateRenderResponse[];
+  const render = json[0];
 
-  return {
-    id: json.id,
-    status: json.status as CreatomateRenderResponse['status'],
-    outputUrl: json.output?.url,
-    error: json.error,
-  };
+  if (!render?.id) {
+    throw new CreatomateError('Creatomate returned an empty response');
+  }
+
+  return render;
 }
 
 // ─── Fetch render status ────────────────────────────────────────────────────
@@ -97,19 +97,7 @@ export async function getRenderStatus(renderId: string): Promise<CreatomateRende
     throw new CreatomateError(`HTTP ${res.status}: ${text}`, res.status);
   }
 
-  const json = (await res.json()) as {
-    id: string;
-    status: string;
-    output?: { url: string };
-    error?: string;
-  };
-
-  return {
-    id: json.id,
-    status: json.status as CreatomateRenderResponse['status'],
-    outputUrl: json.output?.url,
-    error: json.error,
-  };
+  return res.json() as Promise<CreatomateRenderResponse>;
 }
 
 // ─── Higher-level helpers ────────────────────────────────────────────────────
@@ -141,41 +129,37 @@ export interface GenerateMixedMediaOptions {
 }
 
 export async function generateVideo(opts: GenerateVideoOptions): Promise<CreatomateRenderResponse> {
-  const modifications = buildModifications({
-    photos:    opts.images,
-    address:   opts.listingAddress,
-    price:     opts.listingPrice,
-    agentName: opts.agentName,
-  });
-
   return createRender({
     templateId:  opts.templateId,
-    modifications,
-    webhookUrl:  opts.webhookUrl,
-    metadata:    opts.metadata,
-  });
-}
-
-export async function generateMixedMediaVideo(opts: GenerateMixedMediaOptions): Promise<CreatomateRenderResponse> {
-  const templateId = process.env.CREATOMATE_TEMPLATE_CINEMATIC ?? '';
-  if (!templateId) throw new CreatomateError('CREATOMATE_TEMPLATE_CINEMATIC is not set');
-
-  const modifications = buildModifications({
-    photos:    opts.mediaItems.map((m) => m.url),
-    address:   opts.listingAddress,
-    price:     opts.listingPrice,
-    agentName: opts.agentName,
-  });
-
-  return createRender({
-    templateId,
-    modifications,
+    modifications: buildModifications({
+      photos:    opts.images,
+      address:   opts.listingAddress,
+      price:     opts.listingPrice,
+      agentName: opts.agentName,
+    }),
     webhookUrl: opts.webhookUrl,
     metadata:   opts.metadata,
   });
 }
 
-// ─── Build modifications from user inputs ──────────────────────────────────
+export async function generateMixedMediaVideo(opts: GenerateMixedMediaOptions): Promise<CreatomateRenderResponse> {
+  const templateId = process.env.CREATOMATE_TEMPLATE_CINEMATIC;
+  if (!templateId) throw new CreatomateError('CREATOMATE_TEMPLATE_CINEMATIC is not set');
+
+  return createRender({
+    templateId,
+    modifications: buildModifications({
+      photos:    opts.mediaItems.map((m) => m.url),
+      address:   opts.listingAddress,
+      price:     opts.listingPrice,
+      agentName: opts.agentName,
+    }),
+    webhookUrl: opts.webhookUrl,
+    metadata:   opts.metadata,
+  });
+}
+
+// ─── Build modifications object ───────────────────────────────────────────────
 
 export function buildModifications(opts: {
   photos?: string[];
