@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { plan, annual } = await req.json() as { plan: PlanKey; annual?: boolean };
+    const { plan, annual, embedded } = await req.json() as { plan: PlanKey; annual?: boolean; embedded?: boolean };
     if (!plan || !(plan in PLANS)) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
     }
@@ -55,6 +55,20 @@ export async function POST(req: NextRequest) {
     }
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://reeltor-ai.vercel.app';
+
+    if (embedded) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const session = await (stripe.checkout.sessions.create as any)({
+        customer: customerId,
+        mode: 'subscription',
+        line_items: [{ price: priceId, quantity: 1 }],
+        ui_mode: 'embedded',
+        return_url: `${appUrl}/dashboard?upgraded=1`,
+        allow_promotion_codes: true,
+      });
+      return NextResponse.json({ clientSecret: session.client_secret });
+    }
+
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
