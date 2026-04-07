@@ -1,8 +1,6 @@
 'use client';
 
-export const dynamic = 'force-dynamic';
-
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -16,7 +14,7 @@ const FEATURES = [
   { icon: '🔒', text: '30-day money-back guarantee' },
 ];
 
-export default function LoginPage() {
+function LoginForm() {
   const supabase = createClient();
   const [googleLoading, setGoogleLoading] = useState(false);
   const searchParams = useSearchParams();
@@ -187,5 +185,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }
