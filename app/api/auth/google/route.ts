@@ -1,23 +1,20 @@
-import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
   const origin = new URL(request.url).origin;
-  const supabase = createClient();
+  const redirectTo = `${origin}/auth/callback`;
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${origin}/auth/callback`,
-      skipBrowserRedirect: true,
-      queryParams: { access_type: 'offline', prompt: 'consent' },
-    },
-  });
-
-  if (error || !data.url) {
-    console.error('Google OAuth error:', error);
-    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error?.message ?? 'OAuth failed')}`);
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  if (!supabaseUrl) {
+    return NextResponse.json({ error: 'Supabase not configured' }, { status: 500 });
   }
 
-  return NextResponse.redirect(data.url);
+  // Build the Supabase OAuth URL directly — no server client needed
+  const params = new URLSearchParams({
+    provider: 'google',
+    redirect_to: redirectTo,
+  });
+
+  const oauthUrl = `${supabaseUrl}/auth/v1/authorize?${params.toString()}`;
+  return NextResponse.redirect(oauthUrl);
 }
