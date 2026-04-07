@@ -253,6 +253,7 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
           </a>
         )}
       </div>
+
     </div>
   );
 }
