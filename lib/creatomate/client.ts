@@ -161,6 +161,10 @@ export async function generateMixedMediaVideo(opts: GenerateMixedMediaOptions): 
 
 // ─── Build modifications object ───────────────────────────────────────────────
 
+// Number of video/image slots in the current template.
+// Update this if you change templates with a different slot count.
+const TEMPLATE_VIDEO_SLOTS = 4;
+
 export function buildModifications(opts: {
   photos?: string[];
   address?: string;
@@ -172,23 +176,24 @@ export function buildModifications(opts: {
 }): Record<string, string> {
   const mods: Record<string, string> = {};
 
-  // Template has Video-1 through Video-4 slots
-  if (opts.photos) {
-    opts.photos.slice(0, 4).forEach((url, i) => {
+  // Distribute photos dynamically across all template slots:
+  // - If more photos than slots → use the first N (best picks should be uploaded first)
+  // - If fewer photos than slots → loop/repeat to fill every slot
+  if (opts.photos && opts.photos.length > 0) {
+    for (let i = 0; i < TEMPLATE_VIDEO_SLOTS; i++) {
+      const url = opts.photos[i % opts.photos.length];
       if (url) mods[`Video-${i + 1}.source`] = url;
-    });
+    }
   }
 
-  // Description = address. Append price if provided.
+  // Description = address + price on separate lines
   const description = [opts.address, opts.price].filter(Boolean).join('\n');
-  if (description) mods['Description.text'] = description;
-
-  // Subtext = price label or "Just Listed"
-  if (opts.price)     mods['Subtext.text']      = opts.price;
-  if (opts.agentName) mods['Name.text']          = opts.agentName;
-  if (opts.brandName) mods['Brand-Name.text']    = opts.brandName;
-  if (opts.email)     mods['Email.text']         = opts.email;
-  if (opts.phone)     mods['Phone-Number.text']  = opts.phone;
+  if (description)    mods['Description.text']   = description;
+  if (opts.price)     mods['Subtext.text']        = opts.price;
+  if (opts.agentName) mods['Name.text']           = opts.agentName;
+  if (opts.brandName) mods['Brand-Name.text']     = opts.brandName;
+  if (opts.email)     mods['Email.text']          = opts.email;
+  if (opts.phone)     mods['Phone-Number.text']   = opts.phone;
 
   return mods;
 }

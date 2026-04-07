@@ -9,6 +9,8 @@ export interface Profile {
   email: string;
   full_name: string | null;
   avatar_url: string | null;
+  phone: string | null;
+  brand_name: string | null;
   stripe_customer_id: string | null;
   subscription_id: string | null;
   subscription_status: SubscriptionStatus;
@@ -56,6 +58,9 @@ export interface CreateVideoPayload {
   listingAddress?: string;
   listingPrice?: string;
   agentName?: string;
+  brandName?: string;
+  email?: string;
+  phone?: string;
   format?: VideoFormat;
   title?: string;
   /** Optional user-written description prepended to the fal.ai drone-shot prompt. */

@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
-  const { templateId, images, aiVideoIndices: rawAiIndices, listingAddress, listingPrice, agentName, format, title, videoPrompt } = body;
+  const { templateId, images, aiVideoIndices: rawAiIndices, listingAddress, listingPrice, agentName, brandName, email, phone, format, title, videoPrompt } = body;
 
   if (!templateId || typeof templateId !== 'string') {
     return NextResponse.json({ error: 'templateId is required' }, { status: 400 });
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
   // ── 3. Load profile + check plan limits ────────────────────────────────────
   const { data: profile } = await supabase
     .from('profiles')
-    .select('plan, videos_used_this_month, videos_limit, full_name, email')
+    .select('plan, videos_used_this_month, videos_limit, full_name, email, phone, brand_name')
     .eq('id', user.id)
     .single();
 
@@ -130,7 +130,11 @@ export async function POST(req: NextRequest) {
   const sharedParams = {
     listingAddress,
     listingPrice,
-    agentName,
+    // Fall back to profile values so videos always have agent branding
+    agentName:  agentName  || profile.full_name  || undefined,
+    brandName:  brandName  || (profile as { brand_name?: string | null }).brand_name  || undefined,
+    email:      email      || profile.email       || undefined,
+    phone:      phone      || (profile as { phone?: string | null }).phone             || undefined,
     format: (format ?? 'vertical') as 'vertical' | 'square' | 'horizontal',
     webhookUrl,
     metadata: { video_id: video.id, user_id: user.id },

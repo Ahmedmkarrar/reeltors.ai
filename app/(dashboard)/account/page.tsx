@@ -17,6 +17,8 @@ export default function AccountPage() {
   const supabase = createClient();
   const [profile,         setProfile]         = useState<Profile | null>(null);
   const [fullName,        setFullName]        = useState('');
+  const [brandName,       setBrandName]       = useState('');
+  const [phone,           setPhone]           = useState('');
   const [saving,          setSaving]          = useState(false);
   const [portalLoading,   setPortalLoading]   = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState('');
@@ -26,7 +28,12 @@ export default function AccountPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
       const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single<Profile>();
-      if (data) { setProfile(data); setFullName(data.full_name || ''); }
+      if (data) {
+        setProfile(data);
+        setFullName(data.full_name || '');
+        setBrandName(data.brand_name || '');
+        setPhone(data.phone || '');
+      }
     }
     load();
   }, [supabase]);
@@ -42,13 +49,17 @@ export default function AccountPage() {
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!profile || fullName === profile.full_name) return;
+    if (!profile) return;
     setSaving(true);
-    const { error } = await supabase.from('profiles').update({ full_name: fullName }).eq('id', profile.id);
+    const { error } = await supabase.from('profiles').update({
+      full_name:  fullName  || null,
+      brand_name: brandName || null,
+      phone:      phone     || null,
+    }).eq('id', profile.id);
     setSaving(false);
     if (error) { toast.error('Failed to save'); return; }
     toast.success('Profile saved');
-    setProfile((p) => p ? { ...p, full_name: fullName } : p);
+    setProfile((p) => p ? { ...p, full_name: fullName, brand_name: brandName, phone } : p);
   }
 
   async function handlePortal() {
@@ -93,7 +104,7 @@ export default function AccountPage() {
   const videoLimit  = PLAN_LIMITS[profile.plan] ?? profile.videos_limit;
   const usedPct     = Math.min((profile.videos_used_this_month / Math.max(videoLimit, 1)) * 100, 100);
   const isPaid      = profile.plan !== 'free';
-  const nameUnchanged = fullName === (profile.full_name || '');
+  const nameUnchanged = fullName === (profile.full_name || '') && brandName === (profile.brand_name || '') && phone === (profile.phone || '');
   const initials    = (profile.full_name || profile.email || 'R').charAt(0).toUpperCase();
 
   return (
@@ -155,6 +166,42 @@ export default function AccountPage() {
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 placeholder="Your full name"
+                className="w-full h-10 px-3 text-[13px] text-[#1A1714] bg-white border border-[#E2DED6] rounded-lg outline-none transition-all duration-150
+                  placeholder:text-[#C8C4BC]
+                  hover:border-[#C8C4BC]
+                  focus:border-[#F0B429] focus:ring-2 focus:ring-[#F0B429]/20"
+              />
+            </div>
+
+            {/* Brand Name */}
+            <div>
+              <label className="block text-[11px] font-semibold text-[#6B6760] uppercase tracking-wider mb-1.5">
+                Brand / Brokerage Name
+                <span className="ml-2 normal-case font-normal text-[#B8B4AE] tracking-normal">— shown on every video</span>
+              </label>
+              <input
+                type="text"
+                value={brandName}
+                onChange={(e) => setBrandName(e.target.value)}
+                placeholder="e.g. Keller Williams, My Realty Group"
+                className="w-full h-10 px-3 text-[13px] text-[#1A1714] bg-white border border-[#E2DED6] rounded-lg outline-none transition-all duration-150
+                  placeholder:text-[#C8C4BC]
+                  hover:border-[#C8C4BC]
+                  focus:border-[#F0B429] focus:ring-2 focus:ring-[#F0B429]/20"
+              />
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block text-[11px] font-semibold text-[#6B6760] uppercase tracking-wider mb-1.5">
+                Phone Number
+                <span className="ml-2 normal-case font-normal text-[#B8B4AE] tracking-normal">— shown on every video</span>
+              </label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="(123) 555-1234"
                 className="w-full h-10 px-3 text-[13px] text-[#1A1714] bg-white border border-[#E2DED6] rounded-lg outline-none transition-all duration-150
                   placeholder:text-[#C8C4BC]
                   hover:border-[#C8C4BC]
