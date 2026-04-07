@@ -174,7 +174,7 @@ export function UploadZone({
     accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] },
     maxFiles,
     disabled: uploading || files.length >= maxFiles,
-    noClick: true,
+    noClick: files.length > 0, // clickable when empty, use + button when photos exist
   });
 
   function removeFile(index: number) {
@@ -251,25 +251,51 @@ export function UploadZone({
       {/* Draggable photo strip — min-h keeps the bar pinned at the same vertical position */}
       <div className="min-h-[172px]">
 
-      {/* Elegant empty state — feature chips */}
+      {/* Empty state — big obvious upload zone */}
       {files.length === 0 && (
-        <div className="h-full min-h-[172px] flex flex-col items-center justify-center gap-5">
-          <div className="flex flex-wrap gap-2 justify-center max-w-md">
-            {[
-              { icon: '📸', label: 'Up to 15 listing photos' },
-              { icon: '⚡', label: 'AI-powered drone shots' },
-              { icon: '🎬', label: 'Cinematic Ken Burns motion' },
-              { icon: '📐', label: 'Vertical · Square · Horizontal' },
-            ].map(({ icon, label }) => (
-              <span
-                key={label}
-                className="inline-flex items-center gap-1.5 text-[11px] text-[#9A9690] bg-white/60 border border-[#E8E4DC] rounded-full px-3.5 py-1.5 select-none backdrop-blur-sm shadow-sm"
-              >
-                <span className="text-sm">{icon}</span>
-                <span className="tracking-tight">{label}</span>
-              </span>
-            ))}
+        <div
+          className={[
+            'h-full min-h-[220px] rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all duration-200 select-none',
+            isDragActive
+              ? 'border-[#F0B429] bg-[#FFF8E6]'
+              : 'border-[#D8D4CC] bg-white hover:border-[#F0B429]/60 hover:bg-[#FFFCF5]',
+          ].join(' ')}
+        >
+          {/* Upload icon */}
+          <div className={[
+            'w-16 h-16 rounded-full flex items-center justify-center transition-colors',
+            isDragActive ? 'bg-[#F0B429]/20' : 'bg-[#F7F5EF]',
+          ].join(' ')}>
+            <svg className={['w-7 h-7 transition-colors', isDragActive ? 'text-[#F0B429]' : 'text-[#B8B4AE]'].join(' ')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
           </div>
+
+          {isDragActive ? (
+            <p className="text-[#F0B429] font-semibold text-base">Drop your photos here</p>
+          ) : (
+            <>
+              <div className="text-center">
+                <p className="font-semibold text-[#1A1714] text-base mb-1">
+                  Click to upload listing photos
+                </p>
+                <p className="text-[13px] text-[#8A8682]">or drag & drop · JPG, PNG, WEBP · max 10MB each</p>
+              </div>
+              <div className="flex flex-wrap gap-2 justify-center max-w-sm px-4">
+                {[
+                  { icon: '📸', label: 'Up to 15 photos' },
+                  { icon: '⚡', label: 'AI drone shots' },
+                  { icon: '🎬', label: 'Cinematic motion' },
+                  { icon: '📐', label: '9:16 · 1:1 · 16:9' },
+                ].map(({ icon, label }) => (
+                  <span key={label} className="inline-flex items-center gap-1 text-[11px] text-[#9A9690] bg-[#F7F5EF] rounded-full px-3 py-1">
+                    <span>{icon}</span>
+                    <span>{label}</span>
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -554,13 +580,12 @@ export function UploadZone({
       })()}
 
       {/* Hint / uploading state */}
-      {uploading ? (
+      {uploading && (
         <p className="text-center text-[11px] text-[#F0B429] animate-pulse tracking-wide">Uploading…</p>
-      ) : (
+      )}
+      {!uploading && files.length > 0 && (
         <p className="text-center text-[11px] text-[#B8B4AE] select-none tracking-wide">
-          {files.length === 0
-            ? 'drag & drop photos anywhere · or click + to browse'
-            : `${files.length} photo${files.length !== 1 ? 's' : ''} added · drag to reorder · min 3 to continue`}
+          {files.length} photo{files.length !== 1 ? 's' : ''} added · drag to reorder · min 3 to continue
         </p>
       )}
     </div>
