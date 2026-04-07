@@ -5,6 +5,7 @@ export const dynamic = 'force-dynamic';
 import { useState } from 'react';
 import Link from 'next/link';
 import { LogoIcon } from '@/components/ui/LogoIcon';
+import { createClient } from '@/lib/supabase/client';
 
 const FEATURES = [
   { icon: '⚡', text: 'Video ready in under 60 seconds' },
@@ -23,9 +24,15 @@ const FACTS = [
 export default function SignupPage() {
   const [googleLoading, setGoogleLoading] = useState(false);
 
-  function handleGoogle() {
+  async function handleGoogle() {
     setGoogleLoading(true);
-    window.location.href = '/api/auth/google';
+    const supabase = createClient();
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
   }
 
   return (
