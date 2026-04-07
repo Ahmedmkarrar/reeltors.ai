@@ -24,20 +24,27 @@ export default function VideosPage() {
 
   useEffect(() => {
     let channel: ReturnType<typeof supabase.channel>;
+    let pollInterval: ReturnType<typeof setInterval>;
+    let userId: string;
+
+    async function fetchAll() {
+      const { data } = await supabase
+        .from('videos')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      if (data) setVideos(data as Video[]);
+    }
 
     async function load() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      userId = user.id;
 
-      const { data } = await supabase
-        .from('videos')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      setVideos((data as Video[]) || []);
+      await fetchAll();
       setLoading(false);
 
-      // Subscribe to realtime updates for this user's videos
+      // Realtime subscription — catches live INSERT/UPDATE/DELETE
       channel = supabase
         .channel(`videos-realtime-${Date.now()}`)
         .on(
@@ -54,12 +61,30 @@ export default function VideosPage() {
           }
         )
         .subscribe();
+
+      // Polling fallback every 4s — refreshes the full list so processing
+      // videos appear even if realtime misses the INSERT.
+      // Stops automatically once no videos are pending/processing.
+      pollInterval = setInterval(async () => {
+        const { data } = await supabase
+          .from('videos')
+          .select('*')
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+        if (!data) return;
+        setVideos(data as Video[]);
+        const stillProcessing = data.some(
+          (v) => v.status === 'pending' || v.status === 'processing'
+        );
+        if (!stillProcessing) clearInterval(pollInterval);
+      }, 4000);
     }
 
     load();
 
     return () => {
       if (channel) supabase.removeChannel(channel);
+      clearInterval(pollInterval);
     };
   }, [supabase]);
 
