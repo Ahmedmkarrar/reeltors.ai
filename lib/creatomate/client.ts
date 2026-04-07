@@ -6,9 +6,9 @@
 
 export interface CreatomateRenderRequest {
   templateId: string;
-  modifications: Array<{ find: string; value: string }>;
+  modifications: Record<string, string>;
   webhookUrl?: string;
-  metadata?: Record<string, string>;
+  metadata?: Record<string, string> | string;
 }
 
 export interface CreatomateRenderResponse {
@@ -34,7 +34,7 @@ export class CreatomateError extends Error {
 
 export async function createRender(req: {
   templateId: string;
-  modifications: Array<{ find: string; value: string }>;
+  modifications: Record<string, string>;
   webhookUrl?: string;
   metadata?: Record<string, string>;
 }): Promise<CreatomateRenderResponse> {
@@ -50,10 +50,10 @@ export async function createRender(req: {
     payload.webhook_url = req.webhookUrl;
   }
   if (req.metadata) {
-    payload.metadata = req.metadata;
+    payload.metadata = JSON.stringify(req.metadata);
   }
 
-  const res = await fetch('https://api.creatomate.com/v1/renders', {
+  const res = await fetch('https://api.creatomate.com/v2/renders', {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${apiKey}`,
@@ -183,19 +183,19 @@ export function buildModifications(opts: {
   price?: string;
   agentName?: string;
   brandName?: string;
-}): Array<{ find: string; value: string }> {
-  const mods: Array<{ find: string; value: string }> = [];
+}): Record<string, string> {
+  const mods: Record<string, string> = {};
 
   if (opts.photos) {
     opts.photos.forEach((url, i) => {
-      if (url) mods.push({ find: `photo-${i + 1}`, value: url });
+      if (url) mods[`photo-${i + 1}.source`] = url;
     });
   }
 
-  if (opts.address)   mods.push({ find: 'Addresstext', value: opts.address });
-  if (opts.price)     mods.push({ find: 'Pricetext',   value: opts.price });
-  if (opts.agentName) mods.push({ find: 'Agent-Name',  value: opts.agentName });
-  if (opts.brandName) mods.push({ find: 'Brand-Name',  value: opts.brandName });
+  if (opts.address)   mods['Addresstext.text'] = opts.address;
+  if (opts.price)     mods['Pricetext.text']   = opts.price;
+  if (opts.agentName) mods['Name.text']         = opts.agentName;
+  if (opts.brandName) mods['Brand-Name.text']   = opts.brandName;
 
   return mods;
 }

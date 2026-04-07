@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { PaywallModal } from '@/components/dashboard/PaywallModal';
 import { PLAN_LIMITS } from '@/lib/stripe/plans';
@@ -14,13 +15,38 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!user) redirect('/login');
 
-  const { data: profile } = await supabase
+  let { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single<Profile>();
 
-  if (!profile) redirect('/login');
+  if (!profile) {
+    const admin = getSupabaseAdmin();
+    const now = new Date().toISOString();
+    const { data: newProfile } = await admin
+      .from('profiles')
+      .upsert({
+        id: user.id,
+        email: user.email ?? '',
+        full_name: user.user_metadata?.full_name ?? null,
+        avatar_url: user.user_metadata?.avatar_url ?? null,
+        plan: 'free',
+        subscription_status: 'free',
+        videos_used_this_month: 0,
+        videos_limit: 0,
+        billing_cycle_start: now,
+        created_at: now,
+        updated_at: now,
+      })
+      .select('*')
+      .single<Profile>();
+    if (!newProfile) {
+      await supabase.auth.signOut();
+      redirect('/login');
+    }
+    profile = newProfile;
+  }
 
   const isPaid = !!PLAN_LIMITS[profile.plan];
 

@@ -3,6 +3,7 @@
 export const dynamic = 'force-dynamic';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { LogoIcon } from '@/components/ui/LogoIcon';
@@ -18,6 +19,12 @@ const FEATURES = [
 export default function LoginPage() {
   const supabase = createClient();
   const [googleLoading, setGoogleLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const [showEmail, setShowEmail] = useState(searchParams.get('email') === '1');
+  const [email, setEmail] = useState('');
+  const [emailLoading, setEmailLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [emailError, setEmailError] = useState('');
 
   async function handleGoogle() {
     setGoogleLoading(true);
@@ -25,6 +32,25 @@ export default function LoginPage() {
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/dashboard` },
     });
+  }
+
+  async function handleEmailLogin(e: React.FormEvent) {
+    e.preventDefault();
+    setEmailLoading(true);
+    setEmailError('');
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        shouldCreateUser: false,
+      },
+    });
+    setEmailLoading(false);
+    if (error) {
+      setEmailError(error.message);
+    } else {
+      setEmailSent(true);
+    }
   }
 
   return (
@@ -99,6 +125,38 @@ export default function LoginPage() {
             </svg>
             {googleLoading ? 'Redirecting...' : 'Continue with Google'}
           </button>
+
+          <div className="mt-4 text-center">
+            {!showEmail ? (
+              <button
+                onClick={() => setShowEmail(true)}
+                className="text-xs text-[#8A8682] hover:text-[#6B6760] underline underline-offset-2 transition-colors"
+              >
+                or sign in with email
+              </button>
+            ) : emailSent ? (
+              <p className="text-xs text-[#6B6760]">Check your inbox — we sent a magic link to <strong>{email}</strong></p>
+            ) : (
+              <form onSubmit={handleEmailLogin} className="mt-1 space-y-2">
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="w-full px-3 py-2.5 text-sm border border-[#E2DED6] rounded-[8px] bg-white text-[#1A1714] placeholder:text-[#B0ABA3] focus:outline-none focus:border-[#C07A00] transition-colors"
+                />
+                {emailError && <p className="text-xs text-red-500 text-left">{emailError}</p>}
+                <button
+                  type="submit"
+                  disabled={emailLoading}
+                  className="w-full py-2.5 text-sm font-semibold text-white bg-[#1A1714] rounded-[8px] hover:bg-[#2A2724] transition-colors disabled:opacity-60"
+                >
+                  {emailLoading ? 'Sending...' : 'Send magic link'}
+                </button>
+              </form>
+            )}
+          </div>
 
           <div className="flex flex-wrap justify-center gap-x-5 gap-y-2 mt-8 pt-6 border-t border-[#E2DED6]">
             {['From $49.99/month', '30-day money back', 'Cancel anytime'].map((t) => (

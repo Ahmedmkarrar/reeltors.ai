@@ -132,6 +132,11 @@ export default function SignupPage() {
               Log in →
             </Link>
           </p>
+          <p className="text-center mt-1">
+            <Link href="/login?email=1" className="text-xs text-[#8A8682] hover:text-[#6B6760] underline underline-offset-2 transition-colors">
+              or sign in with email
+            </Link>
+          </p>
         </div>
       </div>
     </div>
