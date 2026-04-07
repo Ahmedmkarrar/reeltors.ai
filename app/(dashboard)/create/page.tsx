@@ -8,6 +8,7 @@ import { TemplateSelector } from '@/components/dashboard/TemplateSelector';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import toast from 'react-hot-toast';
+import { TEMPLATES } from '@/lib/creatomate/templates';
 import type { Profile, VideoFormat } from '@/types';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -48,7 +49,7 @@ export default function CreatePage() {
   const [listingPrice, setListingPrice]     = useState('');
   const [agentName, setAgentName]           = useState('');
   const [format, setFormat]                 = useState<VideoFormat>('vertical');
-  const [templateId, setTemplateId]         = useState('9a562ec6-000e-4a92-ad76-bd9adfdc750d');
+  const [selectedTemplateKey, setSelectedTemplateKey] = useState('CINEMATIC');
 
   // Generation state
   const [videoId, setVideoId]     = useState('');
@@ -144,6 +145,10 @@ export default function CreatePage() {
     );
 
     try {
+      // Resolve the actual Creatomate UUID from the selected template key
+      const templateObj = TEMPLATES.find((t) => t.id === selectedTemplateKey) ?? TEMPLATES[0];
+      const templateId = templateObj.creatomateId;
+
       const res = await fetch('/api/videos/generate', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -390,8 +395,8 @@ export default function CreatePage() {
       <div className="p-6 md:p-8 max-w-3xl">
         <StepHeader step={3} total={3} title="Choose a Template" />
         <TemplateSelector
-          selected={templateId}
-          onSelect={setTemplateId}
+          selected={selectedTemplateKey}
+          onSelect={setSelectedTemplateKey}
           plan={profile?.plan || 'free'}
         />
         <div className="flex gap-3 mt-8">

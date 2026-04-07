@@ -46,10 +46,11 @@ export const TEMPLATE_BEST_FOR: Record<TemplateStyle, string> = {
 
 /** Flat array used by the template picker UI (first 3 shown in selector) */
 export const TEMPLATES = (Object.keys(TEMPLATE_IDS) as TemplateStyle[]).slice(0, 3).map((key) => ({
-  id:          TEMPLATE_IDS[key],
-  name:        TEMPLATE_NAMES[key],
-  description: TEMPLATE_DESCRIPTIONS[key],
-  bestFor:     TEMPLATE_BEST_FOR[key],
+  id:           key,                  // unique key used for selection state in the UI
+  creatomateId: TEMPLATE_IDS[key],    // actual UUID sent to Creatomate API
+  name:         TEMPLATE_NAMES[key],
+  description:  TEMPLATE_DESCRIPTIONS[key],
+  bestFor:      TEMPLATE_BEST_FOR[key],
 }));
 
 /** The base path in Supabase storage for each template's placeholder images */
