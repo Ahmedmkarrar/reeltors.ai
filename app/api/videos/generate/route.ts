@@ -163,7 +163,7 @@ export async function POST(req: NextRequest) {
 
     if (err instanceof CreatomateError) {
       console.error('Creatomate API error:', err.message);
-      return NextResponse.json({ error: 'Video generation service error. Please try again.' }, { status: 502 });
+      return NextResponse.json({ error: `Creatomate: ${err.message}` }, { status: 502 });
     }
     if (err instanceof FalError) {
       console.error('fal.ai error during Creatomate fallback path:', err.message);
