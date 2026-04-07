@@ -132,9 +132,9 @@ export async function POST(req: NextRequest) {
     listingPrice,
     // Fall back to profile values so videos always have agent branding
     agentName:  agentName  || profile.full_name  || undefined,
-    brandName:  brandName  || (profile as { brand_name?: string | null }).brand_name  || undefined,
+    brandName:  brandName  || profile.brand_name || undefined,
     email:      email      || profile.email       || undefined,
-    phone:      phone      || (profile as { phone?: string | null }).phone             || undefined,
+    phone:      phone      || profile.phone       || undefined,
     format: (format ?? 'vertical') as 'vertical' | 'square' | 'horizontal',
     webhookUrl,
     metadata: { video_id: video.id, user_id: user.id },
