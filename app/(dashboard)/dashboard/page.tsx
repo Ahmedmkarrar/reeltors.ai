@@ -218,7 +218,7 @@ function EmptyState() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
         </svg>
       </div>
-      <h3 className="font-syne font-bold text-xl mb-2">Your first video is one click away</h3>
+      <h3 className="font-syne font-bold text-xl mb-2 text-[#1A1714]">Your first video is one click away</h3>
       <p className="text-[#6B6760] text-sm mb-6 max-w-xs mx-auto leading-relaxed">
         Upload 3–15 listing photos and get a cinematic reel ready to post in under 60 seconds.
       </p>

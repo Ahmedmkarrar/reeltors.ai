@@ -100,7 +100,7 @@ export function Sidebar({ profile }: SidebarProps) {
         <Link href="/" className="flex items-center gap-2 group">
           <LogoIcon className="w-8 h-8" />
           <span className="font-syne font-extrabold text-[17px] text-[#1A1714] group-hover:text-[#F0B429] transition-colors">
-            Reeltor<span className="text-[#F0B429]">.</span>ai
+            Reeltors<span className="text-[#F0B429]">.</span>ai
           </span>
         </Link>
       </div>

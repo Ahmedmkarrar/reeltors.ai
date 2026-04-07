@@ -57,7 +57,7 @@ export async function createRender(req: {
     payload.metadata = JSON.stringify(req.metadata);
   }
 
-  const res = await fetch('https://api.creatomate.com/v2/renders', {
+  const res = await fetch('https://api.creatomate.com/v1/renders', {
     method: 'POST',
     headers: {
       Authorization:  `Bearer ${apiKey}`,
