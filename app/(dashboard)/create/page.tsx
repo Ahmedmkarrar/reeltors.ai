@@ -173,7 +173,10 @@ export default function CreatePage() {
         return;
       }
 
-      if (!res.ok) throw new Error('Failed to start generation');
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.error || `Server error ${res.status}`);
+      }
 
       const { videoId: vid, aiVideosFailed } = await res.json();
       setVideoId(vid);
@@ -221,8 +224,9 @@ export default function CreatePage() {
         }
       }, 360_000);
 
-    } catch {
-      toast.error('Failed to generate video. Please try again.');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Failed to generate video';
+      toast.error(msg);
       setStep('template');
       setGenerating(false);
     }
