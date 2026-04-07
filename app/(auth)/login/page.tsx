@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { LogoIcon } from '@/components/ui/LogoIcon';
+import { createClient } from '@/lib/supabase/client';
 
 const FEATURES = [
   { icon: '⚡', text: 'Video ready in under 60 seconds' },
@@ -30,9 +31,15 @@ export default function LoginPage() {
     ? new URLSearchParams(window.location.search).get('error')
     : null;
 
-  function handleGoogle() {
+  async function handleGoogle() {
     setGoogleLoading(true);
-    window.location.href = '/api/auth/google';
+    const supabase = createClient();
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
   }
 
   async function handleEmailLogin(e: React.FormEvent) {

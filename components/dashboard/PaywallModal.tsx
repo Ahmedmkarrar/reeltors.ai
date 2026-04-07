@@ -2,34 +2,21 @@
 
 import { useState } from 'react';
 import { PLANS } from '@/lib/stripe/plans';
-import toast from 'react-hot-toast';
+import { EmbeddedCheckoutModal } from './EmbeddedCheckout';
 
 type PlanKey = 'starter' | 'growth' | 'pro';
 const PLAN_KEYS: PlanKey[] = ['starter', 'growth', 'pro'];
 
 export function PaywallModal() {
-  const [annual,          setAnnual]          = useState(false);
-  const [checkoutLoading, setCheckoutLoading] = useState('');
+  const [annual, setAnnual] = useState(false);
+  const [checkoutPlan, setCheckoutPlan] = useState<{ plan: PlanKey; annual: boolean } | null>(null);
 
-  async function handleUpgrade(plan: PlanKey) {
-    setCheckoutLoading(plan);
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ plan, annual }),
-      });
-      const { url, error } = await res.json();
-      if (error) { toast.error(error); return; }
-      window.location.href = url;
-    } catch {
-      toast.error('Something went wrong. Please try again.');
-    } finally {
-      setCheckoutLoading('');
-    }
+  function handleUpgrade(plan: PlanKey) {
+    setCheckoutPlan({ plan, annual });
   }
 
   return (
+    <>
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: 'rgba(13,11,8,0.85)', backdropFilter: 'blur(6px)' }}>
       <div className="w-full max-w-3xl bg-[#FAFAF8] rounded-2xl shadow-2xl flex flex-col" style={{ maxHeight: '92vh' }}>
 
@@ -75,7 +62,6 @@ export function PaywallModal() {
           {PLAN_KEYS.map((key) => {
             const p         = PLANS[key];
             const isPopular = key === 'growth';
-            const isLoading = checkoutLoading === key;
 
             return (
               <div
@@ -128,15 +114,14 @@ export function PaywallModal() {
                 <div className="px-4 pb-4">
                   <button
                     onClick={() => handleUpgrade(key)}
-                    disabled={!!checkoutLoading}
                     className={[
-                      'w-full h-9 rounded-lg text-[12px] font-semibold transition-all duration-150 disabled:opacity-50',
+                      'w-full h-9 rounded-lg text-[12px] font-semibold transition-all duration-150',
                       isPopular
                         ? 'bg-[#F0B429] text-[#1A1714] hover:bg-[#E8AC22] shadow-[0_2px_12px_rgba(240,180,41,0.3)]'
                         : 'border border-[#E2DED6] text-[#1A1714] bg-white hover:border-[#C8C4BC] hover:bg-[#FAFAF8]',
                     ].join(' ')}
                   >
-                    {isLoading ? 'Redirecting…' : isPopular ? `Get ${p.name} →` : `Start with ${p.name} →`}
+                    {isPopular ? `Get ${p.name} →` : `Start with ${p.name} →`}
                   </button>
                 </div>
               </div>
@@ -150,5 +135,14 @@ export function PaywallModal() {
         </p>
       </div>
     </div>
+
+    {checkoutPlan && (
+      <EmbeddedCheckoutModal
+        plan={checkoutPlan.plan}
+        annual={checkoutPlan.annual}
+        onClose={() => setCheckoutPlan(null)}
+      />
+    )}
+  </>
   );
 }
