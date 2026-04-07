@@ -7,7 +7,6 @@ import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { LogoIcon } from '@/components/ui/LogoIcon';
-import { createClient } from '@/lib/supabase/client';
 
 const FEATURES = [
   { icon: '⚡', text: 'Video ready in under 60 seconds' },
@@ -33,7 +32,6 @@ export default function LoginPage() {
 
   async function handleGoogle() {
     setGoogleLoading(true);
-    const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
