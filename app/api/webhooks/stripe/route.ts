@@ -1,19 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getStripe } from '@/lib/stripe/client';
-import { PLAN_LIMITS } from '@/lib/stripe/plans';
+import { PLAN_LIMITS, getPlanFromPriceId } from '@/lib/stripe/plans';
 import { sendPaymentFailedEmail } from '@/lib/resend/emails';
 import type Stripe from 'stripe';
-
-function getPlanFromPriceId(priceId: string): string {
-  if (priceId === process.env.STRIPE_PRICE_STARTER)        return 'starter';
-  if (priceId === process.env.STRIPE_PRICE_STARTER_ANNUAL) return 'starter';
-  if (priceId === process.env.STRIPE_PRICE_PRO)            return 'growth';  // env var named PRO maps to growth plan
-  if (priceId === process.env.STRIPE_PRICE_GROWTH_ANNUAL)  return 'growth';
-  if (priceId === process.env.STRIPE_PRICE_TEAM)           return 'pro';     // env var named TEAM maps to pro plan
-  if (priceId === process.env.STRIPE_PRICE_PRO_ANNUAL)     return 'pro';
-  return 'free';
-}
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
