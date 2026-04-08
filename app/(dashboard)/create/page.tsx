@@ -58,9 +58,11 @@ export default function CreatePage() {
   const [loadingMsg, setLoadingMsg] = useState(LOADING_MESSAGES_BASE[0]);
   const [progress, setProgress]     = useState(0);
   const [copied, setCopied]         = useState(false);
+  const [countdown, setCountdown]   = useState(0);
 
-  const channelRef = useRef<RealtimeChannel | null>(null);
-  const msgRef     = useRef(0);
+  const channelRef    = useRef<RealtimeChannel | null>(null);
+  const msgRef        = useRef(0);
+  const countdownRef  = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -85,12 +87,16 @@ export default function CreatePage() {
     return () => clearInterval(interval);
   }, [step, aiVideoIndices.length]);
 
-  // Clean up Realtime channel on unmount
+  // Clean up Realtime channel + countdown on unmount
   useEffect(() => {
     return () => {
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
         channelRef.current = null;
+      }
+      if (countdownRef.current) {
+        clearInterval(countdownRef.current);
+        countdownRef.current = null;
       }
     };
   }, [supabase]);
@@ -114,6 +120,7 @@ export default function CreatePage() {
           const updated = payload.new as { status: string; output_url?: string };
 
           if (updated.status === 'complete' && updated.output_url) {
+            stopCountdown();
             setOutputUrl(updated.output_url);
             setProgress(100);
             setStep('result');
@@ -121,6 +128,7 @@ export default function CreatePage() {
             supabase.removeChannel(channel);
             channelRef.current = null;
           } else if (updated.status === 'failed') {
+            stopCountdown();
             toast.error('Render failed. Please try again.');
             setStep('template');
             setGenerating(false);
@@ -134,6 +142,24 @@ export default function CreatePage() {
     channelRef.current = channel;
   }, [supabase]);
 
+  function stopCountdown() {
+    if (countdownRef.current) {
+      clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+  }
+
+  function startCountdown(seconds: number) {
+    stopCountdown();
+    setCountdown(seconds);
+    countdownRef.current = setInterval(() => {
+      setCountdown((c) => {
+        if (c <= 1) { stopCountdown(); return 0; }
+        return c - 1;
+      });
+    }, 1000);
+  }
+
   async function handleGenerate() {
     if (!profile) return;
     setGenerating(true);
@@ -143,6 +169,8 @@ export default function CreatePage() {
     setLoadingMsg(
       aiVideoIndices.length > 0 ? LOADING_MESSAGES_AI[0] : LOADING_MESSAGES_BASE[0],
     );
+    // Estimated render time: ~90s standard, ~180s with AI drone shots
+    startCountdown(aiVideoIndices.length > 0 ? 180 : 90);
 
     try {
       // Resolve the actual Creatomate UUID from the selected template key
@@ -201,12 +229,14 @@ export default function CreatePage() {
 
           if (status === 'complete' && output_url) {
             clearInterval(pollInterval);
+            stopCountdown();
             setOutputUrl(output_url);
             setProgress(100);
             setStep('result');
             setGenerating(false);
           } else if (status === 'failed') {
             clearInterval(pollInterval);
+            stopCountdown();
             toast.error('Render failed. Please try again.');
             setStep('template');
             setGenerating(false);
@@ -217,6 +247,7 @@ export default function CreatePage() {
       // Stop polling after 6 minutes (safety net)
       setTimeout(() => {
         clearInterval(pollInterval);
+        stopCountdown();
         if (generating) {
           toast.error('Render timed out. Please check your videos page.');
           setStep('template');
@@ -416,35 +447,96 @@ export default function CreatePage() {
   // ─── STEP: GENERATING ────────────────────────────────────────────
   if (step === 'generating') {
     const hasAiShots = aiVideoIndices.length > 0;
+    const mins = Math.floor(countdown / 60);
+    const secs = countdown % 60;
+    const timeLabel = countdown > 0
+      ? mins > 0
+        ? `~${mins}m ${secs}s remaining`
+        : `~${secs}s remaining`
+      : 'Almost done…';
+
+    // Timeline milestones
+    const milestones = hasAiShots
+      ? [
+          { label: 'Uploading photos',         pct: 10 },
+          { label: 'Generating AI drone shots', pct: 35 },
+          { label: 'Compositing footage',       pct: 65 },
+          { label: 'Rendering final video',     pct: 85 },
+          { label: 'Finishing up',              pct: 96 },
+        ]
+      : [
+          { label: 'Uploading photos',    pct: 10 },
+          { label: 'Applying effects',    pct: 30 },
+          { label: 'Syncing music',       pct: 55 },
+          { label: 'Rendering video',     pct: 80 },
+          { label: 'Finishing up',        pct: 96 },
+        ];
+
+    const activeMilestone = [...milestones].reverse().find((m) => progress >= m.pct) ?? milestones[0];
+
     return (
       <div className="p-6 md:p-8 max-w-xl">
-        <div className="bg-[#FFFFFF] border border-[#E2DED6] rounded-[6px] p-10 text-center">
-          <div className="text-5xl mb-6 animate-bounce">{hasAiShots ? '🚁' : '🎬'}</div>
-          <h2 className="font-syne font-bold text-2xl mb-2">Creating your video…</h2>
-          <p className="text-[#C07A00] text-sm mb-8 transition-all duration-500">{loadingMsg}</p>
+        <div className="bg-[#FFFFFF] border border-[#E2DED6] rounded-[16px] p-10 text-center">
+          {/* Animated icon */}
+          <div className="relative w-20 h-20 mx-auto mb-6">
+            <div className="absolute inset-0 bg-[#F0B429]/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
+            <div className="relative w-full h-full bg-[#FDF8EC] border border-[#F0B429]/30 rounded-full flex items-center justify-center text-4xl">
+              {hasAiShots ? '🚁' : '🎬'}
+            </div>
+          </div>
+
+          <h2 className="font-syne font-bold text-2xl mb-1">Creating your video…</h2>
+          <p className="text-[#C07A00] text-sm mb-6 transition-all duration-500 min-h-[20px]">{activeMilestone.label}</p>
 
           {/* Progress bar */}
-          <div className="h-1.5 bg-[#EAE8E2] rounded-full overflow-hidden mb-2">
+          <div className="h-2 bg-[#EAE8E2] rounded-full overflow-hidden mb-3">
             <div
-              className="h-full bg-[#F0B429] rounded-full transition-all duration-1000"
+              className="h-full bg-gradient-to-r from-[#F0B429] to-[#F5C842] rounded-full transition-all duration-1000"
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-xs text-[#8A8682]">{progress < 100 ? 'Rendering…' : 'Done!'}</p>
+
+          {/* Time estimate */}
+          <p className="text-sm font-medium text-[#6B6760] mb-6">{timeLabel}</p>
+
+          {/* Milestone steps */}
+          <div className="text-left space-y-2.5 bg-[#F7F5EF] rounded-[10px] p-4">
+            {milestones.map((m) => {
+              const done    = progress >= m.pct + 10;
+              const current = !done && progress >= m.pct;
+              return (
+                <div key={m.label} className="flex items-center gap-3">
+                  <div className={[
+                    'w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[9px] transition-all',
+                    done    ? 'bg-[#F0B429] text-white'     :
+                    current ? 'bg-[#F0B429]/30 ring-2 ring-[#F0B429]/60' :
+                              'bg-[#E2DED6]',
+                  ].join(' ')}>
+                    {done && (
+                      <svg viewBox="0 0 12 12" fill="none" className="w-2.5 h-2.5">
+                        <path d="M2 6l3 3 5-5" stroke="white" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                    {current && <div className="w-1.5 h-1.5 bg-[#F0B429] rounded-full animate-pulse" />}
+                  </div>
+                  <span className={[
+                    'text-xs transition-all',
+                    done    ? 'text-[#6B6760] line-through'  :
+                    current ? 'text-[#1A1714] font-semibold' :
+                              'text-[#B8B4AE]',
+                  ].join(' ')}>{m.label}</span>
+                </div>
+              );
+            })}
+          </div>
 
           {hasAiShots && (
-            <div className="mt-5 flex items-center justify-center gap-1.5 text-[11px] text-[#7C3AED] bg-[#7C3AED]/8 border border-[#7C3AED]/20 rounded px-3 py-1.5">
+            <div className="mt-4 flex items-center justify-center gap-1.5 text-[11px] text-[#7C3AED] bg-[#7C3AED]/8 border border-[#7C3AED]/20 rounded-[6px] px-3 py-1.5">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 shrink-0">
                 <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clipRule="evenodd" />
               </svg>
-              Generating {aiVideoIndices.length} AI animated video{aiVideoIndices.length !== 1 ? 's' : ''} — this takes 1–3 min
+              Generating {aiVideoIndices.length} AI drone shot{aiVideoIndices.length !== 1 ? 's' : ''} — up to 3 min
             </div>
-          )}
-
-          {videoId && (
-            <p className="text-[10px] text-[#B8B4AE] font-mono mt-4">
-              job {videoId.slice(0, 8)}
-            </p>
           )}
         </div>
       </div>
