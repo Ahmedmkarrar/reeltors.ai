@@ -7,6 +7,12 @@ const FAL_MODEL      = 'fal-ai/kling-video/v1.6/standard/image-to-video';
 
 export const MAX_AI_VIDEOS = 3;
 
+const FORMAT_TO_ASPECT_RATIO: Record<string, string> = {
+  vertical:   '9:16',
+  square:     '1:1',
+  horizontal: '16:9',
+};
+
 export const DRONE_SHOT_PROMPT =
   'Smooth cinematic camera push slowly forward toward the property. ' +
   'Photorealistic architectural real estate photography, golden hour lighting. ' +
@@ -62,14 +68,16 @@ function getFalKey(): string {
 export async function generateDroneShot(
   imageUrl: string,
   customPrompt?: string,
+  format: string = 'vertical',
   timeoutMs = 180_000,
 ): Promise<string> {
   const key = getFalKey();
 
-  // Blend: user vision first, then the cinematic quality instructions.
   const prompt = customPrompt
     ? `${customPrompt.trim()}. ${DRONE_SHOT_PROMPT}`
     : DRONE_SHOT_PROMPT;
+
+  const aspectRatio = FORMAT_TO_ASPECT_RATIO[format] ?? '9:16';
 
   // 1. Submit to fal.ai queue
   const submitRes = await fetch(`${FAL_QUEUE_BASE}/${FAL_MODEL}`, {
@@ -83,8 +91,8 @@ export async function generateDroneShot(
       prompt,
       negative_prompt: DRONE_SHOT_NEGATIVE_PROMPT,
       duration:        '5',
-      aspect_ratio:    '9:16',  // vertical — matches the final video format
-      cfg_scale:       0.5,     // balanced prompt adherence vs. creativity
+      aspect_ratio:    aspectRatio,
+      cfg_scale:       0.5,
     }),
   });
 
@@ -108,12 +116,13 @@ export async function generateDroneShotsForIndices(
   images: string[],
   aiVideoIndices: number[],
   customPrompt?: string,
+  format: string = 'vertical',
 ): Promise<Map<number, string>> {
   const clamped = clampAiIndices(aiVideoIndices, images.length);
 
   const results = await Promise.allSettled(
     clamped.map(async (idx) => {
-      const videoUrl = await generateDroneShot(images[idx], customPrompt);
+      const videoUrl = await generateDroneShot(images[idx], customPrompt, format);
       return { idx, videoUrl };
     }),
   );
