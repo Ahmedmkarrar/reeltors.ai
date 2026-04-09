@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
 
   if (aiIndices.length > 0 && process.env.FAL_KEY) {
     try {
-      falVideoMap = await generateDroneShotsForIndices(images, aiIndices, videoPrompt);
+      falVideoMap = await generateDroneShotsForIndices(images, aiIndices, videoPrompt, format ?? 'vertical');
       if (falVideoMap.size === 0) {
         console.warn(`fal.ai: all ${aiIndices.length} generation(s) failed — falling back to images`);
         falFailed = true;

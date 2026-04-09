@@ -1,8 +1,8 @@
 {
   "name": "Reeltor — Fast Pace TikTok",
   "output_format": "mp4",
-  "width": 720,
-  "height": 1280,
+  "width": 1080,
+  "height": 1920,
   "duration": 15,
   "snapshot_time": 0.5,
   "fps": 30,

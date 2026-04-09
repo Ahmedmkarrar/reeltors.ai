@@ -52,10 +52,10 @@ export default function CreatePage() {
   const [selectedTemplateKey, setSelectedTemplateKey] = useState('CINEMATIC');
 
   // Generation state
-  const [videoId, setVideoId]     = useState('');
+  const [, setVideoId]     = useState('');
   const [outputUrl, setOutputUrl] = useState('');
   const [generating, setGenerating] = useState(false);
-  const [loadingMsg, setLoadingMsg] = useState(LOADING_MESSAGES_BASE[0]);
+  const [, setLoadingMsg] = useState(LOADING_MESSAGES_BASE[0]);
   const [progress, setProgress]     = useState(0);
   const [copied, setCopied]         = useState(false);
   const [countdown, setCountdown]   = useState(0);

@@ -60,3 +60,13 @@ export const PLAN_LIMITS: Record<string, number> = {
   growth:  75,
   pro:     200,
 };
+
+export function getPlanFromPriceId(priceId: string): string {
+  if (priceId === process.env.STRIPE_PRICE_STARTER)        return 'starter';
+  if (priceId === process.env.STRIPE_PRICE_STARTER_ANNUAL) return 'starter';
+  if (priceId === process.env.STRIPE_PRICE_PRO)            return 'growth';
+  if (priceId === process.env.STRIPE_PRICE_GROWTH_ANNUAL)  return 'growth';
+  if (priceId === process.env.STRIPE_PRICE_TEAM)           return 'pro';
+  if (priceId === process.env.STRIPE_PRICE_PRO_ANNUAL)     return 'pro';
+  return 'free';
+}

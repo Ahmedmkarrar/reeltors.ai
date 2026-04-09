@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+        env:
+          # Stripe env vars — tests use these to map price IDs to plans
+          STRIPE_PRICE_STARTER:        ${{ secrets.STRIPE_PRICE_STARTER }}
+          STRIPE_PRICE_STARTER_ANNUAL: ${{ secrets.STRIPE_PRICE_STARTER_ANNUAL }}
+          STRIPE_PRICE_PRO:            ${{ secrets.STRIPE_PRICE_PRO }}
+          STRIPE_PRICE_GROWTH_ANNUAL:  ${{ secrets.STRIPE_PRICE_GROWTH_ANNUAL }}
+          STRIPE_PRICE_TEAM:           ${{ secrets.STRIPE_PRICE_TEAM }}
+          STRIPE_PRICE_PRO_ANNUAL:     ${{ secrets.STRIPE_PRICE_PRO_ANNUAL }}
+          STRIPE_WEBHOOK_SECRET:       ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+          # Supabase — mocked in tests, but Next.js module resolution expects these
+          NEXT_PUBLIC_SUPABASE_URL:    ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY:   ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          # Prevent real outbound calls
+          FAL_KEY:                     ""
+          CREATOMATE_API_KEY:          ""
+          NEXT_PUBLIC_APP_URL:         ""
+
+      - name: Tests passed — ready for Vercel deployment
+        if: success()
+        run: echo "All checks passed. Vercel can proceed with deployment."

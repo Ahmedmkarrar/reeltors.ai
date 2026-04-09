@@ -1,5 +1,5 @@
 // fal.ai image-to-video client
-// Uses Kling v1.6 for high-quality cinematic drone shots.
+// Uses Kling v1.6 Standard for cinematic drone shots.
 // All calls go through fal.ai's queue REST API — no SDK dependency needed.
 
 const FAL_QUEUE_BASE = 'https://queue.fal.run';
@@ -7,11 +7,23 @@ const FAL_MODEL      = 'fal-ai/kling-video/v1.6/standard/image-to-video';
 
 export const MAX_AI_VIDEOS = 3;
 
+const FORMAT_TO_ASPECT_RATIO: Record<string, string> = {
+  vertical:   '9:16',
+  square:     '1:1',
+  horizontal: '16:9',
+};
+
 export const DRONE_SHOT_PROMPT =
   'Smooth cinematic camera push slowly forward toward the property. ' +
-  'Photorealistic architectural real estate photography. ' +
-  'Ultra-stable motion, sharp focus throughout, natural lighting. ' +
+  'Photorealistic architectural real estate photography, golden hour lighting. ' +
+  'Ultra-stable motion, razor-sharp focus throughout, natural soft shadows. ' +
+  'High-end property showcase with professional composition. ' +
   'Strict structural integrity — no morphing, no melting, no warping of walls or windows.';
+
+const DRONE_SHOT_NEGATIVE_PROMPT =
+  'blurry, low quality, pixelated, distorted, warped walls, melting architecture, ' +
+  'wobbly motion, camera shake, flickering, overexposed, underexposed, ' +
+  'lens flare artifacts, color banding, compression artifacts, watermark, text overlay.';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,14 +68,16 @@ function getFalKey(): string {
 export async function generateDroneShot(
   imageUrl: string,
   customPrompt?: string,
+  format: string = 'vertical',
   timeoutMs = 180_000,
 ): Promise<string> {
   const key = getFalKey();
 
-  // Blend: user vision first, then the cinematic quality instructions.
   const prompt = customPrompt
     ? `${customPrompt.trim()}. ${DRONE_SHOT_PROMPT}`
     : DRONE_SHOT_PROMPT;
+
+  const aspectRatio = FORMAT_TO_ASPECT_RATIO[format] ?? '9:16';
 
   // 1. Submit to fal.ai queue
   const submitRes = await fetch(`${FAL_QUEUE_BASE}/${FAL_MODEL}`, {
@@ -73,10 +87,12 @@ export async function generateDroneShot(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      image_url:    imageUrl,
+      image_url:       imageUrl,
       prompt,
-      duration:     '5',
-      aspect_ratio: '9:16',  // vertical — matches the final video format
+      negative_prompt: DRONE_SHOT_NEGATIVE_PROMPT,
+      duration:        '5',
+      aspect_ratio:    aspectRatio,
+      cfg_scale:       0.5,
     }),
   });
 
@@ -100,12 +116,13 @@ export async function generateDroneShotsForIndices(
   images: string[],
   aiVideoIndices: number[],
   customPrompt?: string,
+  format: string = 'vertical',
 ): Promise<Map<number, string>> {
   const clamped = clampAiIndices(aiVideoIndices, images.length);
 
   const results = await Promise.allSettled(
     clamped.map(async (idx) => {
-      const videoUrl = await generateDroneShot(images[idx], customPrompt);
+      const videoUrl = await generateDroneShot(images[idx], customPrompt, format);
       return { idx, videoUrl };
     }),
   );
