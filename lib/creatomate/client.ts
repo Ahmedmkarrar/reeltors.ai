@@ -161,8 +161,9 @@ export async function generateMixedMediaVideo(opts: GenerateMixedMediaOptions): 
 
 // ─── Build modifications object ───────────────────────────────────────────────
 
-// Number of photo slots in the current template.
-const TEMPLATE_PHOTO_SLOTS = 6;
+// Number of video/image slots in the current template.
+// Update this if you change templates with a different slot count.
+const TEMPLATE_VIDEO_SLOTS = 4;
 
 export function buildModifications(opts: {
   photos?: string[];
@@ -175,21 +176,24 @@ export function buildModifications(opts: {
 }): Record<string, string> {
   const mods: Record<string, string> = {};
 
-  // Distribute photos across all template slots.
-  // Fewer than 6 → loop/repeat; more than 6 → use the first 6.
+  // Distribute photos dynamically across all template slots:
+  // - If more photos than slots → use the first N (best picks should be uploaded first)
+  // - If fewer photos than slots → loop/repeat to fill every slot
   if (opts.photos && opts.photos.length > 0) {
-    for (let i = 0; i < TEMPLATE_PHOTO_SLOTS; i++) {
+    for (let i = 0; i < TEMPLATE_VIDEO_SLOTS; i++) {
       const url = opts.photos[i % opts.photos.length];
-      if (url) mods[`photo-${i + 1}.source`] = url;
+      if (url) mods[`Video-${i + 1}.source`] = url;
     }
   }
 
-  if (opts.address)               mods['Addresstext.text']  = opts.address;
-  if (opts.price)                 mods['Text.text']         = opts.price;
-  const brand = opts.brandName ?? opts.agentName;
-  if (brand)                      mods['Brand-Name.text']   = brand;
-  if (opts.email)                 mods['Email.text']        = opts.email;
-  if (opts.phone)                 mods['Phone-Number.text'] = opts.phone;
+  // Description = address + price on separate lines
+  const description = [opts.address, opts.price].filter(Boolean).join('\n');
+  if (description)    mods['Description.text']   = description;
+  if (opts.price)     mods['Subtext.text']        = opts.price;
+  if (opts.agentName) mods['Name.text']           = opts.agentName;
+  if (opts.brandName) mods['Brand-Name.text']     = opts.brandName;
+  if (opts.email)     mods['Email.text']          = opts.email;
+  if (opts.phone)     mods['Phone-Number.text']   = opts.phone;
 
   return mods;
 }
