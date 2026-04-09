@@ -1,8 +1,8 @@
 {
   "name": "Reeltor — Cinematic Montage",
   "output_format": "mp4",
-  "width": 720,
-  "height": 1280,
+  "width": 1080,
+  "height": 1920,
   "duration": 30,
   "snapshot_time": 1,
   "fps": 30,

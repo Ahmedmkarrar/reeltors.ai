@@ -1,5 +1,5 @@
 // fal.ai image-to-video client
-// Uses Kling v1.6 for high-quality cinematic drone shots.
+// Uses Kling v1.6 Standard for cinematic drone shots.
 // All calls go through fal.ai's queue REST API — no SDK dependency needed.
 
 const FAL_QUEUE_BASE = 'https://queue.fal.run';
@@ -9,9 +9,15 @@ export const MAX_AI_VIDEOS = 3;
 
 export const DRONE_SHOT_PROMPT =
   'Smooth cinematic camera push slowly forward toward the property. ' +
-  'Photorealistic architectural real estate photography. ' +
-  'Ultra-stable motion, sharp focus throughout, natural lighting. ' +
+  'Photorealistic architectural real estate photography, golden hour lighting. ' +
+  'Ultra-stable motion, razor-sharp focus throughout, natural soft shadows. ' +
+  'High-end property showcase with professional composition. ' +
   'Strict structural integrity — no morphing, no melting, no warping of walls or windows.';
+
+const DRONE_SHOT_NEGATIVE_PROMPT =
+  'blurry, low quality, pixelated, distorted, warped walls, melting architecture, ' +
+  'wobbly motion, camera shake, flickering, overexposed, underexposed, ' +
+  'lens flare artifacts, color banding, compression artifacts, watermark, text overlay.';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -73,10 +79,12 @@ export async function generateDroneShot(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      image_url:    imageUrl,
+      image_url:       imageUrl,
       prompt,
-      duration:     '5',
-      aspect_ratio: '9:16',  // vertical — matches the final video format
+      negative_prompt: DRONE_SHOT_NEGATIVE_PROMPT,
+      duration:        '5',
+      aspect_ratio:    '9:16',  // vertical — matches the final video format
+      cfg_scale:       0.5,     // balanced prompt adherence vs. creativity
     }),
   });
 
