@@ -14,6 +14,68 @@ export type Database = {
   }
   public: {
     Tables: {
+      email_verifications: {
+        Row: {
+          id: string
+          email: string
+          code_hash: string
+          expires_at: string
+          used_at: string | null
+          attempts: number
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          email: string
+          code_hash: string
+          expires_at: string
+          used_at?: string | null
+          attempts?: number
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          email?: string
+          code_hash?: string
+          expires_at?: string
+          used_at?: string | null
+          attempts?: number
+          created_at?: string | null
+        }
+        Relationships: []
+      }
+      free_generation_logs: {
+        Row: {
+          id: string
+          user_id: string
+          ip_address: string | null
+          fingerprint_id: string | null
+          created_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          ip_address?: string | null
+          fingerprint_id?: string | null
+          created_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          ip_address?: string | null
+          fingerprint_id?: string | null
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "free_generation_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -21,10 +83,13 @@ export type Database = {
           brand_name: string | null
           created_at: string | null
           email: string
+          email_verified: boolean | null
           full_name: string | null
           id: string
           phone: string | null
           plan: string | null
+          session_fingerprint: string | null
+          session_fingerprint_updated_at: string | null
           stripe_customer_id: string | null
           subscription_id: string | null
           subscription_status: string | null
@@ -38,10 +103,13 @@ export type Database = {
           brand_name?: string | null
           created_at?: string | null
           email: string
+          email_verified?: boolean | null
           full_name?: string | null
           id: string
           phone?: string | null
           plan?: string | null
+          session_fingerprint?: string | null
+          session_fingerprint_updated_at?: string | null
           stripe_customer_id?: string | null
           subscription_id?: string | null
           subscription_status?: string | null
@@ -55,16 +123,73 @@ export type Database = {
           brand_name?: string | null
           created_at?: string | null
           email?: string
+          email_verified?: boolean | null
           full_name?: string | null
           id?: string
           phone?: string | null
           plan?: string | null
+          session_fingerprint?: string | null
+          session_fingerprint_updated_at?: string | null
           stripe_customer_id?: string | null
           subscription_id?: string | null
           subscription_status?: string | null
           updated_at?: string | null
           videos_limit?: number | null
           videos_used_this_month?: number | null
+        }
+        Relationships: []
+      }
+      tunnel_sessions: {
+        Row: {
+          id: string
+          session_token: string
+          email: string | null
+          ip_address: string | null
+          device_fingerprint: string | null
+          template_id: string | null
+          source_images: string[] | null
+          creatomate_render_id: string | null
+          output_url: string | null
+          thumbnail_url: string | null
+          status: string
+          abuse_blocked_reason: string | null
+          has_downloaded: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          session_token: string
+          email?: string | null
+          ip_address?: string | null
+          device_fingerprint?: string | null
+          template_id?: string | null
+          source_images?: string[] | null
+          creatomate_render_id?: string | null
+          output_url?: string | null
+          thumbnail_url?: string | null
+          status?: string
+          abuse_blocked_reason?: string | null
+          has_downloaded?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          session_token?: string
+          email?: string | null
+          ip_address?: string | null
+          device_fingerprint?: string | null
+          template_id?: string | null
+          source_images?: string[] | null
+          creatomate_render_id?: string | null
+          output_url?: string | null
+          thumbnail_url?: string | null
+          status?: string
+          abuse_blocked_reason?: string | null
+          has_downloaded?: boolean
+          created_at?: string
+          updated_at?: string
         }
         Relationships: []
       }

@@ -5,6 +5,7 @@ import { generateVideo, generateMixedMediaVideo, CreatomateError } from '@/lib/c
 import type { MediaItem } from '@/lib/creatomate/client';
 import { generateDroneShotsForIndices, clampAiIndices, FalError } from '@/lib/fal/client';
 import type { CreateVideoPayload } from '@/types';
+import { isDisposableEmail, getClientIp } from '@/lib/abuse/email';
 
 // Allow up to 5 minutes — fal.ai video generation takes ~1–2 min per clip.
 // Up to 3 clips run in parallel, so worst-case ~3 min before Creatomate starts.
@@ -17,6 +18,13 @@ export async function POST(req: NextRequest) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  if (user.email && isDisposableEmail(user.email)) {
+    return NextResponse.json(
+      { error: 'Disposable email addresses are not allowed.', code: 'DISPOSABLE_EMAIL' },
+      { status: 403 },
+    );
   }
 
   // ── 2. Parse + validate input ──────────────────────────────────────────────
@@ -46,14 +54,34 @@ export async function POST(req: NextRequest) {
   );
 
   // ── 3. Load profile + check plan limits ────────────────────────────────────
-  const { data: profile } = await supabase
+  const admin = getSupabaseAdmin();
+
+  let { data: profile } = await supabase
     .from('profiles')
-    .select('plan, videos_used_this_month, videos_limit, full_name, email, phone, brand_name')
+    .select('plan, videos_used_this_month, videos_limit, full_name, email, phone, brand_name, email_verified, session_fingerprint, session_fingerprint_updated_at')
     .eq('id', user.id)
     .single();
 
   if (!profile) {
-    return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    // DB trigger may have failed — upsert to recover
+    const { data: upserted } = await admin
+      .from('profiles')
+      .upsert(
+        {
+          id: user.id,
+          email: user.email ?? '',
+          full_name: (user.user_metadata?.full_name as string) ?? null,
+          email_verified: user.app_metadata?.provider !== 'email',
+        },
+        { onConflict: 'id' }
+      )
+      .select('plan, videos_used_this_month, videos_limit, full_name, email, phone, brand_name, email_verified, session_fingerprint, session_fingerprint_updated_at')
+      .single();
+
+    if (!upserted) {
+      return NextResponse.json({ error: 'Failed to load profile' }, { status: 500 });
+    }
+    profile = upserted;
   }
 
   const isUnlimited = profile.plan === 'pro' || profile.plan === 'team';
@@ -64,8 +92,83 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const clientIp = getClientIp(req);
+  // x-device-fingerprint is set by the FingerprintJS client script
+  const fingerprintId = req.headers.get('x-device-fingerprint') ?? null;
+  const isFree = !isUnlimited && profile.plan !== 'starter';
+
+  if (isFree) {
+    // layer 1: require email OTP verification before first free render
+    if (!profile.email_verified) {
+      return NextResponse.json(
+        { error: 'Please verify your email before generating a video.', code: 'EMAIL_NOT_VERIFIED' },
+        { status: 403 },
+      );
+    }
+
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
+    // layer 3 + 4: check if this IP or fingerprint has already been used for a free generation
+    // by a different account in the last 30 days (signals abuse, not the same user returning)
+    const [ipCheck, fpCheck] = await Promise.all([
+      clientIp !== '0.0.0.0'
+        ? admin
+            .from('free_generation_logs')
+            .select('user_id', { count: 'exact', head: false })
+            .eq('ip_address', clientIp)
+            .neq('user_id', user.id)
+            .gte('created_at', thirtyDaysAgo)
+            .limit(1)
+        : Promise.resolve({ data: [], error: null }),
+      fingerprintId
+        ? admin
+            .from('free_generation_logs')
+            .select('user_id', { count: 'exact', head: false })
+            .eq('fingerprint_id', fingerprintId)
+            .neq('user_id', user.id)
+            .gte('created_at', thirtyDaysAgo)
+            .limit(1)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+    // fingerprint match = hard block (strongest signal)
+    if (fpCheck.data && fpCheck.data.length > 0) {
+      return NextResponse.json(
+        { error: 'Your free video has already been used. Upgrade to create more.', code: 'DEVICE_LIMIT_REACHED' },
+        { status: 403 },
+      );
+    }
+
+    // IP match alone = soft block with upgrade prompt (shared IPs can be false positives)
+    if (ipCheck.data && ipCheck.data.length > 0) {
+      return NextResponse.json(
+        { error: 'A free video was already generated from your network. Upgrade to create more.', code: 'IP_LIMIT_REACHED' },
+        { status: 403 },
+      );
+    }
+  } else {
+    // layer 5: concurrent session check for paid plans
+    // if the stored fingerprint differs and was updated very recently, another device is actively using this account
+    const storedFingerprint = profile.session_fingerprint;
+    const storedUpdatedAt = profile.session_fingerprint_updated_at;
+
+    if (
+      fingerprintId &&
+      storedFingerprint &&
+      storedFingerprint !== fingerprintId &&
+      storedUpdatedAt
+    ) {
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      if (storedUpdatedAt > fiveMinutesAgo) {
+        return NextResponse.json(
+          { error: 'This account is currently active on another device.', code: 'CONCURRENT_SESSION' },
+          { status: 403 },
+        );
+      }
+    }
+  }
+
   // ── 4. Create pending video record ─────────────────────────────────────────
-  const admin = getSupabaseAdmin();
   const videoTitle = (title || listingAddress || 'My Listing Video').slice(0, 255);
 
   const { data: video, error: insertError } = await admin
@@ -196,6 +299,34 @@ export async function POST(req: NextRequest) {
     ops.push(Promise.resolve(admin.rpc('increment_videos_used', { p_user_id: user.id })));
   } else {
     console.info(`AI shots fully failed for video ${video.id} — usage counter not incremented.`);
+  }
+
+  // layer 3 + 4: log free-tier generation for future IP/fingerprint checks
+  if (isFree) {
+    ops.push(
+      Promise.resolve(
+        admin.from('free_generation_logs').insert({
+          user_id: user.id,
+          ip_address: clientIp !== '0.0.0.0' ? clientIp : null,
+          fingerprint_id: fingerprintId,
+        }),
+      ),
+    );
+  }
+
+  // layer 5: update session fingerprint so concurrent-session detection stays current
+  if (fingerprintId) {
+    ops.push(
+      Promise.resolve(
+        admin
+          .from('profiles')
+          .update({
+            session_fingerprint: fingerprintId,
+            session_fingerprint_updated_at: new Date().toISOString(),
+          })
+          .eq('id', user.id),
+      ),
+    );
   }
 
   const [updateResult] = await Promise.allSettled(ops);
