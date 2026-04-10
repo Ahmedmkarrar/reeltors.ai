@@ -24,9 +24,7 @@ function LoginForm() {
   const [emailSent, setEmailSent] = useState(false);
   const [emailError, setEmailError] = useState('');
 
-  const errorMsg = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get('error')
-    : null;
+  const errorMsg = searchParams.get('error');
 
   async function handleGoogle() {
     setGoogleLoading(true);

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { downloadAndStoreVideo, downloadAndStoreThumbnail } from '@/lib/storage';
 import { sendFirstVideoEmail } from '@/lib/resend/emails';
+import { startTunnelEmailSequence } from '@/lib/resend/tunnel-emails';
 
 // Creatomate sends metadata back as a JSON string or object
 function parseMetadata(raw: unknown): Record<string, string> {
@@ -11,6 +12,80 @@ function parseMetadata(raw: unknown): Record<string, string> {
   }
   if (typeof raw === 'object') return raw as Record<string, string>;
   return {};
+}
+
+async function handleTunnelWebhook(
+  admin: ReturnType<typeof getSupabaseAdmin>,
+  renderId: string,
+  status: string,
+  renderUrl: string | null,
+  snapshotUrl: string | null,
+  tunnelSessionId: string,
+): Promise<NextResponse> {
+  if (status === 'failed') {
+    await admin
+      .from('tunnel_sessions')
+      .update({ status: 'failed', updated_at: new Date().toISOString() })
+      .eq('id', tunnelSessionId);
+    return NextResponse.json({ received: true });
+  }
+
+  if (status !== 'succeeded') {
+    return NextResponse.json({ received: true });
+  }
+
+  if (!renderUrl) {
+    await admin
+      .from('tunnel_sessions')
+      .update({ status: 'failed', updated_at: new Date().toISOString() })
+      .eq('id', tunnelSessionId);
+    return NextResponse.json({ received: true });
+  }
+
+  // Store video permanently under a tunnel/ prefix (no user ID)
+  let permanentVideoUrl: string;
+  let permanentThumbUrl: string | null = null;
+
+  try {
+    permanentVideoUrl = await downloadAndStoreVideo(renderId, renderUrl, `tunnel/${tunnelSessionId}`);
+  } catch {
+    permanentVideoUrl = renderUrl;
+  }
+
+  if (snapshotUrl) {
+    try {
+      permanentThumbUrl = await downloadAndStoreThumbnail(renderId, snapshotUrl, `tunnel/${tunnelSessionId}`);
+    } catch {
+      // non-fatal
+    }
+  }
+
+  await admin
+    .from('tunnel_sessions')
+    .update({
+      status:        'complete',
+      output_url:    permanentVideoUrl,
+      thumbnail_url: permanentThumbUrl ?? null,
+      updated_at:    new Date().toISOString(),
+    })
+    .eq('id', tunnelSessionId);
+
+  // Kick off 5-email sequence (best-effort)
+  try {
+    const { data: session } = await admin
+      .from('tunnel_sessions')
+      .select('email')
+      .eq('id', tunnelSessionId)
+      .single();
+
+    if (session?.email) {
+      await startTunnelEmailSequence(session.email, permanentVideoUrl);
+    }
+  } catch (err) {
+    console.error('Failed to start tunnel email sequence (non-fatal):', err);
+  }
+
+  return NextResponse.json({ received: true });
 }
 
 export async function POST(req: NextRequest) {
@@ -47,6 +122,13 @@ export async function POST(req: NextRequest) {
   }
 
   const meta = parseMetadata(rawMeta);
+  const admin = getSupabaseAdmin();
+
+  // Tunnel (anonymous) session — handle separately
+  if (meta.tunnel_session_id) {
+    return handleTunnelWebhook(admin, renderId, status, renderUrl ?? null, snapshotUrl ?? null, meta.tunnel_session_id);
+  }
+
   const videoId = meta.video_id;
   const userId  = meta.user_id;
 
@@ -55,8 +137,6 @@ export async function POST(req: NextRequest) {
     console.warn('Creatomate webhook: missing video_id/user_id in metadata, renderId:', renderId);
     return NextResponse.json({ received: true });
   }
-
-  const admin = getSupabaseAdmin();
 
   // ── 3. Handle failed render ──────────────────────────────────────────────────
   if (status === 'failed') {

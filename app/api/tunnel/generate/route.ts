@@ -1,0 +1,137 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
+import { createRender, buildModifications, CreatomateError } from '@/lib/creatomate/client';
+import { TEMPLATE_IDS } from '@/lib/creatomate/templates';
+import { runAbuseChecks, getAbuseBlockMessage } from '@/lib/tunnel/abuse';
+
+export const maxDuration = 60;
+
+const VALID_TEMPLATE_KEYS = new Set(Object.keys(TEMPLATE_IDS));
+
+interface GenerateBody {
+  sessionToken: string;
+  templateKey: string;
+  imageUrls: string[];
+  email: string;
+  deviceFingerprint: string;
+}
+
+function getClientIp(req: NextRequest): string {
+  return (
+    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+    req.headers.get('x-real-ip') ||
+    'unknown'
+  );
+}
+
+export async function POST(req: NextRequest) {
+  let body: GenerateBody;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
+  }
+
+  const { sessionToken, templateKey, imageUrls, email, deviceFingerprint } = body;
+
+  if (!sessionToken || typeof sessionToken !== 'string') {
+    return NextResponse.json({ error: 'sessionToken is required' }, { status: 400 });
+  }
+  if (!templateKey || !VALID_TEMPLATE_KEYS.has(templateKey)) {
+    return NextResponse.json({ error: 'Invalid template' }, { status: 400 });
+  }
+  if (!Array.isArray(imageUrls) || imageUrls.length < 1 || imageUrls.length > 20) {
+    return NextResponse.json({ error: 'imageUrls must be 1–20 URLs' }, { status: 400 });
+  }
+  if (!email || typeof email !== 'string' || !email.includes('@')) {
+    return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
+  }
+  if (!deviceFingerprint || typeof deviceFingerprint !== 'string') {
+    return NextResponse.json({ error: 'deviceFingerprint is required' }, { status: 400 });
+  }
+
+  const ipAddress = getClientIp(req);
+  const normalizedEmail = email.trim().toLowerCase();
+  const admin = getSupabaseAdmin();
+
+  // Run abuse checks before creating a session record
+  const abuseResult = await runAbuseChecks({
+    email: normalizedEmail,
+    ipAddress,
+    deviceFingerprint,
+  });
+
+  if (abuseResult.isBlocked) {
+    // Record the blocked attempt for audit
+    await admin.from('tunnel_sessions').insert({
+      session_token:       sessionToken,
+      email:               normalizedEmail,
+      ip_address:          ipAddress,
+      device_fingerprint:  deviceFingerprint,
+      status:              'blocked',
+      abuse_blocked_reason: abuseResult.reason,
+    });
+
+    return NextResponse.json(
+      { error: getAbuseBlockMessage(abuseResult.reason ?? ''), code: 'BLOCKED' },
+      { status: 429 }
+    );
+  }
+
+  // Create tunnel session record
+  const { data: session, error: insertError } = await admin
+    .from('tunnel_sessions')
+    .insert({
+      session_token:      sessionToken,
+      email:              normalizedEmail,
+      ip_address:         ipAddress,
+      device_fingerprint: deviceFingerprint,
+      template_id:        templateKey,
+      source_images:      imageUrls,
+      status:             'generating',
+    })
+    .select('id')
+    .single();
+
+  if (insertError || !session) {
+    console.error('Failed to create tunnel session:', insertError);
+    return NextResponse.json({ error: 'Failed to start generation' }, { status: 500 });
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+  const isPublic = appUrl.startsWith('https://');
+  const webhookUrl = isPublic
+    ? `${appUrl}/api/webhooks/creatomate${process.env.WEBHOOK_SECRET ? `?token=${process.env.WEBHOOK_SECRET}` : ''}`
+    : undefined;
+
+  const templateId = TEMPLATE_IDS[templateKey as keyof typeof TEMPLATE_IDS];
+  const modifications = buildModifications({ photos: imageUrls });
+
+  let render;
+  try {
+    render = await createRender({
+      templateId,
+      modifications,
+      webhookUrl,
+      metadata: { tunnel_session_id: session.id },
+    });
+  } catch (err) {
+    await admin
+      .from('tunnel_sessions')
+      .update({ status: 'failed' })
+      .eq('id', session.id);
+
+    if (err instanceof CreatomateError) {
+      console.error('Creatomate error (tunnel):', err.message);
+      return NextResponse.json({ error: 'Video render failed. Please try again.' }, { status: 502 });
+    }
+    return NextResponse.json({ error: 'Failed to start video generation' }, { status: 500 });
+  }
+
+  await admin
+    .from('tunnel_sessions')
+    .update({ creatomate_render_id: render.id })
+    .eq('id', session.id);
+
+  return NextResponse.json({ sessionId: session.id });
+}

@@ -126,6 +126,36 @@ export async function sendFeedbackEmail({
   });
 }
 
+export async function sendOtpEmail(email: string, otp: string) {
+  return getResend().emails.send({
+    from: FROM(),
+    to: email,
+    subject: `${otp} is your Reeltor.ai verification code`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <body style="${baseStyle}">
+        <div style="max-width:560px;margin:0 auto;">
+          <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:8px;">Reeltor.ai</h1>
+          <p style="color:#6B6760;margin-bottom:32px;font-size:14px;">Email verification</p>
+          <h2 style="font-size:22px;font-weight:700;margin-bottom:16px;">Your verification code</h2>
+          <p style="color:#8A8682;line-height:1.7;margin-bottom:24px;">
+            Enter this code to verify your email and generate your video. It expires in 10 minutes.
+          </p>
+          <div style="background:#1A1714;border-radius:8px;padding:24px;text-align:center;margin-bottom:32px;">
+            <span style="font-size:40px;font-weight:800;letter-spacing:12px;color:#F0B429;">${otp}</span>
+          </div>
+          <p style="color:#4A4642;font-size:13px;line-height:1.6;">
+            If you didn't request this, you can safely ignore this email.
+          </p>
+          <p style="color:#2E2B27;font-size:12px;margin-top:48px;">© 2026 Reeltor.ai</p>
+        </div>
+      </body>
+      </html>
+    `,
+  });
+}
+
 export async function sendPaymentFailedEmail(email: string, name: string) {
   return getResend().emails.send({
     from: FROM(),
