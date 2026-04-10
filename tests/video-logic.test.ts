@@ -51,10 +51,10 @@ vi.mock('@/lib/supabase/admin', () => ({
   getSupabaseAdmin: () => mockAdmin,
 }));
 
-vi.mock('@/lib/creatomate/client', () => ({
+vi.mock('@/lib/shotstack/client', () => ({
   generateVideo:           mockGenerateVideo,
   generateMixedMediaVideo: mockGenerateMixedMediaVideo,
-  CreatomateError: class CreatomateError extends Error {
+  ShotstackError: class ShotstackError extends Error {
     constructor(msg: string, public statusCode?: number) { super(msg); }
   },
 }));
@@ -170,7 +170,7 @@ describe('POST /api/videos/generate — generation flow', () => {
     const { POST } = await import('@/app/api/videos/generate/route');
     await POST(makeRequest({ templateId: 'tmpl-abc', images: ['https://a.com/1.jpg'] }));
     expect(mockGenerateVideo).toHaveBeenCalledWith(
-      expect.objectContaining({ templateId: 'tmpl-abc' }),
+      expect.objectContaining({ templateKey: 'tmpl-abc' }),
     );
   });
 

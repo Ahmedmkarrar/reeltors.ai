@@ -39,10 +39,10 @@ vi.mock('@/lib/supabase/admin', () => ({
   getSupabaseAdmin: () => mockAdmin,
 }));
 
-vi.mock('@/lib/creatomate/client', () => ({
-  generateVideo:           vi.fn().mockResolvedValue({ id: 'render-1', status: 'planned' }),
-  generateMixedMediaVideo: vi.fn().mockResolvedValue({ id: 'render-1', status: 'planned' }),
-  CreatomateError:         class CreatomateError extends Error {},
+vi.mock('@/lib/shotstack/client', () => ({
+  generateVideo:           vi.fn().mockResolvedValue({ id: 'render-1', status: 'queued' }),
+  generateMixedMediaVideo: vi.fn().mockResolvedValue({ id: 'render-1', status: 'queued' }),
+  ShotstackError:          class ShotstackError extends Error {},
 }));
 
 vi.mock('@/lib/fal/client', () => ({

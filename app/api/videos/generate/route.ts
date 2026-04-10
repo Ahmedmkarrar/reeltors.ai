@@ -255,11 +255,11 @@ export async function POST(req: NextRequest) {
       } catch (mixedErr) {
         // Mixed-media failed — log it and fall back to the standard template
         console.error('Mixed-media render failed, falling back to template:', mixedErr);
-        render = await generateVideo({ templateId, images, ...sharedParams });
+        render = await generateVideo({ templateKey: templateId, images, ...sharedParams });
       }
     } else {
       // No AI videos (fal.ai skipped/failed) — use existing template approach
-      render = await generateVideo({ templateId, images, ...sharedParams });
+      render = await generateVideo({ templateKey: templateId, images, ...sharedParams });
     }
   } catch (err) {
     await admin
