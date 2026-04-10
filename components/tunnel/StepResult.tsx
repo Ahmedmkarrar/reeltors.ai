@@ -111,7 +111,7 @@ export default function StepResult({ videoUrl, email }: StepResultProps) {
             You&apos;ve used your 1 free video.
           </p>
           <p style={{ color: '#6B6760', fontSize: 14, margin: '0 0 20px' }}>
-            Make 20 more listing videos for $49/month.
+            Make 15 more listing videos for $49/month.
           </p>
 
           <a
@@ -123,7 +123,7 @@ export default function StepResult({ videoUrl, email }: StepResultProps) {
               marginBottom: 10,
             }}
           >
-            Get 20 Videos/Month — $49 →
+            Get 15 Videos/Month — $49 →
           </a>
           <button
             onClick={() => setIsUpsellVisible(false)}
