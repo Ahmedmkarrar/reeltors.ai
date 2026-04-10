@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'Free Listing Video — Reeltor.ai',
+  title: 'Free Listing Video — Reeltors.ai',
   description: 'Turn your listing photos into a cinematic video in 60 seconds. Free. No account required.',
 };
 

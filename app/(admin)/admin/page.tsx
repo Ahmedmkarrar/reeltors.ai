@@ -56,7 +56,7 @@ export default function AdminOverviewPage() {
     <div className="p-8">
       <div className="mb-8">
         <h1 className="font-syne font-extrabold text-2xl text-[#1A1714]">Overview</h1>
-        <p className="text-[13px] text-[#8A8682] mt-1">Real-time snapshot of Reeltor.ai</p>
+        <p className="text-[13px] text-[#8A8682] mt-1">Real-time snapshot of Reeltors.ai</p>
       </div>
 
       {/* Top stat cards */}

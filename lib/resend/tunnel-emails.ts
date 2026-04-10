@@ -29,7 +29,7 @@ export async function sendTunnelVideoReady(email: string, videoUrl: string) {
     html: `
       <!DOCTYPE html><html><body style="${baseStyle}">
       <div style="max-width:560px;margin:0 auto;">
-        <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:4px;">Reeltor.ai</h1>
+        <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:4px;">Reeltors.ai</h1>
         <p style="color:#6B6760;font-size:13px;margin-bottom:36px;">Turn listing photos into cinematic videos</p>
         <h2 style="font-size:24px;font-weight:700;margin-bottom:12px;">Your video is ready.</h2>
         <p style="color:#8A8682;line-height:1.7;margin-bottom:28px;">
@@ -39,7 +39,7 @@ export async function sendTunnelVideoReady(email: string, videoUrl: string) {
         <p style="color:#4A4642;font-size:13px;line-height:1.6;">
           Want to create more? <a href="${upgradeUrl()}" style="color:#F0B429;text-decoration:none;">Get 20 videos/month for $49 →</a>
         </p>
-        <p style="color:#2E2B27;font-size:11px;margin-top:48px;">© 2026 Reeltor.ai · <a href="${APP_URL()}/unsubscribe?email=${encodeURIComponent(email)}" style="color:#2E2B27;">Unsubscribe</a></p>
+        <p style="color:#2E2B27;font-size:11px;margin-top:48px;">© 2026 Reeltors.ai · <a href="${APP_URL()}/unsubscribe?email=${encodeURIComponent(email)}" style="color:#2E2B27;">Unsubscribe</a></p>
       </div>
       </body></html>
     `,
@@ -55,7 +55,7 @@ export async function sendTunnelDay1(email: string, videoUrl: string) {
     html: `
       <!DOCTYPE html><html><body style="${baseStyle}">
       <div style="max-width:560px;margin:0 auto;">
-        <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:4px;">Reeltor.ai</h1>
+        <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:4px;">Reeltors.ai</h1>
         <p style="color:#6B6760;font-size:13px;margin-bottom:36px;">Pro tip #1</p>
         <h2 style="font-size:22px;font-weight:700;margin-bottom:12px;">Post at 7am or 6pm for 3x the reach.</h2>
         <p style="color:#8A8682;line-height:1.7;margin-bottom:20px;">
@@ -71,7 +71,7 @@ export async function sendTunnelDay1(email: string, videoUrl: string) {
         <p style="color:#4A4642;font-size:13px;line-height:1.6;">
           Creating a new listing soon? <a href="${upgradeUrl()}" style="color:#F0B429;text-decoration:none;">Get 20 videos/month for $49 →</a>
         </p>
-        <p style="color:#2E2B27;font-size:11px;margin-top:48px;">© 2026 Reeltor.ai · <a href="${APP_URL()}/unsubscribe?email=${encodeURIComponent(email)}" style="color:#2E2B27;">Unsubscribe</a></p>
+        <p style="color:#2E2B27;font-size:11px;margin-top:48px;">© 2026 Reeltors.ai · <a href="${APP_URL()}/unsubscribe?email=${encodeURIComponent(email)}" style="color:#2E2B27;">Unsubscribe</a></p>
       </div>
       </body></html>
     `,
@@ -87,7 +87,7 @@ export async function sendTunnelDay3(email: string) {
     html: `
       <!DOCTYPE html><html><body style="${baseStyle}">
       <div style="max-width:560px;margin:0 auto;">
-        <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:4px;">Reeltor.ai</h1>
+        <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:4px;">Reeltors.ai</h1>
         <p style="color:#6B6760;font-size:13px;margin-bottom:36px;">Agent spotlight</p>
         <h2 style="font-size:22px;font-weight:700;margin-bottom:12px;">"I went from 1 listing to 4 active listings in 30 days."</h2>
         <div style="background:#1A1714;border-left:3px solid #F0B429;padding:20px;border-radius:0 8px 8px 0;margin-bottom:24px;">
@@ -100,7 +100,7 @@ export async function sendTunnelDay3(email: string) {
           The agents winning listings right now aren't the ones with the best website. They're the ones showing up consistently with quality video.
         </p>
         <a href="${upgradeUrl()}" style="display:inline-block;background:#F0B429;color:#0D0B08;font-weight:700;padding:15px 32px;border-radius:6px;text-decoration:none;font-size:16px;">Get 20 Videos/Month — $49 →</a>
-        <p style="color:#2E2B27;font-size:11px;margin-top:48px;">© 2026 Reeltor.ai · <a href="${APP_URL()}/unsubscribe?email=${encodeURIComponent(email)}" style="color:#2E2B27;">Unsubscribe</a></p>
+        <p style="color:#2E2B27;font-size:11px;margin-top:48px;">© 2026 Reeltors.ai · <a href="${APP_URL()}/unsubscribe?email=${encodeURIComponent(email)}" style="color:#2E2B27;">Unsubscribe</a></p>
       </div>
       </body></html>
     `,
@@ -116,7 +116,7 @@ export async function sendTunnelDay5(email: string, videoUrl: string) {
     html: `
       <!DOCTYPE html><html><body style="${baseStyle}">
       <div style="max-width:560px;margin:0 auto;">
-        <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:4px;">Reeltor.ai</h1>
+        <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:4px;">Reeltors.ai</h1>
         <p style="color:#6B6760;font-size:13px;margin-bottom:36px;">Heads up</p>
         <h2 style="font-size:22px;font-weight:700;margin-bottom:12px;">Your video link expires in 48 hours.</h2>
         <p style="color:#8A8682;line-height:1.7;margin-bottom:20px;">
@@ -126,7 +126,7 @@ export async function sendTunnelDay5(email: string, videoUrl: string) {
         <a href="${videoUrl}" style="display:inline-block;background:#F0B429;color:#0D0B08;font-weight:700;padding:15px 32px;border-radius:6px;text-decoration:none;font-size:16px;margin-bottom:16px;">Download Now (Free) →</a>
         <br/>
         <a href="${signupUrl(email)}" style="display:inline-block;background:#1A1714;color:#F0B429;font-weight:700;padding:12px 24px;border-radius:6px;text-decoration:none;font-size:14px;border:1px solid #2E2B27;margin-bottom:32px;">Save Forever + Make More Videos →</a>
-        <p style="color:#2E2B27;font-size:11px;margin-top:48px;">© 2026 Reeltor.ai · <a href="${APP_URL()}/unsubscribe?email=${encodeURIComponent(email)}" style="color:#2E2B27;">Unsubscribe</a></p>
+        <p style="color:#2E2B27;font-size:11px;margin-top:48px;">© 2026 Reeltors.ai · <a href="${APP_URL()}/unsubscribe?email=${encodeURIComponent(email)}" style="color:#2E2B27;">Unsubscribe</a></p>
       </div>
       </body></html>
     `,
@@ -142,7 +142,7 @@ export async function sendTunnelDay10(email: string) {
     html: `
       <!DOCTYPE html><html><body style="${baseStyle}">
       <div style="max-width:560px;margin:0 auto;">
-        <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:4px;">Reeltor.ai</h1>
+        <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:4px;">Reeltors.ai</h1>
         <p style="color:#6B6760;font-size:13px;margin-bottom:36px;">Final offer</p>
         <h2 style="font-size:22px;font-weight:700;margin-bottom:12px;">One listing video = one lost opportunity.</h2>
         <p style="color:#8A8682;line-height:1.7;margin-bottom:24px;">
@@ -160,7 +160,7 @@ export async function sendTunnelDay10(email: string) {
         </div>
         <a href="${upgradeUrl()}" style="display:inline-block;background:#F0B429;color:#0D0B08;font-weight:700;padding:15px 32px;border-radius:6px;text-decoration:none;font-size:16px;">Start for $49/month →</a>
         <p style="color:#4A4642;font-size:12px;margin-top:24px;">No contracts. Cancel in 30 seconds.</p>
-        <p style="color:#2E2B27;font-size:11px;margin-top:48px;">© 2026 Reeltor.ai · <a href="${APP_URL()}/unsubscribe?email=${encodeURIComponent(email)}" style="color:#2E2B27;">Unsubscribe</a></p>
+        <p style="color:#2E2B27;font-size:11px;margin-top:48px;">© 2026 Reeltors.ai · <a href="${APP_URL()}/unsubscribe?email=${encodeURIComponent(email)}" style="color:#2E2B27;">Unsubscribe</a></p>
       </div>
       </body></html>
     `,
