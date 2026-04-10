@@ -12,7 +12,7 @@ const FEATURES = [
   { icon: '📸', text: 'Upload listing photos — we do the rest' },
   { icon: '📱', text: 'Export directly to TikTok & Instagram Reels' },
   { icon: '🎬', text: '3 professional templates included' },
-  { icon: '🛡️', text: '30-day money-back guarantee' },
+  { icon: '🛡️', text: 'First video free — no credit card' },
 ];
 
 const FACTS = [
@@ -103,8 +103,8 @@ export default function SignupPage() {
 
           <h1 className="font-syne font-extrabold text-[28px] text-[#1A1714] mb-1">Create your account</h1>
           <p className="text-[#6B6760] text-sm mb-8">
-            Plans from $49.99/month —{' '}
-            <span className="text-[#1A1714] font-medium">30-day money-back guarantee</span>
+            Free to start —{' '}
+            <span className="text-[#1A1714] font-medium">no credit card required</span>
           </p>
 
           <button

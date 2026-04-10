@@ -53,7 +53,8 @@ export async function updateSession(request: NextRequest) {
 
   if (user && isAuthPage) {
     const url = request.nextUrl.clone();
-    url.pathname = '/dashboard';
+    // send them to create rather than dashboard so they land in the flow, not the upgrade wall
+    url.pathname = '/create';
     return NextResponse.redirect(url);
   }
 

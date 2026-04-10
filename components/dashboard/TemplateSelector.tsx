@@ -1,6 +1,6 @@
 'use client';
 
-import { TEMPLATES } from '@/lib/creatomate/templates';
+import { TEMPLATES } from '@/lib/shotstack/templates';
 import type { PlanKey } from '@/types';
 
 interface TemplateSelectorProps {

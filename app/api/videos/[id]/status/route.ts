@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { getRenderStatus } from '@/lib/creatomate/client';
+import { getRenderStatus } from '@/lib/shotstack/client';
 import { downloadAndStoreVideo } from '@/lib/storage';
 
 export async function GET(
@@ -44,7 +44,7 @@ export async function GET(
     return NextResponse.json({ status: video.status });
   }
 
-  if (render.status === 'succeeded' && render.url) {
+  if (render.status === 'done' && render.url) {
     // Store permanently in Supabase Storage
     let finalUrl = render.url;
     try {

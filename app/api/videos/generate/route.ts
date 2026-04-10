@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { generateVideo, generateMixedMediaVideo, CreatomateError } from '@/lib/creatomate/client';
-import type { MediaItem } from '@/lib/creatomate/client';
+import { generateVideo, generateMixedMediaVideo, ShotstackError } from '@/lib/shotstack/client';
+import type { MediaItem } from '@/lib/shotstack/client';
 import { generateDroneShotsForIndices, clampAiIndices, FalError } from '@/lib/fal/client';
 import type { CreateVideoPayload } from '@/types';
 import { isDisposableEmail, getClientIp } from '@/lib/abuse/email';
@@ -226,21 +226,24 @@ export async function POST(req: NextRequest) {
   // Only send a webhook if we have a publicly reachable URL (not localhost)
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
   const isPublic = appUrl.startsWith('https://');
-  const webhookUrl = isPublic
-    ? `${appUrl}/api/webhooks/creatomate${process.env.WEBHOOK_SECRET ? `?token=${process.env.WEBHOOK_SECRET}` : ''}`
-    : undefined;
+  const buildCallbackUrl = (extra: Record<string, string>) => {
+    if (!isPublic) return undefined;
+    const url = new URL(`${appUrl}/api/webhooks/shotstack`);
+    if (process.env.WEBHOOK_SECRET) url.searchParams.set('token', process.env.WEBHOOK_SECRET);
+    Object.entries(extra).forEach(([k, v]) => url.searchParams.set(k, v));
+    return url.toString();
+  };
+  const callbackUrl = buildCallbackUrl({ video_id: video.id, user_id: user.id });
 
   const sharedParams = {
     listingAddress,
     listingPrice,
-    // Fall back to profile values so videos always have agent branding
     agentName:  agentName  || profile.full_name  || undefined,
     brandName:  brandName  || profile.brand_name || undefined,
     email:      email      || profile.email       || undefined,
     phone:      phone      || profile.phone       || undefined,
     format: (format ?? 'vertical') as 'vertical' | 'square' | 'horizontal',
-    webhookUrl,
-    metadata: { video_id: video.id, user_id: user.id },
+    callbackUrl,
   };
 
   let render;
@@ -264,9 +267,9 @@ export async function POST(req: NextRequest) {
       .update({ status: 'failed' })
       .eq('id', video.id);
 
-    if (err instanceof CreatomateError) {
-      console.error('Creatomate API error:', err.message);
-      return NextResponse.json({ error: `Creatomate: ${err.message}` }, { status: 502 });
+    if (err instanceof ShotstackError) {
+      console.error('Shotstack API error:', err.message);
+      return NextResponse.json({ error: `Shotstack: ${err.message}` }, { status: 502 });
     }
     if (err instanceof FalError) {
       console.error('fal.ai error during Creatomate fallback path:', err.message);
