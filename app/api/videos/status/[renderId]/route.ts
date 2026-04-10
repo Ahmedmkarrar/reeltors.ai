@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getRenderStatus } from '@/lib/creatomate/client';
+import { getRenderStatus } from '@/lib/shotstack/client';
 
 /**
  * Fallback status poller — used only when Supabase Realtime is unavailable.
@@ -44,9 +44,9 @@ export async function GET(
     // Still processing — call Creatomate for live status
     const render = await getRenderStatus(renderId);
     return NextResponse.json({
-      status:       render.status,
+      status:       render.status === 'done' ? 'succeeded' : render.status,
       outputUrl:    render.url ?? null,
-      thumbnailUrl: render.snapshot_url ?? null,
+      thumbnailUrl: render.thumbnail ?? null,
     });
   } catch (err) {
     console.error('Status check error:', err);

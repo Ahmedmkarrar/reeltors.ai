@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { createRender, buildModifications, CreatomateError } from '@/lib/creatomate/client';
-import { TEMPLATE_IDS } from '@/lib/creatomate/templates';
+import { generateVideo, ShotstackError } from '@/lib/shotstack/client';
+import { TEMPLATE_IDS } from '@/lib/shotstack/templates';
 import { runAbuseChecks, getAbuseBlockMessage } from '@/lib/tunnel/abuse';
 
 export const maxDuration = 60;
@@ -100,20 +100,20 @@ export async function POST(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
   const isPublic = appUrl.startsWith('https://');
-  const webhookUrl = isPublic
-    ? `${appUrl}/api/webhooks/creatomate${process.env.WEBHOOK_SECRET ? `?token=${process.env.WEBHOOK_SECRET}` : ''}`
-    : undefined;
-
-  const templateId = TEMPLATE_IDS[templateKey as keyof typeof TEMPLATE_IDS];
-  const modifications = buildModifications({ photos: imageUrls });
+  let callbackUrl: string | undefined;
+  if (isPublic) {
+    const url = new URL(`${appUrl}/api/webhooks/shotstack`);
+    if (process.env.WEBHOOK_SECRET) url.searchParams.set('token', process.env.WEBHOOK_SECRET);
+    url.searchParams.set('tunnel_session_id', session.id);
+    callbackUrl = url.toString();
+  }
 
   let render;
   try {
-    render = await createRender({
-      templateId,
-      modifications,
-      webhookUrl,
-      metadata: { tunnel_session_id: session.id },
+    render = await generateVideo({
+      templateKey,
+      images: imageUrls,
+      callbackUrl,
     });
   } catch (err) {
     await admin
@@ -121,8 +121,8 @@ export async function POST(req: NextRequest) {
       .update({ status: 'failed' })
       .eq('id', session.id);
 
-    if (err instanceof CreatomateError) {
-      console.error('Creatomate error (tunnel):', err.message);
+    if (err instanceof ShotstackError) {
+      console.error('Shotstack error (tunnel):', err.message);
       return NextResponse.json({ error: 'Video render failed. Please try again.' }, { status: 502 });
     }
     return NextResponse.json({ error: 'Failed to start video generation' }, { status: 500 });

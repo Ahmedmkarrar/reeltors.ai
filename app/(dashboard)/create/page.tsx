@@ -8,7 +8,7 @@ import { TemplateSelector } from '@/components/dashboard/TemplateSelector';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import toast from 'react-hot-toast';
-import { TEMPLATES } from '@/lib/creatomate/templates';
+import { TEMPLATES } from '@/lib/shotstack/templates';
 import type { Profile, VideoFormat } from '@/types';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -173,9 +173,8 @@ export default function CreatePage() {
     startCountdown(aiVideoIndices.length > 0 ? 180 : 90);
 
     try {
-      // Resolve the actual Creatomate UUID from the selected template key
       const templateObj = TEMPLATES.find((t) => t.id === selectedTemplateKey) ?? TEMPLATES[0];
-      const templateId = templateObj.creatomateId;
+      const templateId = templateObj.templateKey;
 
       const res = await fetch('/api/videos/generate', {
         method:  'POST',

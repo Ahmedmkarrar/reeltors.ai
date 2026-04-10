@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { TEMPLATE_IDS } from '@/lib/creatomate/templates';
+import { TEMPLATE_IDS } from '@/lib/shotstack/templates';
 import StepUpload from '@/components/tunnel/StepUpload';
 import StepTemplates from '@/components/tunnel/StepTemplates';
 import StepEmailGate from '@/components/tunnel/StepEmailGate';
