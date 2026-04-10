@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
   const clientIp = getClientIp(req);
   // x-device-fingerprint is set by the FingerprintJS client script
   const fingerprintId = req.headers.get('x-device-fingerprint') ?? null;
-  const isFree = !isUnlimited && profile.plan !== 'starter';
+  const isFree = profile.plan === 'free' || !profile.plan;
 
   if (isFree) {
     // layer 1: require email OTP verification before first free render

@@ -62,8 +62,8 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
   }, [sessionToken]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (photos.length + acceptedFiles.length > 20) {
-      setUploadError('Max 20 photos allowed.');
+    if (photos.length + acceptedFiles.length > 15) {
+      setUploadError('Max 15 photos allowed.');
       return;
     }
 
@@ -109,8 +109,8 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: { 'image/jpeg': [], 'image/png': [], 'image/webp': [] },
-    maxFiles: 20,
-    disabled: isUploading || photos.length >= 20,
+    maxFiles: 15,
+    disabled: isUploading || photos.length >= 15,
   });
 
   const removePhoto = (index: number) => {
@@ -131,7 +131,7 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
           Upload your listing photos
         </h1>
         <p style={{ color: '#6B6760', fontSize: 16, margin: 0 }}>
-          Drag up to 20 photos — we&apos;ll turn them into a cinematic listing video.
+          Drag up to 15 photos — we&apos;ll turn them into a cinematic listing video.
         </p>
       </div>
 
@@ -142,7 +142,7 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
           borderRadius: 12,
           padding: '48px 24px',
           textAlign: 'center',
-          cursor: photos.length >= 20 ? 'default' : 'pointer',
+          cursor: photos.length >= 15 ? 'default' : 'pointer',
           transition: 'border-color 0.2s',
           background: isDragActive ? 'rgba(240, 180, 41, 0.05)' : 'transparent',
           marginBottom: 24,
@@ -160,7 +160,7 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
               Drop photos here, or click to select
             </p>
             <p style={{ color: '#4A4642', fontSize: 13, margin: 0 }}>
-              JPEG, PNG, WEBP · max 10 MB each · up to 20 photos
+              JPEG, PNG, WEBP · max 10 MB each · up to 15 photos
             </p>
           </>
         )}
@@ -207,7 +207,7 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
 
           <div style={{ textAlign: 'center' }}>
             <p style={{ color: '#6B6760', fontSize: 13, marginBottom: 20 }}>
-              {photos.length} of 20 photos uploaded
+              {photos.length} of 15 photos uploaded
             </p>
             <button
               onClick={() => onComplete(photos.map((p) => p.url))}
