@@ -40,8 +40,8 @@ export async function POST(req: NextRequest) {
   if (!templateKey || !VALID_TEMPLATE_KEYS.has(templateKey)) {
     return NextResponse.json({ error: 'Invalid template' }, { status: 400 });
   }
-  if (!Array.isArray(imageUrls) || imageUrls.length < 1 || imageUrls.length > 20) {
-    return NextResponse.json({ error: 'imageUrls must be 1–20 URLs' }, { status: 400 });
+  if (!Array.isArray(imageUrls) || imageUrls.length < 1 || imageUrls.length > 15) {
+    return NextResponse.json({ error: 'imageUrls must be 1–15 URLs' }, { status: 400 });
   }
   if (!email || typeof email !== 'string' || !email.includes('@')) {
     return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
