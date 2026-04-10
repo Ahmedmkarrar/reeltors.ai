@@ -5,7 +5,7 @@ import { NextRequest } from 'next/server';
 
 let mockUser: { id: string } | null = { id: 'user-1' };
 let mockProfile: Record<string, unknown> = {
-  plan: 'starter', videos_used_this_month: 0, videos_limit: 20,
+  plan: 'starter', videos_used_this_month: 0, videos_limit: 15,
   full_name: 'Test Agent', email: 'test@example.com', phone: null, brand_name: null,
 };
 
@@ -83,7 +83,7 @@ describe('POST /api/videos/generate — auth & validation', () => {
     vi.clearAllMocks();
     mockUser    = { id: 'user-1' };
     mockProfile = {
-      plan: 'starter', videos_used_this_month: 0, videos_limit: 20,
+      plan: 'starter', videos_used_this_month: 0, videos_limit: 15,
       full_name: 'Test Agent', email: 'test@example.com', phone: null, brand_name: null,
     };
     profileChain.single.mockImplementation(() =>
@@ -154,7 +154,7 @@ describe('POST /api/videos/generate — generation flow', () => {
     vi.clearAllMocks();
     mockUser = { id: 'user-1' };
     mockProfile = {
-      plan: 'starter', videos_used_this_month: 0, videos_limit: 20,
+      plan: 'starter', videos_used_this_month: 0, videos_limit: 15,
       full_name: 'Test Agent', email: 'test@example.com', phone: null, brand_name: null,
     };
     profileChain.single.mockImplementation(() =>

@@ -84,15 +84,15 @@ describe('getPlanFromPriceId', () => {
 // ── PLAN_LIMITS ───────────────────────────────────────────────────────────────
 
 describe('PLAN_LIMITS', () => {
-  it('starter limit is 20', () => {
-    expect(PLAN_LIMITS.starter).toBe(20);
+  it('starter limit is 15', () => {
+    expect(PLAN_LIMITS.starter).toBe(15);
   });
 
-  it('growth limit is 75', () => {
-    expect(PLAN_LIMITS.growth).toBe(75);
+  it('growth limit is 50', () => {
+    expect(PLAN_LIMITS.growth).toBe(50);
   });
 
-  it('pro limit is 200', () => {
-    expect(PLAN_LIMITS.pro).toBe(200);
+  it('pro limit is 100', () => {
+    expect(PLAN_LIMITS.pro).toBe(100);
   });
 });

@@ -90,8 +90,8 @@ describe('Usage limit enforcement (POST /api/videos/generate)', () => {
     expect(json.code).toBe('LIMIT_REACHED');
   });
 
-  it('blocks starter user who is at their 20-video limit', async () => {
-    mockProfile = { plan: 'starter', videos_used_this_month: 20, videos_limit: 20 };
+  it('blocks starter user who is at their 15-video limit', async () => {
+    mockProfile = { plan: 'starter', videos_used_this_month: 15, videos_limit: 15 };
 
     const { POST } = await import('@/app/api/videos/generate/route');
     const res = await POST(makeGenerateRequest());
@@ -113,7 +113,7 @@ describe('Usage limit enforcement (POST /api/videos/generate)', () => {
 
   it('allows pro user regardless of usage count', async () => {
     mockProfile = {
-      plan: 'pro', videos_used_this_month: 9999, videos_limit: 200,
+      plan: 'pro', videos_used_this_month: 9999, videos_limit: 100,
       full_name: 'Pro User', email: null, phone: null, brand_name: null,
     };
 
@@ -124,7 +124,7 @@ describe('Usage limit enforcement (POST /api/videos/generate)', () => {
 
   it('allows team plan user regardless of usage count', async () => {
     mockProfile = {
-      plan: 'team', videos_used_this_month: 500, videos_limit: 200,
+      plan: 'team', videos_used_this_month: 500, videos_limit: 100,
       full_name: 'Team User', email: null, phone: null, brand_name: null,
     };
 
@@ -135,7 +135,7 @@ describe('Usage limit enforcement (POST /api/videos/generate)', () => {
 
   it('increments usage counter when generation succeeds', async () => {
     mockProfile = {
-      plan: 'starter', videos_used_this_month: 5, videos_limit: 20,
+      plan: 'starter', videos_used_this_month: 5, videos_limit: 15,
       full_name: 'Test', email: null, phone: null, brand_name: null,
     };
 

@@ -14,10 +14,11 @@ const PLAN_META: Record<string, { color: string; ring: string; label: string }> 
 };
 
 // what each plan unlocks — shown on the current plan card for paid users
+// video counts are derived from PLANS to stay in sync with the single source of truth
 const PLAN_PERKS: Record<string, string[]> = {
-  starter: ['20 videos / month', 'AI captions', 'TikTok & Reels export', '60-sec videos', 'Fast generation'],
-  growth:  ['75 videos / month', 'Premium templates', 'Brand logo & colors', 'Faster rendering', 'Everything in Starter'],
-  pro:     ['200 videos / month', 'Priority rendering', 'Advanced styles', 'Multi-platform export', 'Everything in Growth'],
+  starter: [`${PLANS.starter.videosPerMonth} videos / month`, 'AI captions', 'TikTok & Reels export', '60-sec videos', 'Fast generation'],
+  growth:  [`${PLANS.growth.videosPerMonth} videos / month`, 'Premium templates', 'Brand logo & colors', 'Faster rendering', 'Everything in Starter'],
+  pro:     [`${PLANS.pro.videosPerMonth} videos / month`, 'Priority rendering', 'Advanced styles', 'Multi-platform export', 'Everything in Growth'],
 };
 
 // upgrade paths shown to paid users who want more

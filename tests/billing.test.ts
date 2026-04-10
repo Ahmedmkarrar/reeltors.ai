@@ -127,7 +127,7 @@ describe('POST /api/webhooks/stripe', () => {
     expect(res.status).toBe(200);
 
     expect(adminChain.update).toHaveBeenCalledWith(
-      expect.objectContaining({ plan: 'starter', videos_limit: 20 }),
+      expect.objectContaining({ plan: 'starter', videos_limit: 15 }),
     );
   });
 
@@ -164,7 +164,7 @@ describe('POST /api/webhooks/stripe', () => {
     expect(res.status).toBe(200);
 
     expect(adminChain.update).toHaveBeenCalledWith(
-      expect.objectContaining({ plan: 'growth', videos_limit: 75 }),
+      expect.objectContaining({ plan: 'growth', videos_limit: 50 }),
     );
   });
 
