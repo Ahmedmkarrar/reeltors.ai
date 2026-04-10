@@ -104,6 +104,7 @@ describe('Usage limit enforcement (POST /api/videos/generate)', () => {
     mockProfile = {
       plan: 'free', videos_used_this_month: 0, videos_limit: 1,
       full_name: 'Test', email: null, phone: null, brand_name: null,
+      email_verified: true,
     };
 
     const { POST } = await import('@/app/api/videos/generate/route');
