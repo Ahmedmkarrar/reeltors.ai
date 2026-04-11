@@ -51,7 +51,7 @@ export default function PrivacyPage() {
             <ul className="list-disc pl-5 space-y-2 mt-2">
               <li><strong>Supabase</strong> — database and file storage</li>
               <li><strong>Stripe</strong> — payment processing</li>
-              <li><strong>Creatomate</strong> — video rendering</li>
+              <li><strong>Shotstack</strong> — video rendering</li>
               <li><strong>fal.ai</strong> — AI video generation</li>
               <li><strong>Resend</strong> — transactional email</li>
             </ul>

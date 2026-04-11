@@ -13,6 +13,7 @@ const LOADING_MESSAGES = [
 ];
 
 const MAX_CONSECUTIVE_ERRORS = 6;
+const MAX_POLL_DURATION_MS   = 10 * 60 * 1000; // 10 minutes — fail hard after this
 
 interface StepGeneratingProps {
   pollUrl: string;
@@ -72,9 +73,15 @@ export default function StepGenerating({ pollUrl, onComplete, onFailed }: StepGe
       }
     }, 4_000);
 
+    // Hard timeout — if still polling after 10 min, something is badly wrong
+    const hardTimeout = setTimeout(() => {
+      onFailed();
+    }, MAX_POLL_DURATION_MS);
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
       if (pollRef.current) clearInterval(pollRef.current);
+      clearTimeout(hardTimeout);
     };
   }, [pollUrl, onComplete, onFailed]);
 

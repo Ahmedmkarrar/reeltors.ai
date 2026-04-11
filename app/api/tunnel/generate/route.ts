@@ -43,6 +43,9 @@ export async function POST(req: NextRequest) {
   if (!Array.isArray(imageUrls) || imageUrls.length < 1 || imageUrls.length > 15) {
     return NextResponse.json({ error: 'imageUrls must be 1–15 URLs' }, { status: 400 });
   }
+  if (imageUrls.some((url) => typeof url !== 'string' || !url.startsWith('http'))) {
+    return NextResponse.json({ error: 'All imageUrls must be valid HTTP URLs' }, { status: 400 });
+  }
   if (!email || typeof email !== 'string' || !email.includes('@')) {
     return NextResponse.json({ error: 'Valid email is required' }, { status: 400 });
   }
@@ -130,7 +133,7 @@ export async function POST(req: NextRequest) {
 
   await admin
     .from('tunnel_sessions')
-    .update({ creatomate_render_id: render.id })
+    .update({ render_id: render.id })
     .eq('id', session.id);
 
   return NextResponse.json({ sessionId: session.id });

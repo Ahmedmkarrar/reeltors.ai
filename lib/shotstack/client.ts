@@ -193,11 +193,19 @@ function buildTimeline(
 
 // ── API calls ─────────────────────────────────────────────────────────────────
 
+// Sample video returned in mock mode — real estate exterior clip
+const MOCK_VIDEO_URL = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4';
+
 export async function createRender(opts: {
   timeline: ShotstackTimeline;
   format?: 'vertical' | 'square' | 'horizontal';
   callbackUrl?: string;
 }): Promise<ShotstackRenderResponse> {
+  // MOCK_AI=true: skip API, return a fake queued render immediately
+  if (process.env.MOCK_AI === 'true') {
+    return { id: `mock_${Date.now()}`, status: 'queued' };
+  }
+
   const apiKey = process.env.SHOTSTACK_API_KEY;
   if (!apiKey) throw new ShotstackError('SHOTSTACK_API_KEY is not set');
 
@@ -237,6 +245,11 @@ export async function createRender(opts: {
 }
 
 export async function getRenderStatus(renderId: string): Promise<ShotstackRenderResponse> {
+  // MOCK_AI=true: immediately return done with a sample video URL
+  if (process.env.MOCK_AI === 'true') {
+    return { id: renderId, status: 'done', url: MOCK_VIDEO_URL };
+  }
+
   const apiKey = process.env.SHOTSTACK_API_KEY;
   if (!apiKey) throw new ShotstackError('SHOTSTACK_API_KEY is not set');
 

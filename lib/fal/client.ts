@@ -65,12 +65,19 @@ function getFalKey(): string {
 
 // ─── Core: submit one image → get back a video URL (polling) ─────────────────
 
+// Sample vertical real-estate clip used when MOCK_AI=true
+const MOCK_VIDEO_URL = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4';
+
 export async function generateDroneShot(
   imageUrl: string,
   customPrompt?: string,
   format: string = 'vertical',
   timeoutMs = 180_000,
 ): Promise<string> {
+  if (process.env.MOCK_AI === 'true') {
+    return MOCK_VIDEO_URL;
+  }
+
   const key = getFalKey();
 
   const prompt = customPrompt

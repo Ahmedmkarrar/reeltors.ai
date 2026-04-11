@@ -16,28 +16,28 @@ const TUNNEL_TEMPLATES: TunnelTemplate[] = [
     label: 'Luxury',
     tagline: 'Logo intro · Dramatic reveal · Cinematic close',
     bestFor: 'High-end homes',
-    previewImageUrl: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=400',
+    previewImageUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?q=85&w=600&fit=crop',
   },
   {
     key: 'MODERN_MINIMAL',
     label: 'Modern',
     tagline: 'Clean slides · Bold typography · Sharp cuts',
     bestFor: 'Contemporary listings',
-    previewImageUrl: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=400',
+    previewImageUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=85&w=600&fit=crop',
   },
   {
     key: 'CINEMATIC',
     label: 'Warm',
     tagline: 'Ken Burns zoom · Soft motion · Inviting feel',
     bestFor: 'Family homes',
-    previewImageUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=400',
+    previewImageUrl: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?q=85&w=600&fit=crop',
   },
   {
     key: 'TIKTOK_FAST',
     label: 'Minimal',
     tagline: 'Viral hook · Fast cuts · Social-first format',
     bestFor: 'TikTok & Reels',
-    previewImageUrl: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be?q=80&w=400',
+    previewImageUrl: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=85&w=600&fit=crop',
   },
 ];
 
@@ -84,7 +84,7 @@ export default function StepTemplates({ onGenerate }: StepTemplatesProps) {
                 transition: 'border-color 0.2s',
               }}
             >
-              <div style={{ position: 'relative', height: 160, overflow: 'hidden' }}>
+              <div style={{ position: 'relative', height: 190, overflow: 'hidden' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={template.previewImageUrl}

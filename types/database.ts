@@ -148,7 +148,7 @@ export type Database = {
           device_fingerprint: string | null
           template_id: string | null
           source_images: string[] | null
-          creatomate_render_id: string | null
+          render_id: string | null
           output_url: string | null
           thumbnail_url: string | null
           status: string
@@ -165,7 +165,7 @@ export type Database = {
           device_fingerprint?: string | null
           template_id?: string | null
           source_images?: string[] | null
-          creatomate_render_id?: string | null
+          render_id?: string | null
           output_url?: string | null
           thumbnail_url?: string | null
           status?: string
@@ -182,7 +182,7 @@ export type Database = {
           device_fingerprint?: string | null
           template_id?: string | null
           source_images?: string[] | null
-          creatomate_render_id?: string | null
+          render_id?: string | null
           output_url?: string | null
           thumbnail_url?: string | null
           status?: string
@@ -197,7 +197,7 @@ export type Database = {
         Row: {
           agent_name: string | null
           created_at: string | null
-          creatomate_render_id: string | null
+          render_id: string | null
           duration_seconds: number | null
           format: string | null
           id: string
@@ -215,7 +215,7 @@ export type Database = {
         Insert: {
           agent_name?: string | null
           created_at?: string | null
-          creatomate_render_id?: string | null
+          render_id?: string | null
           duration_seconds?: number | null
           format?: string | null
           id?: string
@@ -233,7 +233,7 @@ export type Database = {
         Update: {
           agent_name?: string | null
           created_at?: string | null
-          creatomate_render_id?: string | null
+          render_id?: string | null
           duration_seconds?: number | null
           format?: string | null
           id?: string

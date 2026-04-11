@@ -8,7 +8,7 @@ import type { CreateVideoPayload } from '@/types';
 import { isDisposableEmail, getClientIp } from '@/lib/abuse/email';
 
 // Allow up to 5 minutes — fal.ai video generation takes ~1–2 min per clip.
-// Up to 3 clips run in parallel, so worst-case ~3 min before Creatomate starts.
+// Up to 3 clips run in parallel, so worst-case ~3 min before Shotstack starts.
 export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
@@ -222,7 +222,7 @@ export async function POST(req: NextRequest) {
 
   const hasAiVideos = falVideoMap.size > 0;
 
-  // ── 7. Call Creatomate ─────────────────────────────────────────────────────
+  // ── 7. Call Shotstack ─────────────────────────────────────────────────────
   // Only send a webhook if we have a publicly reachable URL (not localhost)
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
   const isPublic = appUrl.startsWith('https://');
@@ -272,7 +272,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `Shotstack: ${err.message}` }, { status: 502 });
     }
     if (err instanceof FalError) {
-      console.error('fal.ai error during Creatomate fallback path:', err.message);
+      console.error('fal.ai error during Shotstack fallback path:', err.message);
       return NextResponse.json({ error: 'AI video generation failed. Please try again.' }, { status: 502 });
     }
     console.error('Unexpected error calling video services:', err);
@@ -292,7 +292,7 @@ export async function POST(req: NextRequest) {
         .from('videos')
         .update({
           status:               'processing',
-          creatomate_render_id: render.id,
+          render_id: render.id,
         })
         .eq('id', video.id)
     ),

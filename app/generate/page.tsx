@@ -53,9 +53,9 @@ export default function GeneratePage() {
     if (isGeneratingRef.current) return;
     isGeneratingRef.current = true;
 
-    const creatomateTemplateId = TEMPLATE_IDS[pending.templateKey as keyof typeof TEMPLATE_IDS];
+    const templateId = TEMPLATE_IDS[pending.templateKey as keyof typeof TEMPLATE_IDS];
 
-    if (!creatomateTemplateId) {
+    if (!templateId) {
       setFailReason(`Unknown template key: ${pending.templateKey}`);
       setFailCode(null);
       setStep('failed');
@@ -75,7 +75,7 @@ export default function GeneratePage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          templateId: creatomateTemplateId,
+          templateId,
           images: pending.imageUrls,
           title: 'My Listing Video',
         }),

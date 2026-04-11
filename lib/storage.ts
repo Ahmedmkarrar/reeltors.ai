@@ -3,7 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase/admin';
 const OUTPUT_BUCKET = 'output-videos';
 
 /**
- * Download a video from an external URL (Creatomate CDN)
+ * Download a video from an external CDN URL (Shotstack)
  * and permanently store it in Supabase Storage.
  * Returns the permanent public URL.
  */

@@ -27,13 +27,16 @@ vi.mock('@/lib/resend/emails', () => ({
   sendFirstVideoEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('@/lib/resend/tunnel-emails', () => ({
+  startTunnelEmailSequence: vi.fn().mockResolvedValue(undefined),
+}));
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function makeRequest(body: Record<string, unknown>, token?: string) {
-  const url = token
-    ? `http://localhost/api/webhooks/creatomate?token=${token}`
-    : 'http://localhost/api/webhooks/creatomate';
-  return new NextRequest(url, {
+function makeRequest(body: Record<string, unknown>, params: Record<string, string> = {}) {
+  const url = new URL('http://localhost/api/webhooks/shotstack');
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  return new NextRequest(url.toString(), {
     method:  'POST',
     body:    JSON.stringify(body),
     headers: { 'Content-Type': 'application/json' },
@@ -41,16 +44,15 @@ function makeRequest(body: Record<string, unknown>, token?: string) {
 }
 
 const validPayload = {
-  id:           'render-1',
-  status:       'succeeded',
-  url:          'https://cdn.creatomate.com/render-1.mp4',
-  snapshot_url: 'https://cdn.creatomate.com/render-1.jpg',
-  metadata:     { video_id: 'vid-1', user_id: 'user-1' },
+  id:        'render-1',
+  status:    'done',
+  url:       'https://cdn.shotstack.io/render-1.mp4',
+  thumbnail: 'https://cdn.shotstack.io/render-1.jpg',
 };
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-describe('POST /api/webhooks/creatomate', () => {
+describe('POST /api/webhooks/shotstack', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     delete process.env.WEBHOOK_SECRET;
@@ -65,27 +67,27 @@ describe('POST /api/webhooks/creatomate', () => {
 
   it('returns 403 when WEBHOOK_SECRET is set but token is missing', async () => {
     process.env.WEBHOOK_SECRET = 'secret-token';
-    const { POST } = await import('@/app/api/webhooks/creatomate/route');
-    const res = await POST(makeRequest(validPayload));
+    const { POST } = await import('@/app/api/webhooks/shotstack/route');
+    const res = await POST(makeRequest(validPayload, { video_id: 'vid-1', user_id: 'user-1' }));
     expect(res.status).toBe(403);
   });
 
   it('returns 403 when WEBHOOK_SECRET is set but token is wrong', async () => {
     process.env.WEBHOOK_SECRET = 'secret-token';
-    const { POST } = await import('@/app/api/webhooks/creatomate/route');
-    const res = await POST(makeRequest(validPayload, 'wrong-token'));
+    const { POST } = await import('@/app/api/webhooks/shotstack/route');
+    const res = await POST(makeRequest(validPayload, { video_id: 'vid-1', user_id: 'user-1', token: 'wrong' }));
     expect(res.status).toBe(403);
   });
 
   it('passes through when WEBHOOK_SECRET is not set (local dev)', async () => {
-    const { POST } = await import('@/app/api/webhooks/creatomate/route');
-    const res = await POST(makeRequest(validPayload));
+    const { POST } = await import('@/app/api/webhooks/shotstack/route');
+    const res = await POST(makeRequest(validPayload, { video_id: 'vid-1', user_id: 'user-1' }));
     expect(res.status).toBe(200);
   });
 
   it('returns 400 on invalid JSON', async () => {
-    const { POST } = await import('@/app/api/webhooks/creatomate/route');
-    const req = new NextRequest('http://localhost/api/webhooks/creatomate', {
+    const { POST } = await import('@/app/api/webhooks/shotstack/route');
+    const req = new NextRequest('http://localhost/api/webhooks/shotstack', {
       method: 'POST', body: 'not-json',
     });
     const res = await POST(req);
@@ -93,37 +95,35 @@ describe('POST /api/webhooks/creatomate', () => {
   });
 
   it('returns 400 when renderId or status is missing', async () => {
-    const { POST } = await import('@/app/api/webhooks/creatomate/route');
-    const res = await POST(makeRequest({ url: 'https://cdn.creatomate.com/v.mp4' }));
+    const { POST } = await import('@/app/api/webhooks/shotstack/route');
+    const res = await POST(makeRequest({ url: 'https://cdn.shotstack.io/v.mp4' }));
     expect(res.status).toBe(400);
   });
 
-  it('acknowledges pings without video_id/user_id metadata', async () => {
-    const { POST } = await import('@/app/api/webhooks/creatomate/route');
-    const res = await POST(makeRequest({ id: 'render-ping', status: 'succeeded', url: 'https://x.com/v.mp4' }));
+  it('acknowledges pings without video_id/user_id in query params', async () => {
+    const { POST } = await import('@/app/api/webhooks/shotstack/route');
+    const res = await POST(makeRequest({ id: 'render-ping', status: 'done', url: 'https://x.com/v.mp4' }));
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.received).toBe(true);
-    // must NOT attempt to update any video record
     expect(adminChain.update).not.toHaveBeenCalled();
   });
 
   it('sets video status to failed on failed render', async () => {
-    const { POST } = await import('@/app/api/webhooks/creatomate/route');
-    const res = await POST(makeRequest({
-      id:       'render-1',
-      status:   'failed',
-      metadata: { video_id: 'vid-1', user_id: 'user-1' },
-    }));
+    const { POST } = await import('@/app/api/webhooks/shotstack/route');
+    const res = await POST(makeRequest(
+      { id: 'render-1', status: 'failed' },
+      { video_id: 'vid-1', user_id: 'user-1' },
+    ));
     expect(res.status).toBe(200);
     expect(adminChain.update).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'failed' }),
     );
   });
 
-  it('sets video status to complete with output_url on succeeded render', async () => {
-    const { POST } = await import('@/app/api/webhooks/creatomate/route');
-    const res = await POST(makeRequest(validPayload));
+  it('sets video status to complete with output_url on done render', async () => {
+    const { POST } = await import('@/app/api/webhooks/shotstack/route');
+    const res = await POST(makeRequest(validPayload, { video_id: 'vid-1', user_id: 'user-1' }));
     expect(res.status).toBe(200);
     expect(adminChain.update).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -133,10 +133,10 @@ describe('POST /api/webhooks/creatomate', () => {
     );
   });
 
-  it('sends first video email after succeeded render', async () => {
-    const { POST } = await import('@/app/api/webhooks/creatomate/route');
+  it('sends first video email after done render', async () => {
+    const { POST } = await import('@/app/api/webhooks/shotstack/route');
     const { sendFirstVideoEmail } = await import('@/lib/resend/emails');
-    await POST(makeRequest(validPayload));
+    await POST(makeRequest(validPayload, { video_id: 'vid-1', user_id: 'user-1' }));
     expect(sendFirstVideoEmail).toHaveBeenCalledWith(
       'a@b.com',
       'Agent',
@@ -145,12 +145,11 @@ describe('POST /api/webhooks/creatomate', () => {
   });
 
   it('ignores in-progress status updates (returns 200 without DB write)', async () => {
-    const { POST } = await import('@/app/api/webhooks/creatomate/route');
-    const res = await POST(makeRequest({
-      id:       'render-1',
-      status:   'rendering',
-      metadata: { video_id: 'vid-1', user_id: 'user-1' },
-    }));
+    const { POST } = await import('@/app/api/webhooks/shotstack/route');
+    const res = await POST(makeRequest(
+      { id: 'render-1', status: 'rendering' },
+      { video_id: 'vid-1', user_id: 'user-1' },
+    ));
     expect(res.status).toBe(200);
     expect(adminChain.update).not.toHaveBeenCalled();
   });

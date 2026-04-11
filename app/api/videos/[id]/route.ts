@@ -20,7 +20,7 @@ export async function DELETE(
     // Fetch the video first to get the render ID for storage cleanup
     const { data: video, error: fetchError } = await supabase
       .from('videos')
-      .select('id, creatomate_render_id')
+      .select('id, render_id')
       .eq('id', id)
       .eq('user_id', user.id)
       .single();
@@ -43,8 +43,8 @@ export async function DELETE(
     }
 
     // Clean up stored files (best-effort, after DB delete)
-    if (video.creatomate_render_id) {
-      deleteStoredVideo(video.creatomate_render_id, user.id).catch((err) =>
+    if (video.render_id) {
+      deleteStoredVideo(video.render_id, user.id).catch((err) =>
         console.error('Storage cleanup failed (non-fatal):', err)
       );
     }

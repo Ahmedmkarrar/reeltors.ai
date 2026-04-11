@@ -27,7 +27,7 @@ export interface Video {
   user_id: string;
   title: string;
   status: VideoStatus;
-  creatomate_render_id: string | null;
+  render_id: string | null;
   template_id: string;
   listing_address: string | null;
   listing_price: string | null;

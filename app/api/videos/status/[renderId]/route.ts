@@ -4,7 +4,7 @@ import { getRenderStatus } from '@/lib/shotstack/client';
 
 /**
  * Fallback status poller — used only when Supabase Realtime is unavailable.
- * The primary path is: Creatomate webhook → DB update → Realtime push.
+ * The primary path is: Shotstack webhook → DB update → Realtime push.
  */
 export async function GET(
   _req: NextRequest,
@@ -24,7 +24,7 @@ export async function GET(
     const { data: video, error: ownershipError } = await supabase
       .from('videos')
       .select('id, status, output_url, thumbnail_url')
-      .eq('creatomate_render_id', renderId)
+      .eq('render_id', renderId)
       .eq('user_id', user.id)
       .single();
 
@@ -32,7 +32,7 @@ export async function GET(
       return NextResponse.json({ error: 'Not found' }, { status: 404 });
     }
 
-    // If webhook already completed the record, return DB state without hitting Creatomate
+    // If webhook already completed the record, return DB state without hitting Shotstack
     if (video.status === 'complete' || video.status === 'failed') {
       return NextResponse.json({
         status:       video.status === 'complete' ? 'succeeded' : 'failed',
@@ -41,7 +41,7 @@ export async function GET(
       });
     }
 
-    // Still processing — call Creatomate for live status
+    // Still processing — call Shotstack for live status
     const render = await getRenderStatus(renderId);
     return NextResponse.json({
       status:       render.status === 'done' ? 'succeeded' : render.status,
