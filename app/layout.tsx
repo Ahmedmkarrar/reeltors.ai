@@ -3,6 +3,7 @@ import { Syne, Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import { PostHogProvider } from '@/components/providers/PostHogProvider';
+import NextTopLoader from 'nextjs-toploader';
 
 const syne = Syne({
   subsets: ['latin'],
@@ -42,6 +43,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${syne.variable} ${inter.variable}`}>
       <body className="bg-[#080808] text-[#F0F0EB] font-inter antialiased">
+        <NextTopLoader color="#F0B429" height={2} showSpinner={false} shadow={false} />
         <PostHogProvider>
           {children}
           <Toaster

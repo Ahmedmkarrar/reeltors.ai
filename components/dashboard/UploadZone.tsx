@@ -5,6 +5,7 @@ import { useDropzone } from 'react-dropzone';
 import { createClient } from '@/lib/supabase/client';
 import toast from 'react-hot-toast';
 import { MAX_AI_VIDEOS } from '@/lib/fal/client';
+import type { VideoFormat } from '@/types';
 
 interface UploadedFile {
   url: string;
@@ -51,6 +52,18 @@ const PROMPT_TEMPLATES = [
   },
 ] as const;
 
+const FORMAT_ASPECT: Record<VideoFormat, string> = {
+  vertical:   '9/16',
+  square:     '1/1',
+  horizontal: '16/9',
+};
+
+const FORMAT_LABEL: Record<VideoFormat, string> = {
+  vertical:   '9:16',
+  square:     '1:1',
+  horizontal: '16:9',
+};
+
 interface UploadZoneProps {
   userId: string;
   onUploadComplete: (urls: string[]) => void;
@@ -63,6 +76,10 @@ interface UploadZoneProps {
   videoPrompt?: string;
   /** Called whenever the prompt changes */
   onPromptChange?: (prompt: string) => void;
+  /** Controlled format value */
+  format?: VideoFormat;
+  /** Called whenever the format changes */
+  onFormatChange?: (format: VideoFormat) => void;
   /** Callback for the embedded Next button */
   onNext?: () => void;
   /** Disables the embedded Next button */
@@ -77,6 +94,8 @@ export function UploadZone({
   maxFiles = 15,
   videoPrompt = '',
   onPromptChange,
+  format = 'vertical',
+  onFormatChange,
   onNext,
   nextDisabled = false,
 }: UploadZoneProps) {
@@ -305,7 +324,7 @@ export function UploadZone({
           <div className="flex items-center justify-between mb-2">
             <p className="text-xs text-[#6B6760]">
               <span className="font-medium text-[#1A1714]">{files.length}</span>{' '}
-              photo{files.length !== 1 ? 's' : ''} · drag to reorder · photos center-cropped to 9:16
+              photo{files.length !== 1 ? 's' : ''} · drag to reorder · center-cropped to {FORMAT_LABEL[format]}
             </p>
             <p className="text-xs text-[#F0B429] font-medium">#1 = cover frame</p>
           </div>
@@ -337,12 +356,13 @@ export function UploadZone({
                     dragIndex.current === i ? 'opacity-40' : 'opacity-100',
                   ].join(' ')}
                 >
-                  {/* 9:16 crop preview */}
+                  {/* crop preview — aspect ratio mirrors selected format */}
                   <div
                     className={[
-                      'aspect-[9/16] relative overflow-hidden rounded border bg-[#F7F5EF]',
+                      'relative overflow-hidden rounded border bg-[#F7F5EF]',
                       isAi ? 'border-[#7C3AED]/60 ring-1 ring-[#7C3AED]/40' : 'border-[#E2DED6]',
                     ].join(' ')}
+                    style={{ aspectRatio: FORMAT_ASPECT[format] }}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -407,7 +427,8 @@ export function UploadZone({
                 type="button"
                 onClick={open}
                 disabled={uploading}
-                className="flex-shrink-0 w-[72px] aspect-[9/16] border-2 border-dashed border-[#E2DED6] rounded flex items-center justify-center hover:border-[#F0B429]/50 transition-colors disabled:opacity-40"
+                className="flex-shrink-0 w-[72px] border-2 border-dashed border-[#E2DED6] rounded flex items-center justify-center hover:border-[#F0B429]/50 transition-colors disabled:opacity-40"
+                style={{ aspectRatio: FORMAT_ASPECT[format] }}
               >
                 <span className="text-xl text-[#C8C4BC]">+</span>
               </button>
@@ -435,7 +456,7 @@ export function UploadZone({
               ].join(' ')}
               style={{ background: '#141210' }}
             >
-              {/* Left action column: upload + prompt templates */}
+              {/* Left action column: upload + prompt templates + format picker */}
               <div className="flex-shrink-0 flex flex-col items-center justify-between py-3 px-3.5 gap-2">
                 <button
                   type="button"
@@ -460,6 +481,30 @@ export function UploadZone({
                   {/* Styled tooltip */}
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded-md border border-[#2A2622] text-[10px] text-[#C8C4BC] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none" style={{ background: '#1A1714' }}>
                     Prompt ideas
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent" style={{ borderTopColor: '#2A2622' }} />
+                  </div>
+                </div>
+
+                {/* Format picker */}
+                <div className="relative group">
+                  <div className="flex flex-col gap-0.5">
+                    {(['vertical', 'square', 'horizontal'] as const).map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        title={`${FORMAT_LABEL[f]} · ${f === 'vertical' ? 'TikTok / Reels' : f === 'square' ? 'Feed posts' : 'YouTube'}`}
+                        onClick={() => onFormatChange?.(f)}
+                        className={[
+                          'transition-all duration-150 rounded-sm flex items-center justify-center',
+                          format === f ? 'opacity-100' : 'opacity-30 hover:opacity-60',
+                        ].join(' ')}
+                      >
+                        <FormatIcon type={f} active={format === f} />
+                      </button>
+                    ))}
+                  </div>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded-md border border-[#2A2622] text-[10px] text-[#C8C4BC] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none" style={{ background: '#1A1714' }}>
+                    {FORMAT_LABEL[format]}
                     <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent" style={{ borderTopColor: '#2A2622' }} />
                   </div>
                 </div>
@@ -622,6 +667,29 @@ function BoltIcon({ className }: { className?: string }) {
         d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z"
         clipRule="evenodd"
       />
+    </svg>
+  );
+}
+
+function FormatIcon({ type, active }: { type: VideoFormat; active: boolean }) {
+  const color = active ? '#F0B429' : '#6A6560';
+  if (type === 'vertical') {
+    return (
+      <svg width="12" height="18" viewBox="0 0 12 18" fill="none">
+        <rect x="0.5" y="0.5" width="11" height="17" rx="1.5" stroke={color} strokeWidth="1.2" fill={active ? `${color}22` : 'none'} />
+      </svg>
+    );
+  }
+  if (type === 'square') {
+    return (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <rect x="0.5" y="0.5" width="13" height="13" rx="1.5" stroke={color} strokeWidth="1.2" fill={active ? `${color}22` : 'none'} />
+      </svg>
+    );
+  }
+  return (
+    <svg width="18" height="12" viewBox="0 0 18 12" fill="none">
+      <rect x="0.5" y="0.5" width="17" height="11" rx="1.5" stroke={color} strokeWidth="1.2" fill={active ? `${color}22` : 'none'} />
     </svg>
   );
 }
