@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
-  const { templateId, images, aiVideoIndices: rawAiIndices, listingAddress, listingPrice, agentName, brandName, email, phone, format, title, videoPrompt } = body;
+  const { templateId, images, aiVideoIndices: rawAiIndices, listingAddress, listingPrice, agentName, brandName, email, phone, format, title, videoPrompt, audioUrl } = body;
 
   if (!templateId || typeof templateId !== 'string') {
     return NextResponse.json({ error: 'templateId is required' }, { status: 400 });
@@ -236,13 +236,15 @@ export async function POST(req: NextRequest) {
   const callbackUrl = buildCallbackUrl({ video_id: video.id, user_id: user.id });
 
   const sharedParams = {
+    templateKey: templateId,
     listingAddress,
     listingPrice,
-    agentName:  agentName  || profile.full_name  || undefined,
-    brandName:  brandName  || profile.brand_name || undefined,
-    email:      email      || profile.email       || undefined,
-    phone:      phone      || profile.phone       || undefined,
-    format: (format ?? 'vertical') as 'vertical' | 'square' | 'horizontal',
+    agentName:   agentName  || profile.full_name  || undefined,
+    brandName:   brandName  || profile.brand_name || undefined,
+    email:       email      || profile.email       || undefined,
+    phone:       phone      || profile.phone       || undefined,
+    audioUrl:    typeof audioUrl === 'string' && audioUrl.startsWith('https://') ? audioUrl : undefined,
+    format:      (format ?? 'vertical') as 'vertical' | 'square' | 'horizontal',
     callbackUrl,
   };
 
@@ -255,11 +257,11 @@ export async function POST(req: NextRequest) {
       } catch (mixedErr) {
         // Mixed-media failed — log it and fall back to the standard template
         console.error('Mixed-media render failed, falling back to template:', mixedErr);
-        render = await generateVideo({ templateKey: templateId, images, ...sharedParams });
+        render = await generateVideo({ images, ...sharedParams });
       }
     } else {
       // No AI videos (fal.ai skipped/failed) — use existing template approach
-      render = await generateVideo({ templateKey: templateId, images, ...sharedParams });
+      render = await generateVideo({ images, ...sharedParams });
     }
   } catch (err) {
     await admin

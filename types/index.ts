@@ -65,6 +65,9 @@ export interface CreateVideoPayload {
   title?: string;
   /** Optional user-written description prepended to the fal.ai drone-shot prompt. */
   videoPrompt?: string;
+  /** Optional background music URL (Artlist / Epidemic Sound / royalty-free).
+   *  If provided, a dedicated audio track is added with a fadeOut at 15s. */
+  audioUrl?: string;
 }
 
 export interface GenerateVideoResponse {

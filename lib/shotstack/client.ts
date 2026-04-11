@@ -40,11 +40,13 @@ export interface GenerateVideoOptions {
   email?: string;
   phone?: string;
   format?: 'vertical' | 'square' | 'horizontal';
+  audioUrl?: string;
   callbackUrl?: string;
 }
 
 export interface GenerateMixedMediaOptions {
   mediaItems: MediaItem[];
+  templateKey?: string;
   listingAddress?: string;
   listingPrice?: string;
   agentName?: string;
@@ -52,6 +54,7 @@ export interface GenerateMixedMediaOptions {
   email?: string;
   phone?: string;
   format?: 'vertical' | 'square' | 'horizontal';
+  audioUrl?: string;
   callbackUrl?: string;
 }
 
@@ -62,9 +65,11 @@ interface ShotstackClip {
   start: number;
   length: number;
   effect?: string;
+  filter?: string;
   transition?: { in?: string; out?: string };
   position?: string;
   offset?: { x?: number; y?: number };
+  opacity?: number;
 }
 
 interface ShotstackTimeline {
@@ -72,11 +77,145 @@ interface ShotstackTimeline {
   tracks: { clips: ShotstackClip[] }[];
 }
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// ── Design System ─────────────────────────────────────────────────────────────
 
-// First clip is slightly longer for a dramatic opener feel
-const INTRO_CLIP_LENGTH = 5;
-const CLIP_LENGTH       = 4;
+// Luxury palette: champagne gold + near-black overlay + warm cream for details
+// Chosen to read as aspirational without being garish on bright listing photos
+const PALETTE = {
+  GOLD:          '#C9A96E',   // champagne gold — replaces the old flat yellow
+  SILVER:        '#D4D4D4',   // cool silver accent for modern/minimal
+  TIKTOK_RED:    '#FF3B5C',   // high-contrast for short-form social
+  STORY_BLUE:    '#4A9FD4',   // trustworthy blue for before/after
+  NEAR_BLACK:    '#0A0A0A',
+  WHITE:         '#FFFFFF',
+  SOFT_WHITE:    'rgba(255,255,255,0.80)',
+  CREAM:         '#E8DCC8',   // warm cream for agent name tag
+  OVERLAY_DARK:  'rgba(6,6,6,0.72)',      // lower-third background panel
+  OVERLAY_COOL:  'rgba(15,15,15,0.76)',   // modern-minimal variant
+  OVERLAY_DEEP:  'rgba(0,0,0,0.82)',      // TikTok high-contrast variant
+} as const;
+
+// Google Fonts import — loaded at render time in Shotstack's headless browser
+// Playfair Display: serif authority for price/headlines
+// Montserrat: geometric humanist for addresses, details, agent name
+const FONTS_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap');";
+
+// ── Template Configuration ────────────────────────────────────────────────────
+
+interface TemplateConfig {
+  accentColor:    string;
+  overlayColor:   string;
+  priceFont:      string;    // CSS font-family value
+  detailFont:     string;    // CSS font-family value
+  introLength:    number;
+  clipLength:     number;
+  mediaEffects:   string[];  // cycled across clips
+  clipTransIn:    string;
+  clipTransOut:   string;
+  textTransIn:    string;    // Shotstack transition for text track entrance
+  audioFadeAt:    number;    // seconds — cap for audio track before fadeOut fires
+}
+
+function getTemplateConfig(templateKey?: string): TemplateConfig {
+  switch (templateKey) {
+    case 'LUXURY_REVEAL':
+    case 'LUXURY_MANSION':
+      // Slow burn: zoomIn on intro coordinates with price sliding up
+      return {
+        accentColor:   PALETTE.GOLD,
+        overlayColor:  PALETTE.OVERLAY_DARK,
+        priceFont:     "'Playfair Display', Georgia, serif",
+        detailFont:    "'Montserrat', Arial, sans-serif",
+        introLength:   5.5,
+        clipLength:    4.5,
+        mediaEffects:  ['zoomIn', 'zoomOut', 'zoomIn', 'zoomOut', 'zoomIn', 'zoomOut'],
+        clipTransIn:   'fade',
+        clipTransOut:  'fade',
+        textTransIn:   'slideUp',
+        audioFadeAt:   15,
+      };
+
+    case 'CINEMATIC':
+      // Ken Burns alternating with directional slides for visual variety
+      return {
+        accentColor:   PALETTE.GOLD,
+        overlayColor:  PALETTE.OVERLAY_DARK,
+        priceFont:     "'Playfair Display', Georgia, serif",
+        detailFont:    "'Montserrat', Arial, sans-serif",
+        introLength:   5,
+        clipLength:    4,
+        mediaEffects:  ['zoomIn', 'slideLeft', 'zoomOut', 'slideRight', 'zoomIn', 'slideLeft'],
+        clipTransIn:   'fade',
+        clipTransOut:  'fade',
+        textTransIn:   'slideUp',
+        audioFadeAt:   15,
+      };
+
+    case 'MODERN_MINIMAL':
+      // Clean directional slides — no zooming, cooler silver accent
+      return {
+        accentColor:   PALETTE.SILVER,
+        overlayColor:  PALETTE.OVERLAY_COOL,
+        priceFont:     "'Montserrat', Arial, sans-serif",
+        detailFont:    "'Montserrat', Arial, sans-serif",
+        introLength:   4.5,
+        clipLength:    3.5,
+        mediaEffects:  ['slideLeft', 'slideRight', 'slideLeft', 'slideRight', 'slideLeft', 'slideRight'],
+        clipTransIn:   'fade',
+        clipTransOut:  'fade',
+        textTransIn:   'slideLeft',
+        audioFadeAt:   15,
+      };
+
+    case 'TIKTOK_FAST':
+      // Fast wipes, bold contrast, 2s clips for hook-first pacing
+      return {
+        accentColor:   PALETTE.TIKTOK_RED,
+        overlayColor:  PALETTE.OVERLAY_DEEP,
+        priceFont:     "'Montserrat', Arial, sans-serif",
+        detailFont:    "'Montserrat', Arial, sans-serif",
+        introLength:   2.5,
+        clipLength:    2,
+        mediaEffects:  ['slideLeft', 'slideRight', 'slideLeft', 'slideRight', 'slideLeft', 'slideRight'],
+        clipTransIn:   'wipeLeft',
+        clipTransOut:  'wipeLeft',
+        textTransIn:   'slideLeft',
+        audioFadeAt:   12,
+      };
+
+    case 'STORY':
+      // Hook → before → after pacing; blue accent reads as trustworthy
+      return {
+        accentColor:   PALETTE.STORY_BLUE,
+        overlayColor:  PALETTE.OVERLAY_DARK,
+        priceFont:     "'Playfair Display', Georgia, serif",
+        detailFont:    "'Montserrat', Arial, sans-serif",
+        introLength:   4,
+        clipLength:    3.5,
+        mediaEffects:  ['zoomIn', 'zoomOut', 'slideLeft', 'slideRight', 'zoomIn', 'zoomOut'],
+        clipTransIn:   'fade',
+        clipTransOut:  'fade',
+        textTransIn:   'slideUp',
+        audioFadeAt:   15,
+      };
+
+    default:
+      // Falls through to luxury gold — safe default for any unknown key
+      return {
+        accentColor:   PALETTE.GOLD,
+        overlayColor:  PALETTE.OVERLAY_DARK,
+        priceFont:     "'Playfair Display', Georgia, serif",
+        detailFont:    "'Montserrat', Arial, sans-serif",
+        introLength:   5,
+        clipLength:    4,
+        mediaEffects:  ['zoomIn', 'zoomOut', 'zoomIn', 'zoomOut', 'slideLeft', 'slideRight'],
+        clipTransIn:   'fade',
+        clipTransOut:  'fade',
+        textTransIn:   'slideUp',
+        audioFadeAt:   15,
+      };
+  }
+}
 
 const FORMAT_SIZES: Record<string, { width: number; height: number }> = {
   vertical:   { width: 1080, height: 1920 },
@@ -84,15 +223,12 @@ const FORMAT_SIZES: Record<string, { width: number; height: number }> = {
   horizontal: { width: 1920, height: 1080 },
 };
 
-// Alternate slow zoom in / zoom out — classic cinematic Ken Burns
-const CINEMATIC_EFFECTS = ['zoomIn', 'zoomOut', 'zoomIn', 'zoomOut', 'slideLeft', 'slideRight'];
+// ── Timeline Builders ─────────────────────────────────────────────────────────
 
-// ── Timeline builders ─────────────────────────────────────────────────────────
-
-function buildMediaClips(mediaItems: MediaItem[]): ShotstackClip[] {
+function buildMediaClips(mediaItems: MediaItem[], config: TemplateConfig): ShotstackClip[] {
   let cursor = 0;
   return mediaItems.map((item, idx) => {
-    const length = idx === 0 ? INTRO_CLIP_LENGTH : CLIP_LENGTH;
+    const length = idx === 0 ? config.introLength : config.clipLength;
     const start  = cursor;
     cursor += length;
 
@@ -102,71 +238,87 @@ function buildMediaClips(mediaItems: MediaItem[]): ShotstackClip[] {
         : { type: 'image', src: item.url },
       start,
       length,
-      effect:     item.type === 'image' ? CINEMATIC_EFFECTS[idx % CINEMATIC_EFFECTS.length] : undefined,
+      // zoomIn on the intro clip so the background movement coordinates with
+      // the price text sliding up — creates a single unified reveal motion
+      effect:     item.type === 'image'
+        ? config.mediaEffects[idx % config.mediaEffects.length]
+        : undefined,
       filter:     item.type === 'image' ? 'boost' : undefined,
-      transition: { in: 'fade', out: 'fade' },
+      transition: { in: config.clipTransIn, out: config.clipTransOut },
     };
   });
 }
 
-function getTotalDuration(mediaItems: MediaItem[]): number {
-  return INTRO_CLIP_LENGTH + Math.max(0, mediaItems.length - 1) * CLIP_LENGTH;
+function getTotalDuration(mediaItems: MediaItem[], config: TemplateConfig): number {
+  return config.introLength + Math.max(0, mediaItems.length - 1) * config.clipLength;
 }
 
 function buildTextClips(opts: {
   totalDuration: number;
-  address?: string;
-  price?: string;
-  agentName?: string;
+  address?:      string;
+  price?:        string;
+  agentName?:    string;
+  config:        TemplateConfig;
 }): ShotstackClip[] {
+  const { totalDuration, address, price, agentName, config } = opts;
   const clips: ShotstackClip[] = [];
 
-  // cinematic lower-third: gradient bar + price + address
-  if (opts.address || opts.price) {
+  if (address || price) {
+    // Semi-transparent black panel (overlay) behind the price + address block.
+    // The dark background ensures readability regardless of whether the shot
+    // behind it is a bright exterior or dark interior — critical for MLS listings
+    // where we have no control over photo exposure.
     clips.push({
       asset: {
-        type: 'html',
+        type:   'html',
         html: [
           '<div class="wrap">',
-          '  <div class="bar"></div>',
-          opts.price   ? `  <p class="price">${opts.price}</p>` : '',
-          opts.address ? `  <p class="address">${opts.address}</p>` : '',
+          '  <div class="panel">',
+          '    <div class="accent-bar"></div>',
+          price   ? `    <p class="price">${price}</p>` : '',
+          address ? `    <p class="address">${address}</p>` : '',
+          '  </div>',
           '</div>',
         ].join(''),
         css: [
-          '*{margin:0;padding:0;box-sizing:border-box}',
-          '.wrap{font-family:"Helvetica Neue",Arial,sans-serif;width:100%;padding:0 0 0 0}',
-          '.bar{width:60px;height:3px;background:#F0B429;margin-bottom:12px}',
-          '.price{color:#ffffff;font-size:52px;font-weight:800;letter-spacing:-1px;line-height:1;margin-bottom:8px;text-shadow:0 2px 12px rgba(0,0,0,0.6)}',
-          '.address{color:rgba(255,255,255,0.82);font-size:26px;font-weight:400;letter-spacing:0.2px}',
+          FONTS_IMPORT,
+          `*{margin:0;padding:0;box-sizing:border-box}`,
+          `.wrap{width:100%;font-family:${config.detailFont}}`,
+          `.panel{background:${config.overlayColor};padding:18px 36px 26px 40px;border-top:1px solid ${hexToRgba(config.accentColor, 0.4)}}`,
+          `.accent-bar{width:44px;height:2px;background:${config.accentColor};margin-bottom:14px}`,
+          `.price{font-family:${config.priceFont};color:${PALETTE.WHITE};font-size:62px;font-weight:700;letter-spacing:-0.5px;line-height:1;margin-bottom:10px;text-shadow:0 2px 16px rgba(0,0,0,0.5)}`,
+          `.address{font-family:${config.detailFont};color:${PALETTE.SOFT_WHITE};font-size:22px;font-weight:400;letter-spacing:1.4px;text-transform:uppercase}`,
         ].join(''),
-        width:  860,
-        height: 220,
+        width:  880,
+        height: 230,
       },
-      start:    0,
-      length:   opts.totalDuration,
-      position: 'bottomLeft',
-      offset:   { x: 0.05, y: 0.1 },
+      start:      0,
+      length:     totalDuration,
+      position:   'bottomLeft',
+      offset:     { x: 0.04, y: 0.07 },
+      transition: { in: config.textTransIn },
     });
   }
 
-  // agent name: top-right, subtle
-  if (opts.agentName) {
+  if (agentName) {
+    // Agent name: top-right corner, cream text on transparent background.
+    // Kept deliberately subtle — the listing should be the hero.
     clips.push({
       asset: {
-        type: 'html',
-        html: `<div class="wrap"><span class="dot"></span><p class="name">${opts.agentName}</p></div>`,
+        type:   'html',
+        html:   `<div class="wrap"><span class="dot"></span><p class="name">${agentName}</p></div>`,
         css: [
-          '*{margin:0;padding:0;box-sizing:border-box}',
-          '.wrap{font-family:"Helvetica Neue",Arial,sans-serif;display:flex;align-items:center;gap:8px}',
-          '.dot{width:6px;height:6px;border-radius:50%;background:#F0B429;flex-shrink:0}',
-          '.name{color:rgba(255,255,255,0.9);font-size:22px;font-weight:500;letter-spacing:0.5px;white-space:nowrap}',
+          FONTS_IMPORT,
+          `*{margin:0;padding:0;box-sizing:border-box}`,
+          `.wrap{font-family:${config.detailFont};display:flex;align-items:center;gap:8px}`,
+          `.dot{width:5px;height:5px;border-radius:50%;background:${config.accentColor};flex-shrink:0}`,
+          `.name{color:${PALETTE.CREAM};font-size:20px;font-weight:500;letter-spacing:0.8px;white-space:nowrap;text-shadow:0 1px 8px rgba(0,0,0,0.6)}`,
         ].join(''),
-        width:  520,
-        height: 50,
+        width:  500,
+        height: 44,
       },
       start:    0,
-      length:   opts.totalDuration,
+      length:   totalDuration,
       position: 'topRight',
       offset:   { x: -0.04, y: -0.04 },
     });
@@ -175,33 +327,76 @@ function buildTextClips(opts: {
   return clips;
 }
 
-function buildTimeline(
-  mediaItems: MediaItem[],
-  opts: { address?: string; price?: string; agentName?: string },
-): ShotstackTimeline {
-  const mediaClips    = buildMediaClips(mediaItems);
-  const totalDuration = getTotalDuration(mediaItems);
-  const textClips   = buildTextClips({ totalDuration, ...opts });
+function buildAudioTrack(audioUrl: string, totalDuration: number, fadeAt: number): { clips: ShotstackClip[] } {
+  // Cap the audio clip at `fadeAt` seconds (default 15s) so the fadeOut fires
+  // at a predictable point rather than dragging through the full video duration.
+  // For videos shorter than fadeAt, the clip naturally ends with the video.
+  const audioDuration = Math.min(totalDuration, fadeAt);
 
-  // tracks[0] is the top layer in Shotstack
-  const tracks: { clips: ShotstackClip[] }[] = [];
-  if (textClips.length > 0) tracks.push({ clips: textClips });
-  tracks.push({ clips: mediaClips });
-
-  return { background: '#000000', tracks };
+  return {
+    clips: [{
+      asset: {
+        type:   'audio',
+        src:    audioUrl,
+        trim:   0,
+        volume: 0.45,   // subtle underscore — voice/address should be primary
+        effect: 'fadeOut',
+      },
+      start:  0,
+      length: audioDuration,
+    }],
+  };
 }
 
-// ── API calls ─────────────────────────────────────────────────────────────────
+function buildTimeline(
+  mediaItems:  MediaItem[],
+  opts: {
+    address?:    string;
+    price?:      string;
+    agentName?:  string;
+    templateKey?: string;
+    audioUrl?:   string;
+  },
+): ShotstackTimeline {
+  const config      = getTemplateConfig(opts.templateKey);
+  const mediaClips  = buildMediaClips(mediaItems, config);
+  const totalDuration = getTotalDuration(mediaItems, config);
+  const textClips   = buildTextClips({
+    totalDuration,
+    address:   opts.address,
+    price:     opts.price,
+    agentName: opts.agentName,
+    config,
+  });
+
+  // Track order: text overlays (top) → media (bottom)
+  const tracks: { clips: ShotstackClip[] }[] = [];
+  if (textClips.length > 0) tracks.push({ clips: textClips });
+  if (opts.audioUrl) tracks.push(buildAudioTrack(opts.audioUrl, totalDuration, config.audioFadeAt));
+  tracks.push({ clips: mediaClips });
+
+  return { background: PALETTE.NEAR_BLACK, tracks };
+}
+
+// ── Utility ───────────────────────────────────────────────────────────────────
+
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ── API Calls ─────────────────────────────────────────────────────────────────
 
 // Sample video returned in mock mode — real estate exterior clip
 const MOCK_VIDEO_URL = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4';
 
 export async function createRender(opts: {
-  timeline: ShotstackTimeline;
-  format?: 'vertical' | 'square' | 'horizontal';
+  timeline:    ShotstackTimeline;
+  format?:     'vertical' | 'square' | 'horizontal';
   callbackUrl?: string;
 }): Promise<ShotstackRenderResponse> {
-  // MOCK_AI=true: skip API, return a fake queued render immediately
   if (process.env.MOCK_AI === 'true') {
     return { id: `mock_${Date.now()}`, status: 'queued' };
   }
@@ -213,16 +408,16 @@ export async function createRender(opts: {
     timeline: opts.timeline,
     output: {
       format: 'mp4',
-      size: FORMAT_SIZES[opts.format ?? 'vertical'],
+      size:   FORMAT_SIZES[opts.format ?? 'vertical'],
     },
   };
   if (opts.callbackUrl) body.callback = opts.callbackUrl;
 
   const res = await fetch(`${BASE_URL}/${getEnv()}/render`, {
-    method: 'POST',
+    method:  'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': apiKey,
+      'x-api-key':    apiKey,
     },
     body: JSON.stringify(body),
   });
@@ -233,7 +428,7 @@ export async function createRender(opts: {
   }
 
   const json = await res.json() as {
-    success: boolean;
+    success:  boolean;
     response: { id: string; message: string };
   };
 
@@ -245,7 +440,6 @@ export async function createRender(opts: {
 }
 
 export async function getRenderStatus(renderId: string): Promise<ShotstackRenderResponse> {
-  // MOCK_AI=true: immediately return done with a sample video URL
   if (process.env.MOCK_AI === 'true') {
     return { id: renderId, status: 'done', url: MOCK_VIDEO_URL };
   }
@@ -263,13 +457,13 @@ export async function getRenderStatus(renderId: string): Promise<ShotstackRender
   }
 
   const json = await res.json() as {
-    success: boolean;
+    success:  boolean;
     response: {
-      id: string;
-      status: ShotstackStatus;
-      url?: string;
+      id:         string;
+      status:     ShotstackStatus;
+      url?:       string;
       thumbnail?: string | null;
-      error?: string;
+      error?:     string;
     };
   };
 
@@ -283,7 +477,7 @@ export async function getRenderStatus(renderId: string): Promise<ShotstackRender
   };
 }
 
-// ── High-level helpers ────────────────────────────────────────────────────────
+// ── High-Level Helpers ────────────────────────────────────────────────────────
 
 export async function generateVideo(opts: GenerateVideoOptions): Promise<ShotstackRenderResponse> {
   const mediaItems: MediaItem[] = opts.images.map((url) => ({ type: 'image', url }));
@@ -292,9 +486,11 @@ export async function generateVideo(opts: GenerateVideoOptions): Promise<Shotsta
 
 export async function generateMixedMediaVideo(opts: GenerateMixedMediaOptions): Promise<ShotstackRenderResponse> {
   const timeline = buildTimeline(opts.mediaItems, {
-    address:   opts.listingAddress,
-    price:     opts.listingPrice,
-    agentName: opts.agentName,
+    address:     opts.listingAddress,
+    price:       opts.listingPrice,
+    agentName:   opts.agentName,
+    templateKey: opts.templateKey,
+    audioUrl:    opts.audioUrl,
   });
   return createRender({
     timeline,
