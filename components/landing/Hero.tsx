@@ -80,11 +80,11 @@ export function Hero() {
                   Get Started →
                 </Button>
               </Link>
-              <a href="#how-it-works">
-                <button className="w-full sm:w-auto h-12 px-7 text-[15px] font-semibold text-[#8A8682] border border-[#2E2B27] rounded-[6px] hover:border-[#4A4744] hover:text-[#C8C4BC] transition-all">
-                  See How It Works ↓
+              <Link href="/generate">
+                <button className="w-full sm:w-auto h-12 px-7 text-[15px] font-semibold text-[#F0B429] border border-[#F0B429]/40 rounded-[6px] hover:border-[#F0B429] hover:bg-[#F0B429]/8 transition-all">
+                  Try 1 free video — no account
                 </button>
-              </a>
+              </Link>
             </motion.div>
 
             {/* Trust row */}

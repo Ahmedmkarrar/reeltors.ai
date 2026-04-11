@@ -65,9 +65,9 @@ export default function CreatePage() {
   const countdownRef  = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(async ({ data: { user } }) => {
-      if (!user) { router.push('/login'); return; }
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single<Profile>();
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) { router.push('/login'); return; }
+      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single<Profile>();
       if (data) {
         setProfile(data);
         setAgentName(data.full_name || '');

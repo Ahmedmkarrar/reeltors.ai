@@ -11,13 +11,14 @@ const PLAN_KEYS: PlanKey[] = ['starter', 'growth', 'pro'];
 export function PaywallModal() {
   const [annual, setAnnual] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState<{ plan: PlanKey; annual: boolean } | null>(null);
-  const [isPaid, setIsPaid] = useState(true); // assume paid until proven otherwise (avoids flash)
+  // default true avoids flash-of-paywall for paid users
+  const [isPaid, setIsPaid] = useState(true);
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
-      supabase.from('profiles').select('plan').eq('id', user.id).single().then(({ data }) => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) return;
+      supabase.from('profiles').select('plan').eq('id', session.user.id).single().then(({ data }) => {
         if (data) setIsPaid(!!PLAN_LIMITS[data.plan as string]);
       });
     });
