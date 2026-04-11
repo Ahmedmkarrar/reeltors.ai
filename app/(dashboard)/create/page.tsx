@@ -348,6 +348,8 @@ export default function CreatePage() {
             onAiIndicesChange={setAiVideoIndices}
             videoPrompt={videoPrompt}
             onPromptChange={setVideoPrompt}
+            format={format}
+            onFormatChange={setFormat}
             onNext={() => setStep('details')}
             nextDisabled={images.length < 3}
           />
@@ -381,39 +383,6 @@ export default function CreatePage() {
             onChange={(e) => setAgentName(e.target.value)}
           />
 
-          {/* Format selector */}
-          <div>
-            <label className="block text-sm font-medium text-[#1A1714] mb-2">Output Format</label>
-            <div className="grid grid-cols-3 gap-3">
-              {([
-                { value: 'vertical',   label: 'Vertical',  sub: '9:16 · TikTok / Reels' },
-                { value: 'square',     label: 'Square',    sub: '1:1 · Feed posts' },
-                { value: 'horizontal', label: 'Landscape', sub: '16:9 · YouTube' },
-              ] as const).map(({ value, label, sub }) => {
-                const locked = profile?.plan === 'free' && value !== 'vertical';
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    disabled={locked}
-                    onClick={() => !locked && setFormat(value)}
-                    className={[
-                      'relative text-left border rounded p-3 transition-all text-sm bg-white',
-                      format === value
-                        ? 'border-[#F0B429] bg-[#FFF8E6] text-[#1A1714]'
-                        : locked
-                        ? 'border-[#E2DED6] text-[#B8B4AE] cursor-not-allowed bg-[#F7F5EF]'
-                        : 'border-[#D8D4CC] text-[#1A1714] hover:border-[#F0B429]/60 cursor-pointer',
-                    ].join(' ')}
-                  >
-                    <div className="font-medium">{label}</div>
-                    <div className={`text-xs mt-0.5 ${format === value ? 'text-[#C07A00]' : locked ? 'text-[#C8C4BC]' : 'text-[#6B6760]'}`}>{sub}</div>
-                    {locked && <div className="absolute top-1.5 right-1.5 text-[10px]">🔒</div>}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </div>
         <div className="flex gap-3 mt-8">
           <Button variant="secondary" size="md" onClick={() => setStep('upload')}>← Back</Button>

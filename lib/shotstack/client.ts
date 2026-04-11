@@ -118,8 +118,18 @@ function buildTextClips(opts: {
   address?: string;
   price?: string;
   agentName?: string;
+  format?: 'vertical' | 'square' | 'horizontal';
 }): ShotstackClip[] {
   const clips: ShotstackClip[] = [];
+  const isHorizontal = opts.format === 'horizontal';
+  const isSquare     = opts.format === 'square';
+
+  // scale overlay canvas to the output resolution
+  const lowerThirdWidth  = isHorizontal ? 1600 : isSquare ? 900 : 860;
+  const lowerThirdHeight = isHorizontal ? 180  : isSquare ? 200 : 220;
+  const priceFontSize    = isHorizontal ? 44   : 52;
+  const addressFontSize  = isHorizontal ? 22   : 26;
+  const agentWidth       = isHorizontal ? 900  : 520;
 
   // cinematic lower-third: gradient bar + price + address
   if (opts.address || opts.price) {
@@ -137,11 +147,11 @@ function buildTextClips(opts: {
           '*{margin:0;padding:0;box-sizing:border-box}',
           '.wrap{font-family:"Helvetica Neue",Arial,sans-serif;width:100%;padding:0 0 0 0}',
           '.bar{width:60px;height:3px;background:#F0B429;margin-bottom:12px}',
-          '.price{color:#ffffff;font-size:52px;font-weight:800;letter-spacing:-1px;line-height:1;margin-bottom:8px;text-shadow:0 2px 12px rgba(0,0,0,0.6)}',
-          '.address{color:rgba(255,255,255,0.82);font-size:26px;font-weight:400;letter-spacing:0.2px}',
+          `.price{color:#ffffff;font-size:${priceFontSize}px;font-weight:800;letter-spacing:-1px;line-height:1;margin-bottom:8px;text-shadow:0 2px 12px rgba(0,0,0,0.6)}`,
+          `.address{color:rgba(255,255,255,0.82);font-size:${addressFontSize}px;font-weight:400;letter-spacing:0.2px}`,
         ].join(''),
-        width:  860,
-        height: 220,
+        width:  lowerThirdWidth,
+        height: lowerThirdHeight,
       },
       start:    0,
       length:   opts.totalDuration,
@@ -162,7 +172,7 @@ function buildTextClips(opts: {
           '.dot{width:6px;height:6px;border-radius:50%;background:#F0B429;flex-shrink:0}',
           '.name{color:rgba(255,255,255,0.9);font-size:22px;font-weight:500;letter-spacing:0.5px;white-space:nowrap}',
         ].join(''),
-        width:  520,
+        width:  agentWidth,
         height: 50,
       },
       start:    0,
@@ -177,11 +187,11 @@ function buildTextClips(opts: {
 
 function buildTimeline(
   mediaItems: MediaItem[],
-  opts: { address?: string; price?: string; agentName?: string },
+  opts: { address?: string; price?: string; agentName?: string; format?: 'vertical' | 'square' | 'horizontal' },
 ): ShotstackTimeline {
   const mediaClips    = buildMediaClips(mediaItems);
   const totalDuration = getTotalDuration(mediaItems);
-  const textClips   = buildTextClips({ totalDuration, ...opts });
+  const textClips   = buildTextClips({ totalDuration, format: opts.format, ...opts });
 
   // tracks[0] is the top layer in Shotstack
   const tracks: { clips: ShotstackClip[] }[] = [];
@@ -295,6 +305,7 @@ export async function generateMixedMediaVideo(opts: GenerateMixedMediaOptions): 
     address:   opts.listingAddress,
     price:     opts.listingPrice,
     agentName: opts.agentName,
+    format:    opts.format ?? 'vertical',
   });
   return createRender({
     timeline,
