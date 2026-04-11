@@ -1,59 +1,20 @@
-export const dynamic = 'force-dynamic';
-
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
-import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { Sidebar } from '@/components/dashboard/Sidebar';
 import { PaywallModal } from '@/components/dashboard/PaywallModal';
-import { PLAN_LIMITS } from '@/lib/stripe/plans';
-import type { Profile } from '@/types';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  // getSession reads the JWT from cookie — no network call, instant
+  const { data: { session } } = await supabase.auth.getSession();
 
-  if (!user) redirect('/login');
-
-  let { data: profile } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', user.id)
-    .single<Profile>();
-
-  if (!profile) {
-    const admin = getSupabaseAdmin();
-    const now = new Date().toISOString();
-    const { data: newProfile } = await admin
-      .from('profiles')
-      .upsert({
-        id: user.id,
-        email: user.email ?? '',
-        full_name: user.user_metadata?.full_name ?? null,
-        avatar_url: user.user_metadata?.avatar_url ?? null,
-        plan: 'free',
-        subscription_status: 'free',
-        videos_used_this_month: 0,
-        videos_limit: 0,
-        billing_cycle_start: now,
-        created_at: now,
-        updated_at: now,
-      })
-      .select('*')
-      .single<Profile>();
-    if (!newProfile) {
-      await supabase.auth.signOut();
-      redirect('/login');
-    }
-    profile = newProfile;
-  }
-
-  const isPaid = !!PLAN_LIMITS[profile.plan];
+  if (!session) redirect('/login');
 
   return (
     <div className="flex min-h-screen" style={{ background: '#FAFAF8' }}>
-      {!isPaid && <PaywallModal />}
-      <Sidebar profile={profile} />
+      <PaywallModal />
+      <Sidebar />
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-[#E2DED6]" style={{ background: '#F5F3EF' }}>
@@ -79,6 +40,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <Link
               key={href}
               href={href}
+              prefetch={true}
               className={[
                 'flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors',
                 accent ? 'text-[#F0B429]' : 'text-[#8A8682] hover:text-[#888888]',

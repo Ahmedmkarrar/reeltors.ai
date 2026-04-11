@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { PLANS } from '@/lib/stripe/plans';
+import { useState, useEffect } from 'react';
+import { PLANS, PLAN_LIMITS } from '@/lib/stripe/plans';
 import { EmbeddedCheckoutModal } from './EmbeddedCheckout';
+import { createClient } from '@/lib/supabase/client';
 
 type PlanKey = 'starter' | 'growth' | 'pro';
 const PLAN_KEYS: PlanKey[] = ['starter', 'growth', 'pro'];
@@ -10,6 +11,19 @@ const PLAN_KEYS: PlanKey[] = ['starter', 'growth', 'pro'];
 export function PaywallModal() {
   const [annual, setAnnual] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState<{ plan: PlanKey; annual: boolean } | null>(null);
+  const [isPaid, setIsPaid] = useState(true); // assume paid until proven otherwise (avoids flash)
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase.from('profiles').select('plan').eq('id', user.id).single().then(({ data }) => {
+        if (data) setIsPaid(!!PLAN_LIMITS[data.plan as string]);
+      });
+    });
+  }, []);
+
+  if (isPaid) return null;
 
   function handleUpgrade(plan: PlanKey) {
     setCheckoutPlan({ plan, annual });
