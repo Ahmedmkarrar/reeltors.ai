@@ -242,7 +242,6 @@ export function Sidebar() {
             >
               {initial}
             </div>
-
             <div className="flex-1 min-w-0">
               <p className="text-[12px] font-semibold text-[#1A1714] truncate leading-tight">
                 {profile.full_name || 'Realtor'}

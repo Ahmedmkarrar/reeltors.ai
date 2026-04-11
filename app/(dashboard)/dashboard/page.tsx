@@ -17,12 +17,12 @@ function getGreeting(): string {
 
 export default async function DashboardPage() {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login');
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) redirect('/login');
 
   const [{ data: profile }, { data: videos }] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).single<Profile>(),
-    supabase.from('videos').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(6),
+    supabase.from('profiles').select('*').eq('id', session.user.id).single<Profile>(),
+    supabase.from('videos').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(6),
   ]);
 
   if (!profile) redirect('/login');
