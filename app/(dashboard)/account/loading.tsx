@@ -4,7 +4,7 @@ function Pulse({ className }: { className?: string }) {
 
 export default function AccountLoading() {
   return (
-    <div className="p-6 md:p-8 max-w-2xl">
+    <div className="p-6 md:p-8 max-w-2xl animate-page-enter">
       {/* Header */}
       <Pulse className="h-3 w-16 mb-3" />
       <Pulse className="h-8 w-28 mb-8" />

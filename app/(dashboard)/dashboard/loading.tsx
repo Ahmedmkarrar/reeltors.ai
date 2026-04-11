@@ -4,7 +4,7 @@ function Pulse({ className }: { className?: string }) {
 
 export default function DashboardLoading() {
   return (
-    <div className="p-6 md:p-8 max-w-4xl">
+    <div className="p-6 md:p-8 max-w-4xl animate-page-enter">
       {/* Greeting */}
       <Pulse className="h-3 w-20 mb-3" />
       <Pulse className="h-8 w-56 mb-1" />
