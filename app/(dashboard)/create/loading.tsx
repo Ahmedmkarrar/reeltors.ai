@@ -4,7 +4,7 @@ function Pulse({ className }: { className?: string }) {
 
 export default function CreateLoading() {
   return (
-    <div className="p-6 md:p-8 max-w-3xl">
+    <div className="p-6 md:p-8 max-w-3xl animate-page-enter">
       {/* Step header */}
       <Pulse className="h-3 w-24 mb-3" />
       <Pulse className="h-8 w-56 mb-2" />

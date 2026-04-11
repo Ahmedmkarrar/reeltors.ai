@@ -79,25 +79,20 @@ interface ShotstackTimeline {
 
 // ── Design System ─────────────────────────────────────────────────────────────
 
-// Luxury palette: champagne gold + near-black overlay + warm cream for details
-// Chosen to read as aspirational without being garish on bright listing photos
 const PALETTE = {
-  GOLD:          '#C9A96E',   // champagne gold — replaces the old flat yellow
-  SILVER:        '#D4D4D4',   // cool silver accent for modern/minimal
-  TIKTOK_RED:    '#FF3B5C',   // high-contrast for short-form social
-  STORY_BLUE:    '#4A9FD4',   // trustworthy blue for before/after
+  GOLD:          '#C9A96E',
+  SILVER:        '#D4D4D4',
+  TIKTOK_RED:    '#FF3B5C',
+  STORY_BLUE:    '#4A9FD4',
   NEAR_BLACK:    '#0A0A0A',
   WHITE:         '#FFFFFF',
   SOFT_WHITE:    'rgba(255,255,255,0.80)',
-  CREAM:         '#E8DCC8',   // warm cream for agent name tag
-  OVERLAY_DARK:  'rgba(6,6,6,0.72)',      // lower-third background panel
-  OVERLAY_COOL:  'rgba(15,15,15,0.76)',   // modern-minimal variant
-  OVERLAY_DEEP:  'rgba(0,0,0,0.82)',      // TikTok high-contrast variant
+  CREAM:         '#E8DCC8',
+  OVERLAY_DARK:  'rgba(6,6,6,0.72)',
+  OVERLAY_COOL:  'rgba(15,15,15,0.76)',
+  OVERLAY_DEEP:  'rgba(0,0,0,0.82)',
 } as const;
 
-// Google Fonts import — loaded at render time in Shotstack's headless browser
-// Playfair Display: serif authority for price/headlines
-// Montserrat: geometric humanist for addresses, details, agent name
 const FONTS_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap');";
 
 // ── Template Configuration ────────────────────────────────────────────────────
@@ -105,22 +100,21 @@ const FONTS_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Play
 interface TemplateConfig {
   accentColor:    string;
   overlayColor:   string;
-  priceFont:      string;    // CSS font-family value
-  detailFont:     string;    // CSS font-family value
+  priceFont:      string;
+  detailFont:     string;
   introLength:    number;
   clipLength:     number;
-  mediaEffects:   string[];  // cycled across clips
+  mediaEffects:   string[];
   clipTransIn:    string;
   clipTransOut:   string;
-  textTransIn:    string;    // Shotstack transition for text track entrance
-  audioFadeAt:    number;    // seconds — cap for audio track before fadeOut fires
+  textTransIn:    string;
+  audioFadeAt:    number;
 }
 
 function getTemplateConfig(templateKey?: string): TemplateConfig {
   switch (templateKey) {
     case 'LUXURY_REVEAL':
     case 'LUXURY_MANSION':
-      // Slow burn: zoomIn on intro coordinates with price sliding up
       return {
         accentColor:   PALETTE.GOLD,
         overlayColor:  PALETTE.OVERLAY_DARK,
@@ -136,7 +130,6 @@ function getTemplateConfig(templateKey?: string): TemplateConfig {
       };
 
     case 'CINEMATIC':
-      // Ken Burns alternating with directional slides for visual variety
       return {
         accentColor:   PALETTE.GOLD,
         overlayColor:  PALETTE.OVERLAY_DARK,
@@ -152,7 +145,6 @@ function getTemplateConfig(templateKey?: string): TemplateConfig {
       };
 
     case 'MODERN_MINIMAL':
-      // Clean directional slides — no zooming, cooler silver accent
       return {
         accentColor:   PALETTE.SILVER,
         overlayColor:  PALETTE.OVERLAY_COOL,
@@ -168,7 +160,6 @@ function getTemplateConfig(templateKey?: string): TemplateConfig {
       };
 
     case 'TIKTOK_FAST':
-      // Fast wipes, bold contrast, 2s clips for hook-first pacing
       return {
         accentColor:   PALETTE.TIKTOK_RED,
         overlayColor:  PALETTE.OVERLAY_DEEP,
@@ -184,7 +175,6 @@ function getTemplateConfig(templateKey?: string): TemplateConfig {
       };
 
     case 'STORY':
-      // Hook → before → after pacing; blue accent reads as trustworthy
       return {
         accentColor:   PALETTE.STORY_BLUE,
         overlayColor:  PALETTE.OVERLAY_DARK,
@@ -200,7 +190,6 @@ function getTemplateConfig(templateKey?: string): TemplateConfig {
       };
 
     default:
-      // Falls through to luxury gold — safe default for any unknown key
       return {
         accentColor:   PALETTE.GOLD,
         overlayColor:  PALETTE.OVERLAY_DARK,
@@ -234,15 +223,11 @@ function buildMediaClips(mediaItems: MediaItem[], config: TemplateConfig): Shots
 
     return {
       asset: item.type === 'video'
-        ? { type: 'video', src: item.url, trim: 0, volume: 0 }
-        : { type: 'image', src: item.url },
+        ? { type: 'video', src: item.url, trim: 0, volume: 0, fit: 'cover' }
+        : { type: 'image', src: item.url, fit: 'cover' },
       start,
       length,
-      // zoomIn on the intro clip so the background movement coordinates with
-      // the price text sliding up — creates a single unified reveal motion
-      effect:     item.type === 'image'
-        ? config.mediaEffects[idx % config.mediaEffects.length]
-        : undefined,
+      effect:     item.type === 'image' ? config.mediaEffects[idx % config.mediaEffects.length] : undefined,
       filter:     item.type === 'image' ? 'boost' : undefined,
       transition: { in: config.clipTransIn, out: config.clipTransOut },
     };
@@ -259,18 +244,25 @@ function buildTextClips(opts: {
   price?:        string;
   agentName?:    string;
   config:        TemplateConfig;
+  format?:       'vertical' | 'square' | 'horizontal';
 }): ShotstackClip[] {
   const { totalDuration, address, price, agentName, config } = opts;
+  const isHorizontal = opts.format === 'horizontal';
+  const isSquare     = opts.format === 'square';
+
+  // Scale overlay canvas to the output resolution
+  const lowerThirdWidth  = isHorizontal ? 1600 : isSquare ? 900 : 880;
+  const lowerThirdHeight = isHorizontal ? 190  : isSquare ? 210 : 230;
+  const priceFontSize    = isHorizontal ? 44   : 62;
+  const addressFontSize  = isHorizontal ? 20   : 22;
+  const agentWidth       = isHorizontal ? 900  : 500;
+
   const clips: ShotstackClip[] = [];
 
   if (address || price) {
-    // Semi-transparent black panel (overlay) behind the price + address block.
-    // The dark background ensures readability regardless of whether the shot
-    // behind it is a bright exterior or dark interior — critical for MLS listings
-    // where we have no control over photo exposure.
     clips.push({
       asset: {
-        type:   'html',
+        type: 'html',
         html: [
           '<div class="wrap">',
           '  <div class="panel">',
@@ -286,11 +278,11 @@ function buildTextClips(opts: {
           `.wrap{width:100%;font-family:${config.detailFont}}`,
           `.panel{background:${config.overlayColor};padding:18px 36px 26px 40px;border-top:1px solid ${hexToRgba(config.accentColor, 0.4)}}`,
           `.accent-bar{width:44px;height:2px;background:${config.accentColor};margin-bottom:14px}`,
-          `.price{font-family:${config.priceFont};color:${PALETTE.WHITE};font-size:62px;font-weight:700;letter-spacing:-0.5px;line-height:1;margin-bottom:10px;text-shadow:0 2px 16px rgba(0,0,0,0.5)}`,
-          `.address{font-family:${config.detailFont};color:${PALETTE.SOFT_WHITE};font-size:22px;font-weight:400;letter-spacing:1.4px;text-transform:uppercase}`,
+          `.price{font-family:${config.priceFont};color:${PALETTE.WHITE};font-size:${priceFontSize}px;font-weight:700;letter-spacing:-0.5px;line-height:1;margin-bottom:10px;text-shadow:0 2px 16px rgba(0,0,0,0.5)}`,
+          `.address{font-family:${config.detailFont};color:${PALETTE.SOFT_WHITE};font-size:${addressFontSize}px;font-weight:400;letter-spacing:1.4px;text-transform:uppercase}`,
         ].join(''),
-        width:  880,
-        height: 230,
+        width:  lowerThirdWidth,
+        height: lowerThirdHeight,
       },
       start:      0,
       length:     totalDuration,
@@ -301,12 +293,10 @@ function buildTextClips(opts: {
   }
 
   if (agentName) {
-    // Agent name: top-right corner, cream text on transparent background.
-    // Kept deliberately subtle — the listing should be the hero.
     clips.push({
       asset: {
-        type:   'html',
-        html:   `<div class="wrap"><span class="dot"></span><p class="name">${agentName}</p></div>`,
+        type: 'html',
+        html: `<div class="wrap"><span class="dot"></span><p class="name">${agentName}</p></div>`,
         css: [
           FONTS_IMPORT,
           `*{margin:0;padding:0;box-sizing:border-box}`,
@@ -314,7 +304,7 @@ function buildTextClips(opts: {
           `.dot{width:5px;height:5px;border-radius:50%;background:${config.accentColor};flex-shrink:0}`,
           `.name{color:${PALETTE.CREAM};font-size:20px;font-weight:500;letter-spacing:0.8px;white-space:nowrap;text-shadow:0 1px 8px rgba(0,0,0,0.6)}`,
         ].join(''),
-        width:  500,
+        width:  agentWidth,
         height: 44,
       },
       start:    0,
@@ -328,18 +318,14 @@ function buildTextClips(opts: {
 }
 
 function buildAudioTrack(audioUrl: string, totalDuration: number, fadeAt: number): { clips: ShotstackClip[] } {
-  // Cap the audio clip at `fadeAt` seconds (default 15s) so the fadeOut fires
-  // at a predictable point rather than dragging through the full video duration.
-  // For videos shorter than fadeAt, the clip naturally ends with the video.
   const audioDuration = Math.min(totalDuration, fadeAt);
-
   return {
     clips: [{
       asset: {
         type:   'audio',
         src:    audioUrl,
         trim:   0,
-        volume: 0.45,   // subtle underscore — voice/address should be primary
+        volume: 0.45,
         effect: 'fadeOut',
       },
       start:  0,
@@ -349,27 +335,28 @@ function buildAudioTrack(audioUrl: string, totalDuration: number, fadeAt: number
 }
 
 function buildTimeline(
-  mediaItems:  MediaItem[],
+  mediaItems: MediaItem[],
   opts: {
-    address?:    string;
-    price?:      string;
-    agentName?:  string;
+    address?:     string;
+    price?:       string;
+    agentName?:   string;
     templateKey?: string;
-    audioUrl?:   string;
+    audioUrl?:    string;
+    format?:      'vertical' | 'square' | 'horizontal';
   },
 ): ShotstackTimeline {
-  const config      = getTemplateConfig(opts.templateKey);
-  const mediaClips  = buildMediaClips(mediaItems, config);
+  const config        = getTemplateConfig(opts.templateKey);
+  const mediaClips    = buildMediaClips(mediaItems, config);
   const totalDuration = getTotalDuration(mediaItems, config);
-  const textClips   = buildTextClips({
+  const textClips     = buildTextClips({
     totalDuration,
     address:   opts.address,
     price:     opts.price,
     agentName: opts.agentName,
     config,
+    format:    opts.format,
   });
 
-  // Track order: text overlays (top) → media (bottom)
   const tracks: { clips: ShotstackClip[] }[] = [];
   if (textClips.length > 0) tracks.push({ clips: textClips });
   if (opts.audioUrl) tracks.push(buildAudioTrack(opts.audioUrl, totalDuration, config.audioFadeAt));
@@ -389,12 +376,11 @@ function hexToRgba(hex: string, alpha: number): string {
 
 // ── API Calls ─────────────────────────────────────────────────────────────────
 
-// Sample video returned in mock mode — real estate exterior clip
 const MOCK_VIDEO_URL = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4';
 
 export async function createRender(opts: {
-  timeline:    ShotstackTimeline;
-  format?:     'vertical' | 'square' | 'horizontal';
+  timeline:     ShotstackTimeline;
+  format?:      'vertical' | 'square' | 'horizontal';
   callbackUrl?: string;
 }): Promise<ShotstackRenderResponse> {
   if (process.env.MOCK_AI === 'true') {
@@ -415,11 +401,8 @@ export async function createRender(opts: {
 
   const res = await fetch(`${BASE_URL}/${getEnv()}/render`, {
     method:  'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key':    apiKey,
-    },
-    body: JSON.stringify(body),
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+    body:    JSON.stringify(body),
   });
 
   if (!res.ok) {
@@ -491,6 +474,7 @@ export async function generateMixedMediaVideo(opts: GenerateMixedMediaOptions): 
     agentName:   opts.agentName,
     templateKey: opts.templateKey,
     audioUrl:    opts.audioUrl,
+    format:      opts.format ?? 'vertical',
   });
   return createRender({
     timeline,

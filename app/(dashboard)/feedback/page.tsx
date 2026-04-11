@@ -16,9 +16,9 @@ export default function FeedbackPage() {
 
   useEffect(() => {
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single<Profile>();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single<Profile>();
       if (data) setProfile(data);
     }
     load();

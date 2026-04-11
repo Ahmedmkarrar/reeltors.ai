@@ -37,9 +37,9 @@ export default function VideosPage() {
     }
 
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      userId = user.id;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      userId = session.user.id;
 
       await fetchAll();
       setLoading(false);
@@ -49,7 +49,7 @@ export default function VideosPage() {
         .channel(`videos-realtime-${Date.now()}`)
         .on(
           'postgres_changes',
-          { event: '*', schema: 'public', table: 'videos', filter: `user_id=eq.${user.id}` },
+          { event: '*', schema: 'public', table: 'videos', filter: `user_id=eq.${userId}` },
           (payload) => {
             if (payload.eventType === 'INSERT') {
               setVideos((v) => [payload.new as Video, ...v]);
