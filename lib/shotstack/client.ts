@@ -98,8 +98,8 @@ function buildMediaClips(mediaItems: MediaItem[]): ShotstackClip[] {
 
     return {
       asset: item.type === 'video'
-        ? { type: 'video', src: item.url, trim: 0, volume: 0 }
-        : { type: 'image', src: item.url },
+        ? { type: 'video', src: item.url, trim: 0, volume: 0, fit: 'cover' }
+        : { type: 'image', src: item.url, fit: 'cover' },
       start,
       length,
       effect:     item.type === 'image' ? CINEMATIC_EFFECTS[idx % CINEMATIC_EFFECTS.length] : undefined,
