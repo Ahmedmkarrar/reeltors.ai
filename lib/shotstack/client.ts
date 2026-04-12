@@ -41,6 +41,7 @@ export interface GenerateVideoOptions {
   phone?: string;
   format?: 'vertical' | 'square' | 'horizontal';
   audioUrl?: string;
+  logoUrl?: string;
   callbackUrl?: string;
   apiKey?: string;
   env?: ShotstackEnv;
@@ -57,6 +58,7 @@ export interface GenerateMixedMediaOptions {
   phone?: string;
   format?: 'vertical' | 'square' | 'horizontal';
   audioUrl?: string;
+  logoUrl?: string;
   callbackUrl?: string;
   apiKey?: string;
   env?: ShotstackEnv;
@@ -74,6 +76,7 @@ interface ShotstackClip {
   position?: string;
   offset?: { x?: number; y?: number };
   opacity?: number;
+  scale?: number;
 }
 
 interface ShotstackTimeline {
@@ -247,10 +250,11 @@ function buildTextClips(opts: {
   address?:      string;
   price?:        string;
   agentName?:    string;
+  logoUrl?:      string;
   config:        TemplateConfig;
   format?:       'vertical' | 'square' | 'horizontal';
 }): ShotstackClip[] {
-  const { totalDuration, address, price, agentName, config } = opts;
+  const { totalDuration, address, price, agentName, logoUrl, config } = opts;
   const isHorizontal = opts.format === 'horizontal';
   const isSquare     = opts.format === 'square';
 
@@ -318,6 +322,18 @@ function buildTextClips(opts: {
     });
   }
 
+  if (logoUrl) {
+    clips.push({
+      asset: { type: 'image', src: logoUrl },
+      start:    0,
+      length:   totalDuration,
+      position: 'topLeft',
+      offset:   { x: 0.04, y: -0.04 },
+      opacity:  0.95,
+      scale:    0.07,
+    });
+  }
+
   return clips;
 }
 
@@ -346,6 +362,7 @@ function buildTimeline(
     agentName?:   string;
     templateKey?: string;
     audioUrl?:    string;
+    logoUrl?:     string;
     format?:      'vertical' | 'square' | 'horizontal';
   },
 ): ShotstackTimeline {
@@ -357,6 +374,7 @@ function buildTimeline(
     address:   opts.address,
     price:     opts.price,
     agentName: opts.agentName,
+    logoUrl:   opts.logoUrl,
     config,
     format:    opts.format,
   });
@@ -482,6 +500,7 @@ export async function generateMixedMediaVideo(opts: GenerateMixedMediaOptions): 
     agentName:   opts.agentName,
     templateKey: opts.templateKey,
     audioUrl:    opts.audioUrl,
+    logoUrl:     opts.logoUrl,
     format:      opts.format ?? 'vertical',
   });
   return createRender({
