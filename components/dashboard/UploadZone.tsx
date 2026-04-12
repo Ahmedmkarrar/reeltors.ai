@@ -97,7 +97,7 @@ export function UploadZone({
   videoPrompt = '',
   onPromptChange,
   format = 'vertical',
-  onFormatChange,
+  onFormatChange: _onFormatChange, // eslint-disable-line @typescript-eslint/no-unused-vars
   onNext,
   nextDisabled = false,
   plan,
@@ -725,7 +725,7 @@ function BoltIcon({ className }: { className?: string }) {
   );
 }
 
-function FormatIcon({ type, active }: { type: VideoFormat; active: boolean }) {
+function FormatIcon({ type, active }: { type: VideoFormat; active: boolean }) { // eslint-disable-line @typescript-eslint/no-unused-vars
   const color = active ? '#F0B429' : '#6A6560';
   if (type === 'vertical') {
     return (
