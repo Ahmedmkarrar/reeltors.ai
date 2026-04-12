@@ -149,18 +149,31 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
         }}
       >
         <input {...getInputProps()} />
-        <div style={{ fontSize: 40, marginBottom: 16 }}>📷</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: '50%',
+            background: 'rgba(240,180,41,0.08)',
+            border: '1px solid rgba(240,180,41,0.18)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+          </div>
+        </div>
         {isUploading ? (
-          <p style={{ color: '#F0B429', fontWeight: 600 }}>Uploading...</p>
+          <p style={{ color: '#C9A96E', fontWeight: 600, fontSize: 15 }}>Uploading...</p>
         ) : isDragActive ? (
-          <p style={{ color: '#F0B429', fontWeight: 600 }}>Drop to upload</p>
+          <p style={{ color: '#C9A96E', fontWeight: 600, fontSize: 15 }}>Release to upload</p>
         ) : (
           <>
-            <p style={{ color: '#F0F0EB', fontWeight: 600, marginBottom: 8 }}>
-              Drop photos here, or click to select
+            <p style={{ color: '#E8E4DE', fontWeight: 600, fontSize: 15, marginBottom: 6 }}>
+              Drop listing photos here, or click to browse
             </p>
-            <p style={{ color: '#4A4642', fontSize: 13, margin: 0 }}>
-              JPEG, PNG, WEBP · max 10 MB each · up to 15 photos
+            <p style={{ color: '#4A4642', fontSize: 13, margin: 0, letterSpacing: '0.01em' }}>
+              JPEG · PNG · WEBP &nbsp;·&nbsp; max 10 MB each &nbsp;·&nbsp; up to 15 photos
             </p>
           </>
         )}
