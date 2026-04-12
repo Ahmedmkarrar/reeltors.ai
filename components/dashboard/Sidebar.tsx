@@ -67,19 +67,6 @@ const NAV_SECTIONS = [
   },
 ];
 
-const PLAN_LABELS: Record<string, string> = {
-  free:    'Free',
-  starter: 'Starter',
-  growth:  'Growth',
-  pro:     'Pro',
-};
-
-const PLAN_COLORS: Record<string, string> = {
-  free:    '#6B6760',
-  starter: '#5C5853',
-  growth:  '#C07A00',
-  pro:     '#059669',
-};
 
 export function Sidebar() {
   const pathname = usePathname();
@@ -102,7 +89,6 @@ export function Sidebar() {
     allRoutes.concat(['/create']).forEach((href) => router.prefetch(href));
   }, [router]);
 
-  const planColor  = PLAN_COLORS[profile?.plan ?? ''] ?? '#6B6760';
   const videoLimit = profile ? (PLAN_LIMITS[profile.plan] ?? profile.videos_limit) : 0;
   const usedPct    = profile ? Math.min((profile.videos_used_this_month / Math.max(videoLimit, 1)) * 100, 100) : 0;
   const initial    = (profile?.full_name || profile?.email || 'R').charAt(0).toUpperCase();
