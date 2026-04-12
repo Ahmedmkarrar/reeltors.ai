@@ -274,7 +274,7 @@ export default function CreatePage() {
       <div className="min-h-screen" style={{ background: '#FFFFFF' }}>
 
         {/* ── Content ─────────────────────────────────────────────────── */}
-        <div className="p-6 md:p-8 max-w-3xl">
+        <div className="p-4 md:p-8 max-w-3xl">
           <StepHeader step={1} total={4} title="Upload Your Photos" />
           <p className="text-sm text-[#8A8682] -mt-2 mb-4">
             Add your best listing shots — we&apos;ll turn them into a cinematic property video.
@@ -331,10 +331,10 @@ export default function CreatePage() {
       { value: 'horizontal', label: 'Horizontal', ratio: '16:9', desc: 'YouTube · MLS · Desktop' },
     ];
     return (
-      <div className="p-6 md:p-8 max-w-2xl">
+      <div className="p-4 md:p-8 max-w-2xl">
         <StepHeader step={2} total={4} title="Choose a Format" />
-        <p className="text-sm text-[#8A8682] -mt-2 mb-6">Pick the aspect ratio for your video.</p>
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <p className="text-sm text-[#8A8682] -mt-2 mb-5">Pick the aspect ratio for your video.</p>
+        <div className="grid grid-cols-3 gap-2 md:gap-4 mb-6 md:mb-8">
           {formatOptions.map(({ value, label, ratio, desc }) => {
             const isSelected = format === value;
             return (
@@ -343,34 +343,33 @@ export default function CreatePage() {
                 type="button"
                 onClick={() => setFormat(value)}
                 className={[
-                  'flex flex-col items-center gap-3 p-5 rounded-[12px] border-2 transition-all',
+                  'flex flex-col items-center gap-2 md:gap-3 p-3 md:p-5 rounded-[12px] border-2 transition-all',
                   isSelected
-                    ? 'border-[#F0B429] bg-[#FDF8EC]'
-                    : 'border-[#E2DED6] bg-white hover:border-[#F0B429]/50',
+                    ? 'border-[#1A1714] bg-[#F5F5F3]'
+                    : 'border-[#EBEBEB] bg-white',
                 ].join(' ')}
               >
-                {/* Aspect ratio preview */}
-                <div className="flex items-center justify-center h-16">
+                <div className="flex items-center justify-center h-12 md:h-16">
                   {value === 'vertical' && (
-                    <div className={['w-8 h-14 rounded border-2 transition-colors', isSelected ? 'border-[#F0B429] bg-[#F0B429]/10' : 'border-[#C8C4BC]'].join(' ')} />
+                    <div className={['w-6 h-11 md:w-8 md:h-14 rounded border-2 transition-colors', isSelected ? 'border-[#1A1714] bg-[#1A1714]/8' : 'border-[#D0CECA]'].join(' ')} />
                   )}
                   {value === 'square' && (
-                    <div className={['w-12 h-12 rounded border-2 transition-colors', isSelected ? 'border-[#F0B429] bg-[#F0B429]/10' : 'border-[#C8C4BC]'].join(' ')} />
+                    <div className={['w-10 h-10 md:w-12 md:h-12 rounded border-2 transition-colors', isSelected ? 'border-[#1A1714] bg-[#1A1714]/8' : 'border-[#D0CECA]'].join(' ')} />
                   )}
                   {value === 'horizontal' && (
-                    <div className={['w-16 h-9 rounded border-2 transition-colors', isSelected ? 'border-[#F0B429] bg-[#F0B429]/10' : 'border-[#C8C4BC]'].join(' ')} />
+                    <div className={['w-14 h-8 md:w-16 md:h-9 rounded border-2 transition-colors', isSelected ? 'border-[#1A1714] bg-[#1A1714]/8' : 'border-[#D0CECA]'].join(' ')} />
                   )}
                 </div>
                 <div className="text-center">
-                  <p className={['font-syne font-bold text-sm', isSelected ? 'text-[#1A1714]' : 'text-[#6B6760]'].join(' ')}>{label}</p>
-                  <p className={['text-xs font-mono mt-0.5', isSelected ? 'text-[#C07A00]' : 'text-[#B8B4AE]'].join(' ')}>{ratio}</p>
-                  <p className="text-[10px] text-[#B8B4AE] mt-1 leading-tight">{desc}</p>
+                  <p className={['font-syne font-bold text-xs md:text-sm', isSelected ? 'text-[#1A1714]' : 'text-[#6B6760]'].join(' ')}>{label}</p>
+                  <p className={['text-[10px] md:text-xs font-mono mt-0.5', isSelected ? 'text-[#1A1714]/60' : 'text-[#B8B4AE]'].join(' ')}>{ratio}</p>
+                  <p className="hidden md:block text-[10px] text-[#B8B4AE] mt-1 leading-tight">{desc}</p>
                 </div>
               </button>
             );
           })}
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2 md:gap-3">
           <Button variant="secondary" size="md" onClick={() => setStep('upload')}>← Back</Button>
           <Button variant="primary" size="md" onClick={() => setStep('details')}>Next →</Button>
         </div>
@@ -381,9 +380,9 @@ export default function CreatePage() {
   // ─── STEP: DETAILS ───────────────────────────────────────────────
   if (step === 'details') {
     return (
-      <div className="p-6 md:p-8 max-w-2xl">
+      <div className="p-4 md:p-8 max-w-2xl">
         <StepHeader step={3} total={4} title="Listing Details" />
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-4">
           <Input
             label="Listing Address (optional)"
             placeholder="123 Oak Street, Austin TX 78701"
@@ -402,9 +401,8 @@ export default function CreatePage() {
             value={agentName}
             onChange={(e) => setAgentName(e.target.value)}
           />
-
         </div>
-        <div className="flex gap-3 mt-8">
+        <div className="flex gap-2 md:gap-3 mt-6 md:mt-8">
           <Button variant="secondary" size="md" onClick={() => setStep('format')}>← Back</Button>
           <Button variant="primary"   size="md" onClick={() => setStep('template')}>Next →</Button>
         </div>
@@ -415,14 +413,14 @@ export default function CreatePage() {
   // ─── STEP: TEMPLATE ──────────────────────────────────────────────
   if (step === 'template') {
     return (
-      <div className="p-6 md:p-8 max-w-3xl">
+      <div className="p-4 md:p-8 max-w-3xl">
         <StepHeader step={4} total={4} title="Choose a Template" />
         <TemplateSelector
           selected={selectedTemplateKey}
           onSelect={setSelectedTemplateKey}
           plan={profile?.plan || 'free'}
         />
-        <div className="flex gap-3 mt-8">
+        <div className="flex gap-2 md:gap-3 mt-6 md:mt-8">
           <Button variant="secondary" size="md" onClick={() => setStep('details')}>← Back</Button>
           <Button variant="primary" size="lg" loading={generating} onClick={handleGenerate}>
             Generate Video →
@@ -463,8 +461,8 @@ export default function CreatePage() {
     const activeMilestone = [...milestones].reverse().find((m) => progress >= m.pct) ?? milestones[0];
 
     return (
-      <div className="p-6 md:p-8 max-w-xl">
-        <div className="bg-[#FFFFFF] border border-[#E2DED6] rounded-[16px] p-10 text-center">
+      <div className="p-4 md:p-8 max-w-xl">
+        <div className="bg-[#FFFFFF] border border-[#EBEBEB] rounded-[16px] p-6 md:p-10 text-center">
           {/* Animated icon */}
           <div className="relative w-20 h-20 mx-auto mb-6">
             <div className="absolute inset-0 bg-[#F0B429]/20 rounded-full animate-ping" style={{ animationDuration: '2s' }} />
@@ -544,25 +542,28 @@ export default function CreatePage() {
   // ─── STEP: RESULT ────────────────────────────────────────────────
   if (step === 'result') {
     return (
-      <div className="p-6 md:p-8 max-w-2xl">
+      <div className="p-4 md:p-8 max-w-2xl">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-8 h-8 rounded-full bg-[#F0B429]/20 flex items-center justify-center">
-            <span className="text-[#F0B429] text-lg leading-none">✓</span>
+        <div className="flex items-center gap-3 mb-5">
+          <div className="w-9 h-9 rounded-full bg-[#EAFAF1] flex items-center justify-center shrink-0">
+            <svg className="w-5 h-5 text-[#22c55e]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+            </svg>
           </div>
           <div>
-            <h2 className="font-syne font-bold text-2xl leading-tight">Your video is ready!</h2>
-            <p className="text-[#6B6760] text-sm">{listingAddress || 'Listing Video'}</p>
+            <h2 className="font-syne font-bold text-xl md:text-2xl leading-tight">Your video is ready!</h2>
+            <p className="text-[#ADADAD] text-sm">{listingAddress || 'Listing Video'}</p>
           </div>
         </div>
 
         {/* Video player */}
-        <div className="bg-[#F7F5EF] rounded-[6px] overflow-hidden mb-6 shadow-sm">
+        <div className="bg-[#F5F5F3] rounded-[12px] overflow-hidden mb-4">
           <video
             src={outputUrl}
             controls
             autoPlay
-            className="w-full max-h-[60vh] object-contain"
+            playsInline
+            className="w-full max-h-[55vh] object-contain"
             poster={images[0]}
           />
         </div>
@@ -571,7 +572,7 @@ export default function CreatePage() {
         <a
           href={outputUrl}
           download={`listing-reel-${Date.now()}.mp4`}
-          className="flex items-center justify-center gap-3 w-full bg-[#F0B429] text-[#1A1714] font-bold px-6 py-4 rounded-[6px] text-base hover:bg-[#F5C842] transition-all shadow-[0_0_30px_rgba(240,180,41,0.3)] hover:shadow-[0_0_40px_rgba(240,180,41,0.45)] mb-3"
+          className="flex items-center justify-center gap-2.5 w-full bg-[#1A1714] text-white font-bold px-6 py-4 rounded-[12px] text-base hover:bg-[#2A2420] transition-all mb-3 min-h-[52px]"
         >
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
@@ -580,11 +581,11 @@ export default function CreatePage() {
         </a>
 
         {/* Secondary actions */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-5">
           <button
             type="button"
             onClick={copyLink}
-            className="flex-1 flex items-center justify-center gap-2 border border-[#E2DED6] bg-white text-[#1A1714] font-medium px-4 py-2.5 rounded-[6px] text-sm hover:border-[#C8C4BC] transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 border border-[#EBEBEB] bg-white text-[#1A1714] font-medium px-4 py-3 rounded-[10px] text-sm hover:border-[#1A1714]/20 transition-colors min-h-[44px]"
           >
             {copied ? (
               <>
@@ -606,13 +607,12 @@ export default function CreatePage() {
           <button
             type="button"
             onClick={() => {
-              // Keep images + details, just swap to template selection
               setStep('template');
               setOutputUrl('');
               setVideoId('');
               setProgress(0);
             }}
-            className="flex-1 flex items-center justify-center gap-2 border border-[#E2DED6] bg-white text-[#1A1714] font-medium px-4 py-2.5 rounded-[6px] text-sm hover:border-[#C8C4BC] transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 border border-[#EBEBEB] bg-white text-[#1A1714] font-medium px-4 py-3 rounded-[10px] text-sm hover:border-[#1A1714]/20 transition-colors min-h-[44px]"
           >
             <svg className="w-4 h-4 text-[#6B6760]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
@@ -622,11 +622,11 @@ export default function CreatePage() {
         </div>
 
         {/* Post tips */}
-        <div className="bg-[#FFFFFF] border border-[#E2DED6] rounded-[6px] p-4 mb-6">
-          <p className="text-xs font-medium text-[#6B6760] uppercase tracking-wide mb-2">Post to</p>
+        <div className="bg-white border border-[#EBEBEB] rounded-[12px] p-4 mb-5">
+          <p className="text-[11px] font-semibold text-[#ADADAD] uppercase tracking-wider mb-2.5">Share to</p>
           <div className="flex flex-wrap gap-2">
             {['TikTok', 'Instagram Reels', 'YouTube Shorts', 'MLS Listing'].map((tip) => (
-              <span key={tip} className="text-xs border border-[#E2DED6] rounded px-3 py-1.5 text-[#7A7672]">
+              <span key={tip} className="text-xs border border-[#EBEBEB] rounded-full px-3 py-1.5 text-[#6B6760]">
                 {tip}
               </span>
             ))}
@@ -634,7 +634,7 @@ export default function CreatePage() {
         </div>
 
         {/* Tertiary actions */}
-        <div className="flex gap-3">
+        <div className="flex gap-2 md:gap-3">
           <Button variant="secondary" size="md" onClick={() => {
             setStep('upload');
             setImages([]);
@@ -660,16 +660,16 @@ export default function CreatePage() {
 
 function StepHeader({ step, total, title }: { step: number; total: number; title: string }) {
   return (
-    <div className="mb-8">
-      <p className="text-xs text-[#6B6760] font-mono mb-2">STEP {step} OF {total}</p>
-      <h1 className="font-syne font-bold text-2xl text-[#1A1714]">{title}</h1>
-      <div className="flex gap-2 mt-3">
+    <div className="mb-5 md:mb-8">
+      <p className="text-[10px] text-[#ADADAD] font-mono tracking-widest mb-1.5">STEP {step} OF {total}</p>
+      <h1 className="font-syne font-bold text-xl md:text-2xl text-[#1A1714]">{title}</h1>
+      <div className="flex gap-1.5 mt-2.5">
         {Array.from({ length: total }).map((_, i) => (
           <div
             key={i}
             className={[
-              'h-1 rounded-full transition-all duration-300',
-              i < step ? 'bg-[#1A1714] w-8' : 'bg-[#E2DED6] w-4',
+              'h-[3px] rounded-full transition-all duration-300',
+              i < step ? 'bg-[#1A1714] w-7' : 'bg-[#EBEBEB] w-4',
             ].join(' ')}
           />
         ))}

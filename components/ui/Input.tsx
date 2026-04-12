@@ -11,7 +11,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className="flex flex-col gap-1.5">
         {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-[#3A3733]">
+          <label htmlFor={inputId} className="text-sm font-medium text-[#1A1714]">
             {label}
           </label>
         )}
@@ -19,14 +19,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           ref={ref}
           id={inputId}
           className={[
-            'w-full bg-white border rounded px-3 py-2.5 text-sm text-[#1A1714]',
-            'placeholder:text-[#B8B4AE]',
-            'focus:outline-none focus:border-[#F0B429] focus:ring-1 focus:ring-[#F0B429]/40',
-            'transition-colors duration-150',
-            // Fix browser autofill dark background
+            // 16px prevents iOS auto-zoom; min-h ensures 44px touch target
+            'w-full min-h-[44px] bg-white border rounded-[10px] px-4 py-3',
+            'text-[16px] text-[#1A1714] placeholder:text-[#ADADAD]',
+            'focus:outline-none focus:border-[#1A1714]/30 transition-colors duration-150',
             '[&:-webkit-autofill]:bg-white [&:-webkit-autofill]:text-[#1A1714]',
             '[&:-webkit-autofill]:shadow-[0_0_0_1000px_white_inset]',
-            error ? 'border-red-400' : 'border-[#D8D4CC] hover:border-[#B8B4AE]',
+            error ? 'border-red-400' : 'border-[#EBEBEB] hover:border-[#D0CECA]',
             className,
           ].join(' ')}
           {...props}

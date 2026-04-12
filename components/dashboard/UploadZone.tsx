@@ -482,14 +482,14 @@ export function UploadZone({
       )}
 
       {/* Spacer so content isn't hidden behind the fixed bar */}
-      <div className="h-36" />
+      <div className="h-48 md:h-36" />
 
       {/* Prompt bar — fixed to viewport bottom */}
       {(() => {
         const wordCount = countWords(videoPrompt);
         const isOver = wordCount > MAX_WORDS;
         return (
-          <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-30 px-4 md:px-8 pb-4 md:pb-6" style={{ background: '#FFFFFF' }}>
+          <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-50 px-3 md:px-8 pb-4 md:pb-6" style={{ background: '#FFFFFF' }}>
             {/* Fade gradient above the bar */}
             <div className="absolute inset-x-0 -top-10 h-10 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent, #FFFFFF)' }} />
             <div
@@ -524,7 +524,7 @@ export function UploadZone({
                         onPromptChange?.(next);
                       }
                     }}
-                    className="w-full resize-none bg-transparent text-sm text-[#1A1714] outline-none leading-relaxed placeholder:text-[#C8C4BC]"
+                    className="w-full resize-none bg-transparent text-[16px] md:text-sm text-[#1A1714] outline-none leading-relaxed placeholder:text-[#C8C4BC]"
                     placeholder="Describe your vision for an AI animated shot…"
                   />
                 </div>
@@ -589,12 +589,12 @@ export function UploadZone({
               {showPrompts && (
                 <>
                   <div className="fixed inset-0 z-10" onClick={() => setShowPrompts(false)} />
-                  <div className="absolute bottom-full left-0 right-0 mb-2 z-20 rounded-[12px] border border-[#E2DED6] bg-white shadow-[0_8px_32px_rgba(26,23,20,0.12)] overflow-hidden">
+                  <div className="absolute bottom-full left-0 right-0 mb-2 z-20 rounded-[12px] border border-[#E2DED6] bg-white shadow-[0_8px_32px_rgba(26,23,20,0.12)] overflow-hidden max-h-[60vh] overflow-y-auto">
                     <div className="p-3">
                       <p className="text-[10px] text-[#B8B4AE] font-medium uppercase tracking-widest mb-2.5 px-1">
                         Prompt ideas
                       </p>
-                      <div className="grid grid-cols-2 gap-1.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                         {PROMPT_TEMPLATES.map((t) => (
                           <button
                             key={t.label}
