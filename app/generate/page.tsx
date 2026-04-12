@@ -11,14 +11,25 @@ import StepResult from '@/components/tunnel/StepResult';
 
 type Step = 'upload' | 'templates' | 'email' | 'generating' | 'result' | 'failed';
 
+const GENERATION_STORAGE_KEY = 'reeltors_generation_v1';
+// Match StepGenerating's hard timeout so stale entries are auto-evicted on resume
+const MAX_RESUME_AGE_MS = 10 * 60 * 1000;
+
+interface StoredGeneration {
+  videoId:   string;
+  startedAt: number;
+}
+
 interface TunnelState {
   sessionToken: string;
-  imageUrls: string[];
-  templateKey: string;
-  pollUrl: string;
-  email: string;
-  videoUrl: string;
+  imageUrls:    string[];
+  templateKey:  string;
+  pollUrl:      string;
+  email:        string;
+  videoUrl:     string;
   thumbnailUrl: string | null;
+  videoId:      string;
+  startedAt:    number | null;
 }
 
 interface TunnelPending {
@@ -38,12 +49,14 @@ export default function GeneratePage() {
   const [isAuthChecked, setIsAuthChecked] = useState(false);
   const [state, setState] = useState<TunnelState>({
     sessionToken: '',
-    imageUrls: [],
-    templateKey: '',
-    pollUrl: '',
-    email: '',
-    videoUrl: '',
+    imageUrls:    [],
+    templateKey:  '',
+    pollUrl:      '',
+    email:        '',
+    videoUrl:     '',
     thumbnailUrl: null,
+    videoId:      '',
+    startedAt:    null,
   });
   const [failReason, setFailReason] = useState<string | null>(null);
   const [failCode, setFailCode] = useState<string | null>(null);
@@ -95,10 +108,20 @@ export default function GeneratePage() {
         return;
       }
 
+      const startedAt = Date.now();
+
+      // Persist so the generating UI can resume accurately after a page refresh
+      try {
+        const entry: StoredGeneration = { videoId: data.videoId, startedAt };
+        localStorage.setItem(GENERATION_STORAGE_KEY, JSON.stringify(entry));
+      } catch { /* localStorage may be blocked in some browsers */ }
+
       setState((prev) => ({
         ...prev,
         email,
-        pollUrl: `/api/videos/${data.videoId}/status`,
+        pollUrl:   `/api/videos/${data.videoId}/status`,
+        videoId:   data.videoId,
+        startedAt,
       }));
       setStep('generating');
     } catch (err) {
@@ -154,6 +177,31 @@ export default function GeneratePage() {
         return;
       }
 
+      // Check if there's an in-progress generation from before a page refresh.
+      // Only authenticated users have a videoId — tunnel sessions use sessionId.
+      try {
+        const raw = localStorage.getItem(GENERATION_STORAGE_KEY);
+        if (raw) {
+          const { videoId, startedAt } = JSON.parse(raw) as StoredGeneration;
+          const isRecent = Date.now() - startedAt < MAX_RESUME_AGE_MS;
+          if (videoId && startedAt && isRecent) {
+            setState((prev) => ({
+              ...prev,
+              sessionToken: stored,
+              email:        user.email ?? '',
+              pollUrl:      `/api/videos/${videoId}/status`,
+              videoId,
+              startedAt,
+            }));
+            setIsAuthChecked(true);
+            setStep('generating');
+            return;
+          }
+          // Stale entry — discard silently
+          localStorage.removeItem(GENERATION_STORAGE_KEY);
+        }
+      } catch { /* localStorage unavailable — fall through to normal flow */ }
+
       // Already logged in — skip email gate when they hit that step
       setState((prev) => ({ ...prev, sessionToken: stored, email: user.email ?? '' }));
       setIsAuthChecked(true);
@@ -198,11 +246,15 @@ export default function GeneratePage() {
   }, []);
 
   const handleVideoComplete = useCallback((videoUrl: string, thumbnailUrl: string | null) => {
+    try { localStorage.removeItem(GENERATION_STORAGE_KEY); } catch { /* ignore */ }
     setState((prev) => ({ ...prev, videoUrl, thumbnailUrl }));
     setStep('result');
   }, []);
 
-  const handleGenerationFailed = useCallback(() => setStep('failed'), []);
+  const handleGenerationFailed = useCallback(() => {
+    try { localStorage.removeItem(GENERATION_STORAGE_KEY); } catch { /* ignore */ }
+    setStep('failed');
+  }, []);
 
   if (!isAuthChecked) return null;
 
@@ -264,6 +316,7 @@ export default function GeneratePage() {
       {step === 'generating' && (
         <StepGenerating
           pollUrl={state.pollUrl}
+          startedAt={state.startedAt ?? undefined}
           onComplete={handleVideoComplete}
           onFailed={handleGenerationFailed}
         />

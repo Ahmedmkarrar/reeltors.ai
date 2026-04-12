@@ -40,6 +40,7 @@ export interface GenerateVideoOptions {
   email?: string;
   phone?: string;
   format?: 'vertical' | 'square' | 'horizontal';
+  audioUrl?: string;
   callbackUrl?: string;
   apiKey?: string;
   env?: ShotstackEnv;
@@ -47,6 +48,7 @@ export interface GenerateVideoOptions {
 
 export interface GenerateMixedMediaOptions {
   mediaItems: MediaItem[];
+  templateKey?: string;
   listingAddress?: string;
   listingPrice?: string;
   agentName?: string;
@@ -54,6 +56,7 @@ export interface GenerateMixedMediaOptions {
   email?: string;
   phone?: string;
   format?: 'vertical' | 'square' | 'horizontal';
+  audioUrl?: string;
   callbackUrl?: string;
   apiKey?: string;
   env?: ShotstackEnv;
@@ -66,9 +69,11 @@ interface ShotstackClip {
   start: number;
   length: number;
   effect?: string;
+  filter?: string;
   transition?: { in?: string; out?: string };
   position?: string;
   offset?: { x?: number; y?: number };
+  opacity?: number;
 }
 
 interface ShotstackTimeline {
@@ -76,11 +81,134 @@ interface ShotstackTimeline {
   tracks: { clips: ShotstackClip[] }[];
 }
 
-// ── Constants ─────────────────────────────────────────────────────────────────
+// ── Design System ─────────────────────────────────────────────────────────────
 
-// First clip is slightly longer for a dramatic opener feel
-const INTRO_CLIP_LENGTH = 5;
-const CLIP_LENGTH       = 4;
+const PALETTE = {
+  GOLD:          '#C9A96E',
+  SILVER:        '#D4D4D4',
+  TIKTOK_RED:    '#FF3B5C',
+  STORY_BLUE:    '#4A9FD4',
+  NEAR_BLACK:    '#0A0A0A',
+  WHITE:         '#FFFFFF',
+  SOFT_WHITE:    'rgba(255,255,255,0.80)',
+  CREAM:         '#E8DCC8',
+  OVERLAY_DARK:  'rgba(6,6,6,0.72)',
+  OVERLAY_COOL:  'rgba(15,15,15,0.76)',
+  OVERLAY_DEEP:  'rgba(0,0,0,0.82)',
+} as const;
+
+const FONTS_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap');";
+
+// ── Template Configuration ────────────────────────────────────────────────────
+
+interface TemplateConfig {
+  accentColor:    string;
+  overlayColor:   string;
+  priceFont:      string;
+  detailFont:     string;
+  introLength:    number;
+  clipLength:     number;
+  mediaEffects:   string[];
+  clipTransIn:    string;
+  clipTransOut:   string;
+  textTransIn:    string;
+  audioFadeAt:    number;
+}
+
+function getTemplateConfig(templateKey?: string): TemplateConfig {
+  switch (templateKey) {
+    case 'LUXURY_REVEAL':
+    case 'LUXURY_MANSION':
+      return {
+        accentColor:   PALETTE.GOLD,
+        overlayColor:  PALETTE.OVERLAY_DARK,
+        priceFont:     "'Playfair Display', Georgia, serif",
+        detailFont:    "'Montserrat', Arial, sans-serif",
+        introLength:   5.5,
+        clipLength:    4.5,
+        mediaEffects:  ['zoomIn', 'zoomOut', 'zoomIn', 'zoomOut', 'zoomIn', 'zoomOut'],
+        clipTransIn:   'fade',
+        clipTransOut:  'fade',
+        textTransIn:   'slideUp',
+        audioFadeAt:   15,
+      };
+
+    case 'CINEMATIC':
+      return {
+        accentColor:   PALETTE.GOLD,
+        overlayColor:  PALETTE.OVERLAY_DARK,
+        priceFont:     "'Playfair Display', Georgia, serif",
+        detailFont:    "'Montserrat', Arial, sans-serif",
+        introLength:   5,
+        clipLength:    4,
+        mediaEffects:  ['zoomIn', 'slideLeft', 'zoomOut', 'slideRight', 'zoomIn', 'slideLeft'],
+        clipTransIn:   'fade',
+        clipTransOut:  'fade',
+        textTransIn:   'slideUp',
+        audioFadeAt:   15,
+      };
+
+    case 'MODERN_MINIMAL':
+      return {
+        accentColor:   PALETTE.SILVER,
+        overlayColor:  PALETTE.OVERLAY_COOL,
+        priceFont:     "'Montserrat', Arial, sans-serif",
+        detailFont:    "'Montserrat', Arial, sans-serif",
+        introLength:   4.5,
+        clipLength:    3.5,
+        mediaEffects:  ['slideLeft', 'slideRight', 'slideLeft', 'slideRight', 'slideLeft', 'slideRight'],
+        clipTransIn:   'fade',
+        clipTransOut:  'fade',
+        textTransIn:   'slideLeft',
+        audioFadeAt:   15,
+      };
+
+    case 'TIKTOK_FAST':
+      return {
+        accentColor:   PALETTE.TIKTOK_RED,
+        overlayColor:  PALETTE.OVERLAY_DEEP,
+        priceFont:     "'Montserrat', Arial, sans-serif",
+        detailFont:    "'Montserrat', Arial, sans-serif",
+        introLength:   2.5,
+        clipLength:    2,
+        mediaEffects:  ['slideLeft', 'slideRight', 'slideLeft', 'slideRight', 'slideLeft', 'slideRight'],
+        clipTransIn:   'wipeLeft',
+        clipTransOut:  'wipeLeft',
+        textTransIn:   'slideLeft',
+        audioFadeAt:   12,
+      };
+
+    case 'STORY':
+      return {
+        accentColor:   PALETTE.STORY_BLUE,
+        overlayColor:  PALETTE.OVERLAY_DARK,
+        priceFont:     "'Playfair Display', Georgia, serif",
+        detailFont:    "'Montserrat', Arial, sans-serif",
+        introLength:   4,
+        clipLength:    3.5,
+        mediaEffects:  ['zoomIn', 'zoomOut', 'slideLeft', 'slideRight', 'zoomIn', 'zoomOut'],
+        clipTransIn:   'fade',
+        clipTransOut:  'fade',
+        textTransIn:   'slideUp',
+        audioFadeAt:   15,
+      };
+
+    default:
+      return {
+        accentColor:   PALETTE.GOLD,
+        overlayColor:  PALETTE.OVERLAY_DARK,
+        priceFont:     "'Playfair Display', Georgia, serif",
+        detailFont:    "'Montserrat', Arial, sans-serif",
+        introLength:   5,
+        clipLength:    4,
+        mediaEffects:  ['zoomIn', 'zoomOut', 'zoomIn', 'zoomOut', 'slideLeft', 'slideRight'],
+        clipTransIn:   'fade',
+        clipTransOut:  'fade',
+        textTransIn:   'slideUp',
+        audioFadeAt:   15,
+      };
+  }
+}
 
 const FORMAT_SIZES: Record<string, { width: number; height: number }> = {
   vertical:   { width: 1080, height: 1920 },
@@ -88,15 +216,12 @@ const FORMAT_SIZES: Record<string, { width: number; height: number }> = {
   horizontal: { width: 1920, height: 1080 },
 };
 
-// Alternate slow zoom in / zoom out — classic cinematic Ken Burns
-const CINEMATIC_EFFECTS = ['zoomIn', 'zoomOut', 'zoomIn', 'zoomOut', 'slideLeft', 'slideRight'];
+// ── Timeline Builders ─────────────────────────────────────────────────────────
 
-// ── Timeline builders ─────────────────────────────────────────────────────────
-
-function buildMediaClips(mediaItems: MediaItem[]): ShotstackClip[] {
+function buildMediaClips(mediaItems: MediaItem[], config: TemplateConfig): ShotstackClip[] {
   let cursor = 0;
   return mediaItems.map((item, idx) => {
-    const length = idx === 0 ? INTRO_CLIP_LENGTH : CLIP_LENGTH;
+    const length = idx === 0 ? config.introLength : config.clipLength;
     const start  = cursor;
     cursor += length;
 
@@ -106,81 +231,88 @@ function buildMediaClips(mediaItems: MediaItem[]): ShotstackClip[] {
         : { type: 'image', src: item.url },
       start,
       length,
-      effect:     item.type === 'image' ? CINEMATIC_EFFECTS[idx % CINEMATIC_EFFECTS.length] : undefined,
+      effect:     item.type === 'image' ? config.mediaEffects[idx % config.mediaEffects.length] : undefined,
       filter:     item.type === 'image' ? 'boost' : undefined,
-      transition: { in: 'fade', out: 'fade' },
+      transition: { in: config.clipTransIn, out: config.clipTransOut },
     };
   });
 }
 
-function getTotalDuration(mediaItems: MediaItem[]): number {
-  return INTRO_CLIP_LENGTH + Math.max(0, mediaItems.length - 1) * CLIP_LENGTH;
+function getTotalDuration(mediaItems: MediaItem[], config: TemplateConfig): number {
+  return config.introLength + Math.max(0, mediaItems.length - 1) * config.clipLength;
 }
 
 function buildTextClips(opts: {
   totalDuration: number;
-  address?: string;
-  price?: string;
-  agentName?: string;
-  format?: 'vertical' | 'square' | 'horizontal';
+  address?:      string;
+  price?:        string;
+  agentName?:    string;
+  config:        TemplateConfig;
+  format?:       'vertical' | 'square' | 'horizontal';
 }): ShotstackClip[] {
-  const clips: ShotstackClip[] = [];
+  const { totalDuration, address, price, agentName, config } = opts;
   const isHorizontal = opts.format === 'horizontal';
   const isSquare     = opts.format === 'square';
 
-  // scale overlay canvas to the output resolution
-  const lowerThirdWidth  = isHorizontal ? 1600 : isSquare ? 900 : 860;
-  const lowerThirdHeight = isHorizontal ? 180  : isSquare ? 200 : 220;
-  const priceFontSize    = isHorizontal ? 44   : 52;
-  const addressFontSize  = isHorizontal ? 22   : 26;
-  const agentWidth       = isHorizontal ? 900  : 520;
+  // Scale overlay canvas to the output resolution
+  const lowerThirdWidth  = isHorizontal ? 1600 : isSquare ? 900 : 880;
+  const lowerThirdHeight = isHorizontal ? 190  : isSquare ? 210 : 230;
+  const priceFontSize    = isHorizontal ? 44   : 62;
+  const addressFontSize  = isHorizontal ? 20   : 22;
+  const agentWidth       = isHorizontal ? 900  : 500;
 
-  // cinematic lower-third: gradient bar + price + address
-  if (opts.address || opts.price) {
+  const clips: ShotstackClip[] = [];
+
+  if (address || price) {
     clips.push({
       asset: {
         type: 'html',
         html: [
           '<div class="wrap">',
-          '  <div class="bar"></div>',
-          opts.price   ? `  <p class="price">${opts.price}</p>` : '',
-          opts.address ? `  <p class="address">${opts.address}</p>` : '',
+          '  <div class="panel">',
+          '    <div class="accent-bar"></div>',
+          price   ? `    <p class="price">${price}</p>` : '',
+          address ? `    <p class="address">${address}</p>` : '',
+          '  </div>',
           '</div>',
         ].join(''),
         css: [
-          '*{margin:0;padding:0;box-sizing:border-box}',
-          '.wrap{font-family:"Helvetica Neue",Arial,sans-serif;width:100%;padding:0 0 0 0}',
-          '.bar{width:60px;height:3px;background:#F0B429;margin-bottom:12px}',
-          `.price{color:#ffffff;font-size:${priceFontSize}px;font-weight:800;letter-spacing:-1px;line-height:1;margin-bottom:8px;text-shadow:0 2px 12px rgba(0,0,0,0.6)}`,
-          `.address{color:rgba(255,255,255,0.82);font-size:${addressFontSize}px;font-weight:400;letter-spacing:0.2px}`,
+          FONTS_IMPORT,
+          `*{margin:0;padding:0;box-sizing:border-box}`,
+          `.wrap{width:100%;font-family:${config.detailFont}}`,
+          `.panel{background:${config.overlayColor};padding:18px 36px 26px 40px;border-top:1px solid ${hexToRgba(config.accentColor, 0.4)}}`,
+          `.accent-bar{width:44px;height:2px;background:${config.accentColor};margin-bottom:14px}`,
+          `.price{font-family:${config.priceFont};color:${PALETTE.WHITE};font-size:${priceFontSize}px;font-weight:700;letter-spacing:-0.5px;line-height:1;margin-bottom:10px;text-shadow:0 2px 16px rgba(0,0,0,0.5)}`,
+          `.address{font-family:${config.detailFont};color:${PALETTE.SOFT_WHITE};font-size:${addressFontSize}px;font-weight:400;letter-spacing:1.4px;text-transform:uppercase}`,
         ].join(''),
         width:  lowerThirdWidth,
         height: lowerThirdHeight,
       },
-      start:    0,
-      length:   opts.totalDuration,
-      position: 'bottomLeft',
-      offset:   { x: 0.05, y: 0.1 },
+      start:      0,
+      length:     totalDuration,
+      position:   'bottomLeft',
+      offset:     { x: 0.04, y: 0.07 },
+      transition: { in: config.textTransIn },
     });
   }
 
-  // agent name: top-right, subtle
-  if (opts.agentName) {
+  if (agentName) {
     clips.push({
       asset: {
         type: 'html',
-        html: `<div class="wrap"><span class="dot"></span><p class="name">${opts.agentName}</p></div>`,
+        html: `<div class="wrap"><span class="dot"></span><p class="name">${agentName}</p></div>`,
         css: [
-          '*{margin:0;padding:0;box-sizing:border-box}',
-          '.wrap{font-family:"Helvetica Neue",Arial,sans-serif;display:flex;align-items:center;gap:8px}',
-          '.dot{width:6px;height:6px;border-radius:50%;background:#F0B429;flex-shrink:0}',
-          '.name{color:rgba(255,255,255,0.9);font-size:22px;font-weight:500;letter-spacing:0.5px;white-space:nowrap}',
+          FONTS_IMPORT,
+          `*{margin:0;padding:0;box-sizing:border-box}`,
+          `.wrap{font-family:${config.detailFont};display:flex;align-items:center;gap:8px}`,
+          `.dot{width:5px;height:5px;border-radius:50%;background:${config.accentColor};flex-shrink:0}`,
+          `.name{color:${PALETTE.CREAM};font-size:20px;font-weight:500;letter-spacing:0.8px;white-space:nowrap;text-shadow:0 1px 8px rgba(0,0,0,0.6)}`,
         ].join(''),
         width:  agentWidth,
-        height: 50,
+        height: 44,
       },
       start:    0,
-      length:   opts.totalDuration,
+      length:   totalDuration,
       position: 'topRight',
       offset:   { x: -0.04, y: -0.04 },
     });
@@ -189,35 +321,74 @@ function buildTextClips(opts: {
   return clips;
 }
 
-function buildTimeline(
-  mediaItems: MediaItem[],
-  opts: { address?: string; price?: string; agentName?: string; format?: 'vertical' | 'square' | 'horizontal' },
-): ShotstackTimeline {
-  const mediaClips    = buildMediaClips(mediaItems);
-  const totalDuration = getTotalDuration(mediaItems);
-  const textClips   = buildTextClips({ totalDuration, format: opts.format, ...opts });
-
-  // tracks[0] is the top layer in Shotstack
-  const tracks: { clips: ShotstackClip[] }[] = [];
-  if (textClips.length > 0) tracks.push({ clips: textClips });
-  tracks.push({ clips: mediaClips });
-
-  return { background: '#000000', tracks };
+function buildAudioTrack(audioUrl: string, totalDuration: number, fadeAt: number): { clips: ShotstackClip[] } {
+  const audioDuration = Math.min(totalDuration, fadeAt);
+  return {
+    clips: [{
+      asset: {
+        type:   'audio',
+        src:    audioUrl,
+        trim:   0,
+        volume: 0.45,
+        effect: 'fadeOut',
+      },
+      start:  0,
+      length: audioDuration,
+    }],
+  };
 }
 
-// ── API calls ─────────────────────────────────────────────────────────────────
+function buildTimeline(
+  mediaItems: MediaItem[],
+  opts: {
+    address?:     string;
+    price?:       string;
+    agentName?:   string;
+    templateKey?: string;
+    audioUrl?:    string;
+    format?:      'vertical' | 'square' | 'horizontal';
+  },
+): ShotstackTimeline {
+  const config        = getTemplateConfig(opts.templateKey);
+  const mediaClips    = buildMediaClips(mediaItems, config);
+  const totalDuration = getTotalDuration(mediaItems, config);
+  const textClips     = buildTextClips({
+    totalDuration,
+    address:   opts.address,
+    price:     opts.price,
+    agentName: opts.agentName,
+    config,
+    format:    opts.format,
+  });
 
-// Sample video returned in mock mode — real estate exterior clip
+  const tracks: { clips: ShotstackClip[] }[] = [];
+  if (textClips.length > 0) tracks.push({ clips: textClips });
+  if (opts.audioUrl) tracks.push(buildAudioTrack(opts.audioUrl, totalDuration, config.audioFadeAt));
+  tracks.push({ clips: mediaClips });
+
+  return { background: PALETTE.NEAR_BLACK, tracks };
+}
+
+// ── Utility ───────────────────────────────────────────────────────────────────
+
+function hexToRgba(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ── API Calls ─────────────────────────────────────────────────────────────────
+
 const MOCK_VIDEO_URL = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4';
 
 export async function createRender(opts: {
-  timeline: ShotstackTimeline;
-  format?: 'vertical' | 'square' | 'horizontal';
+  timeline:     ShotstackTimeline;
+  format?:      'vertical' | 'square' | 'horizontal';
   callbackUrl?: string;
   apiKey?: string;
   env?: ShotstackEnv;
 }): Promise<ShotstackRenderResponse> {
-  // MOCK_AI=true: skip API, return a fake queued render immediately
   if (process.env.MOCK_AI === 'true') {
     return { id: `mock_${Date.now()}`, status: 'queued' };
   }
@@ -231,18 +402,15 @@ export async function createRender(opts: {
     timeline: opts.timeline,
     output: {
       format: 'mp4',
-      size: FORMAT_SIZES[opts.format ?? 'vertical'],
+      size:   FORMAT_SIZES[opts.format ?? 'vertical'],
     },
   };
   if (opts.callbackUrl) body.callback = opts.callbackUrl;
 
   const res = await fetch(`${BASE_URL}/${env}/render`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': apiKey,
-    },
-    body: JSON.stringify(body),
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+    body:    JSON.stringify(body),
   });
 
   if (!res.ok) {
@@ -251,7 +419,7 @@ export async function createRender(opts: {
   }
 
   const json = await res.json() as {
-    success: boolean;
+    success:  boolean;
     response: { id: string; message: string };
   };
 
@@ -263,7 +431,6 @@ export async function createRender(opts: {
 }
 
 export async function getRenderStatus(renderId: string): Promise<ShotstackRenderResponse> {
-  // MOCK_AI=true: immediately return done with a sample video URL
   if (process.env.MOCK_AI === 'true') {
     return { id: renderId, status: 'done', url: MOCK_VIDEO_URL };
   }
@@ -281,13 +448,13 @@ export async function getRenderStatus(renderId: string): Promise<ShotstackRender
   }
 
   const json = await res.json() as {
-    success: boolean;
+    success:  boolean;
     response: {
-      id: string;
-      status: ShotstackStatus;
-      url?: string;
+      id:         string;
+      status:     ShotstackStatus;
+      url?:       string;
       thumbnail?: string | null;
-      error?: string;
+      error?:     string;
     };
   };
 
@@ -301,7 +468,7 @@ export async function getRenderStatus(renderId: string): Promise<ShotstackRender
   };
 }
 
-// ── High-level helpers ────────────────────────────────────────────────────────
+// ── High-Level Helpers ────────────────────────────────────────────────────────
 
 export async function generateVideo(opts: GenerateVideoOptions): Promise<ShotstackRenderResponse> {
   const mediaItems: MediaItem[] = opts.images.map((url) => ({ type: 'image', url }));
@@ -310,10 +477,12 @@ export async function generateVideo(opts: GenerateVideoOptions): Promise<Shotsta
 
 export async function generateMixedMediaVideo(opts: GenerateMixedMediaOptions): Promise<ShotstackRenderResponse> {
   const timeline = buildTimeline(opts.mediaItems, {
-    address:   opts.listingAddress,
-    price:     opts.listingPrice,
-    agentName: opts.agentName,
-    format:    opts.format ?? 'vertical',
+    address:     opts.listingAddress,
+    price:       opts.listingPrice,
+    agentName:   opts.agentName,
+    templateKey: opts.templateKey,
+    audioUrl:    opts.audioUrl,
+    format:      opts.format ?? 'vertical',
   });
   return createRender({
     timeline,

@@ -18,7 +18,7 @@ export async function GET(
   // Load video record
   const { data: video, error } = await admin
     .from('videos')
-    .select('id, status, output_url, render_id, user_id')
+    .select('id, status, output_url, thumbnail_url, render_id, user_id')
     .eq('id', id)
     .eq('user_id', user.id)
     .single();
@@ -27,9 +27,13 @@ export async function GET(
     return NextResponse.json({ error: 'Video not found' }, { status: 404 });
   }
 
-  // Already done — just return current state
+  // Already done — return current state (thumbnail_url may be null if webhook hasn't fired yet)
   if (video.status === 'complete' || video.status === 'failed') {
-    return NextResponse.json({ status: video.status, output_url: video.output_url });
+    return NextResponse.json({
+      status:        video.status,
+      output_url:    video.output_url,
+      thumbnail_url: video.thumbnail_url,
+    });
   }
 
   // No render ID yet — still pending
@@ -69,6 +73,7 @@ export async function GET(
     return NextResponse.json({ status: 'failed' });
   }
 
-  // Still rendering
-  return NextResponse.json({ status: 'processing' });
+  // Still rendering — surface Shotstack sub-status so the frontend stage stepper
+  // can fast-forward to the correct stage rather than relying on time alone
+  return NextResponse.json({ status: 'processing', renderStage: render.status });
 }
