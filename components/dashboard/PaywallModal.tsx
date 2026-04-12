@@ -71,7 +71,7 @@ export function PaywallModal() {
               </svg>
             </div>
             <span className="font-syne font-extrabold text-[16px] text-[#1A1714]">
-              Reeltors<span className="text-[#F0B429]">.</span>ai
+              ReeltorsAI
             </span>
           </div>
           <h2 className="font-syne font-extrabold text-[20px] text-[#1A1714] mb-1">

@@ -4,7 +4,7 @@ function getResend() {
   return new Resend(process.env.RESEND_API_KEY);
 }
 
-const FROM = () => process.env.RESEND_FROM_EMAIL || 'support@reeltors.ai';
+const FROM = () => `ReeltorsAI <${process.env.RESEND_FROM_EMAIL || 'support@reeltors.ai'}>`;
 const APP_URL = () => process.env.NEXT_PUBLIC_APP_URL || 'https://reeltors.ai';
 
 const baseStyle = 'background:#0D0B08;color:#F0F0EB;font-family:Inter,sans-serif;padding:40px 20px;margin:0;';

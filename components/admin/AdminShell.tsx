@@ -50,7 +50,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               </svg>
             </div>
             <div>
-              <p className="font-syne font-extrabold text-[13px] text-[#1A1714] leading-none">Reeltors.ai</p>
+              <p className="font-syne font-extrabold text-[13px] text-[#1A1714] leading-none">ReeltorsAI</p>
               <p className="text-[9px] font-mono text-[#F0B429] tracking-wider uppercase">Admin</p>
             </div>
           </div>

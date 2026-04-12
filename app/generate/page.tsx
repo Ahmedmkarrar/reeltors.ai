@@ -275,7 +275,7 @@ export default function GeneratePage() {
     <main style={{ background: '#0D0B08', minHeight: '100vh', color: '#F0F0EB' }}>
       {step !== 'result' && (
         <header style={{ padding: '20px 24px', borderBottom: '1px solid #1A1714' }}>
-          <span style={{ color: '#F0B429', fontWeight: 800, fontSize: 20 }}>Reeltors.ai</span>
+          <span style={{ color: '#F0B429', fontWeight: 800, fontSize: 20 }}>ReeltorsAI</span>
         </header>
       )}
 

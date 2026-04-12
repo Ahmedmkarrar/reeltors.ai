@@ -35,7 +35,7 @@ export function EmbeddedCheckoutModal({ plan, annual, onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#EAE8E2] shrink-0">
           <span className="font-syne font-extrabold text-[13px] tracking-[0.08em] text-[#1A1714]">
-            REELTORS.AI
+            ReeltorsAI
           </span>
           <button
             onClick={onClose}

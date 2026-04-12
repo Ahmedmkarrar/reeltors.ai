@@ -67,7 +67,7 @@ function LoginForm() {
           <Link href="/" className="inline-flex items-center gap-2.5 group">
             <LogoIcon className="w-9 h-9 drop-shadow-[0_0_10px_rgba(240,180,41,0.4)]" />
             <span className="font-syne font-extrabold text-[20px] text-[#FAFAF8]">
-              Reeltors<span className="text-[#F0B429]">.</span>ai
+              ReeltorsAI
             </span>
           </Link>
         </div>
@@ -107,7 +107,7 @@ function LoginForm() {
           <Link href="/" className="flex lg:hidden items-center gap-2 mb-10 justify-center">
             <LogoIcon className="w-8 h-8" />
             <span className="font-syne font-extrabold text-xl text-[#1A1714]">
-              Reeltors<span className="text-[#F0B429]">.</span>ai
+              ReeltorsAI
             </span>
           </Link>
 

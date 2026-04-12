@@ -122,7 +122,7 @@ export function Sidebar() {
         <Link href="/" className="flex items-center gap-2.5 group">
           <LogoIcon className="w-7 h-7" />
           <span className="font-syne font-extrabold text-[16px] text-[#1A1714] group-hover:text-[#F0B429] transition-colors">
-            Reeltors<span className="text-[#F0B429]">.</span>ai
+            ReeltorsAI
           </span>
         </Link>
       </div>

@@ -68,7 +68,7 @@ export function Comparison() {
                   </th>
                   <th className="px-4 py-4 text-center bg-[#1A1714] border-x border-[#F0B429]/20 relative">
                     <div className="absolute top-0 left-0 right-0 h-0.5 bg-[#F0B429]" />
-                    <div className="font-syne font-extrabold text-[#F0B429] text-sm">Reeltors.ai</div>
+                    <div className="font-syne font-extrabold text-[#F0B429] text-sm">ReeltorsAI</div>
                     <div className="text-[10px] text-[#8A8682] mt-0.5">$49.99/month</div>
                   </th>
                   <th className="px-4 py-4 text-center bg-[#141210]">

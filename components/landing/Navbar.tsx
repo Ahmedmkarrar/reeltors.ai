@@ -36,7 +36,7 @@ export function Navbar() {
           <Link href="/" className="flex items-center gap-2 shrink-0 group">
             <LogoIcon className="w-7 h-7 drop-shadow-[0_0_8px_rgba(240,180,41,0.5)] group-hover:drop-shadow-[0_0_14px_rgba(240,180,41,0.7)] transition-[filter]" />
             <span className="font-syne font-extrabold text-[17px] tracking-tight text-[#FAFAF8]">
-              Reeltors<span className="text-[#F0B429]">.</span>ai
+              ReeltorsAI
             </span>
           </Link>
 
