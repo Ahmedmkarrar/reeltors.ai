@@ -41,6 +41,8 @@ export interface GenerateVideoOptions {
   phone?: string;
   format?: 'vertical' | 'square' | 'horizontal';
   callbackUrl?: string;
+  apiKey?: string;
+  env?: ShotstackEnv;
 }
 
 export interface GenerateMixedMediaOptions {
@@ -53,6 +55,8 @@ export interface GenerateMixedMediaOptions {
   phone?: string;
   format?: 'vertical' | 'square' | 'horizontal';
   callbackUrl?: string;
+  apiKey?: string;
+  env?: ShotstackEnv;
 }
 
 // ── Internal timeline types ───────────────────────────────────────────────────
@@ -98,8 +102,8 @@ function buildMediaClips(mediaItems: MediaItem[]): ShotstackClip[] {
 
     return {
       asset: item.type === 'video'
-        ? { type: 'video', src: item.url, trim: 0, volume: 0, fit: 'cover' }
-        : { type: 'image', src: item.url, fit: 'cover' },
+        ? { type: 'video', src: item.url, trim: 0, volume: 0 }
+        : { type: 'image', src: item.url },
       start,
       length,
       effect:     item.type === 'image' ? CINEMATIC_EFFECTS[idx % CINEMATIC_EFFECTS.length] : undefined,
@@ -210,14 +214,18 @@ export async function createRender(opts: {
   timeline: ShotstackTimeline;
   format?: 'vertical' | 'square' | 'horizontal';
   callbackUrl?: string;
+  apiKey?: string;
+  env?: ShotstackEnv;
 }): Promise<ShotstackRenderResponse> {
   // MOCK_AI=true: skip API, return a fake queued render immediately
   if (process.env.MOCK_AI === 'true') {
     return { id: `mock_${Date.now()}`, status: 'queued' };
   }
 
-  const apiKey = process.env.SHOTSTACK_API_KEY;
+  const apiKey = opts.apiKey ?? process.env.SHOTSTACK_API_KEY;
   if (!apiKey) throw new ShotstackError('SHOTSTACK_API_KEY is not set');
+
+  const env = opts.env ?? getEnv();
 
   const body: Record<string, unknown> = {
     timeline: opts.timeline,
@@ -228,7 +236,7 @@ export async function createRender(opts: {
   };
   if (opts.callbackUrl) body.callback = opts.callbackUrl;
 
-  const res = await fetch(`${BASE_URL}/${getEnv()}/render`, {
+  const res = await fetch(`${BASE_URL}/${env}/render`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -311,5 +319,7 @@ export async function generateMixedMediaVideo(opts: GenerateMixedMediaOptions): 
     timeline,
     format:      opts.format ?? 'vertical',
     callbackUrl: opts.callbackUrl,
+    apiKey:      opts.apiKey,
+    env:         opts.env,
   });
 }

@@ -84,6 +84,8 @@ interface UploadZoneProps {
   onNext?: () => void;
   /** Disables the embedded Next button */
   nextDisabled?: boolean;
+  /** User's current plan — free users see upgrade prompt on bolt click */
+  plan?: string;
 }
 
 export function UploadZone({
@@ -98,13 +100,18 @@ export function UploadZone({
   onFormatChange,
   onNext,
   nextDisabled = false,
+  plan,
 }: UploadZoneProps) {
   const supabase = createClient();
-  const [files, setFiles]             = useState<UploadedFile[]>([]);
-  const [uploading, setUploading]     = useState(false);
-  const [showPrompts, setShowPrompts] = useState(false);
-  const [isFocused, setIsFocused]     = useState(false);
-  const [typedText, setTypedText]     = useState('');
+  const [files, setFiles]                 = useState<UploadedFile[]>([]);
+  const [uploading, setUploading]         = useState(false);
+  const [uploadingCount, setUploadingCount] = useState(0);
+  const [showPrompts, setShowPrompts]     = useState(false);
+  const [isFocused, setIsFocused]         = useState(false);
+  const [typedText, setTypedText]         = useState('');
+  const [showAiPaywall, setShowAiPaywall] = useState(false);
+
+  const isFreeUser = !plan || plan === 'free';
 
   const PLACEHOLDER = 'Describe your vision… or tap ✦ for ready-made prompts';
 
@@ -152,6 +159,7 @@ export function UploadZone({
       }
 
       setUploading(true);
+      setUploadingCount(acceptedFiles.length);
       const newFiles: UploadedFile[] = [];
 
       for (const file of acceptedFiles) {
@@ -184,6 +192,7 @@ export function UploadZone({
       setFiles(updated);
       onUploadComplete(updated.map((f) => f.url));
       setUploading(false);
+      setUploadingCount(0);
     },
     [files, maxFiles, userId, supabase, onUploadComplete]
   );
@@ -208,6 +217,10 @@ export function UploadZone({
   }
 
   function toggleAiForIndex(index: number) {
+    if (isFreeUser) {
+      setShowAiPaywall(true);
+      return;
+    }
     const isOn = aiVideoIndices.includes(index);
     if (isOn) {
       onAiIndicesChange(aiVideoIndices.filter((i) => i !== index));
@@ -421,6 +434,27 @@ export function UploadZone({
               );
             })}
 
+            {/* Skeleton cards for in-progress uploads */}
+            {Array.from({ length: uploadingCount }).map((_, i) => (
+              <div
+                key={`skeleton-${i}`}
+                className="relative flex-shrink-0 w-[72px]"
+              >
+                <div
+                  className="relative overflow-hidden rounded border border-[#E2DED6] bg-[#F7F5EF] animate-pulse"
+                  style={{ aspectRatio: FORMAT_ASPECT[format] }}
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent skeleton-shimmer" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-[#C8C4BC] animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            ))}
+
             {/* Add more slot — click calls open(), drag is caught by outer wrapper */}
             {files.length < maxFiles && (
               <button
@@ -456,8 +490,8 @@ export function UploadZone({
               ].join(' ')}
               style={{ background: '#141210' }}
             >
-              {/* Left action column: upload + prompt templates + format picker */}
-              <div className="flex-shrink-0 flex flex-col items-center justify-between py-3 px-3.5 gap-2">
+              {/* Left action column: upload + prompt templates */}
+              <div className="flex-shrink-0 flex flex-col items-center justify-center py-3 px-3.5 gap-4">
                 <button
                   type="button"
                   onClick={open}
@@ -478,33 +512,8 @@ export function UploadZone({
                   >
                     <SparkleIcon className="w-[15px] h-[15px]" />
                   </button>
-                  {/* Styled tooltip */}
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded-md border border-[#2A2622] text-[10px] text-[#C8C4BC] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none" style={{ background: '#1A1714' }}>
                     Prompt ideas
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent" style={{ borderTopColor: '#2A2622' }} />
-                  </div>
-                </div>
-
-                {/* Format picker */}
-                <div className="relative group">
-                  <div className="flex flex-col gap-0.5">
-                    {(['vertical', 'square', 'horizontal'] as const).map((f) => (
-                      <button
-                        key={f}
-                        type="button"
-                        title={`${FORMAT_LABEL[f]} · ${f === 'vertical' ? 'TikTok / Reels' : f === 'square' ? 'Feed posts' : 'YouTube'}`}
-                        onClick={() => onFormatChange?.(f)}
-                        className={[
-                          'transition-all duration-150 rounded-sm flex items-center justify-center',
-                          format === f ? 'opacity-100' : 'opacity-30 hover:opacity-60',
-                        ].join(' ')}
-                      >
-                        <FormatIcon type={f} active={format === f} />
-                      </button>
-                    ))}
-                  </div>
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded-md border border-[#2A2622] text-[10px] text-[#C8C4BC] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none" style={{ background: '#1A1714' }}>
-                    {FORMAT_LABEL[format]}
                     <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent" style={{ borderTopColor: '#2A2622' }} />
                   </div>
                 </div>
@@ -627,12 +636,57 @@ export function UploadZone({
 
       {/* Hint / uploading state */}
       {uploading && (
-        <p className="text-center text-[11px] text-[#F0B429] animate-pulse tracking-wide">Uploading…</p>
+        <p className="text-center text-[11px] text-[#F0B429] animate-pulse tracking-wide">
+          Uploading {uploadingCount} photo{uploadingCount !== 1 ? 's' : ''}…
+        </p>
       )}
       {!uploading && files.length > 0 && (
         <p className="text-center text-[11px] text-[#B8B4AE] select-none tracking-wide">
           {files.length} photo{files.length !== 1 ? 's' : ''} added · drag to reorder · min 3 to continue
         </p>
+      )}
+
+      {/* AI drone shots paywall modal */}
+      {showAiPaywall && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowAiPaywall(false)} />
+          <div className="relative w-full max-w-sm rounded-[16px] border border-[#E2DED6] bg-white p-6 shadow-2xl">
+            {/* Close */}
+            <button
+              type="button"
+              onClick={() => setShowAiPaywall(false)}
+              className="absolute top-4 right-4 w-7 h-7 rounded-full flex items-center justify-center text-[#9A9690] hover:bg-[#F7F5EF] transition-colors"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-4 h-4">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Icon */}
+            <div className="w-12 h-12 rounded-full bg-[#7C3AED]/10 flex items-center justify-center mb-4">
+              <BoltIcon className="w-5 h-5 text-[#7C3AED]" />
+            </div>
+
+            <h3 className="font-syne font-bold text-lg text-[#1A1714] mb-1">AI Drone Shots</h3>
+            <p className="text-sm text-[#6B6760] mb-5">
+              Upgrade to <span className="font-semibold text-[#1A1714]">Starter</span> or higher to animate your listing with AI-generated cinematic drone shots.
+            </p>
+
+            <a
+              href="/pricing"
+              className="flex items-center justify-center w-full bg-[#F0B429] text-[#1A1714] font-bold px-4 py-3 rounded-[8px] text-sm hover:bg-[#F5C842] transition-colors mb-2"
+            >
+              Upgrade to Starter →
+            </a>
+            <button
+              type="button"
+              onClick={() => setShowAiPaywall(false)}
+              className="w-full text-sm text-[#9A9690] py-2 hover:text-[#6B6760] transition-colors"
+            >
+              Maybe later
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
