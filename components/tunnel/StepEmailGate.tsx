@@ -15,9 +15,10 @@ export default function StepEmailGate({
   sessionToken,
 }: StepEmailGateProps) {
   const handleContinueWithGoogle = async () => {
-    sessionStorage.setItem(
+    // Use localStorage (not sessionStorage) — sessionStorage is wiped by external OAuth redirects in Safari/iOS
+    localStorage.setItem(
       'tunnelPending',
-      JSON.stringify({ sessionToken, imageUrls, templateKey })
+      JSON.stringify({ sessionToken, imageUrls, templateKey, savedAt: Date.now() })
     );
     // tell the auth callback to return to /generate (not /dashboard)
     // client-set cookie — server reads it in /auth/callback via cookies()
@@ -48,7 +49,13 @@ export default function StepEmailGate({
           width: '100%', maxWidth: 420, textAlign: 'center',
         }}
       >
-        <div style={{ fontSize: 40, marginBottom: 20 }}>🎬</div>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+          <div style={{ width: 52, height: 52, borderRadius: '50%', background: 'rgba(240,180,41,0.1)', border: '1px solid rgba(240,180,41,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.9L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z" />
+            </svg>
+          </div>
+        </div>
         <h2 style={{ fontSize: 26, fontWeight: 800, color: '#F0F0EB', margin: '0 0 12px' }}>
           Almost there.
         </h2>

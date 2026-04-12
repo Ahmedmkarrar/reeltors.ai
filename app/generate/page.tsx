@@ -135,11 +135,14 @@ export default function GeneratePage() {
     }
   }, []);
 
+  const TUNNEL_PENDING_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
   // On mount: assign session token + check if returning from Google OAuth
   useEffect(() => {
     (async () => {
-      const stored = sessionStorage.getItem('tunnelSessionToken') ?? generateSessionToken();
-      sessionStorage.setItem('tunnelSessionToken', stored);
+      // localStorage survives external OAuth redirects; sessionStorage does not (esp. Safari)
+      const stored = localStorage.getItem('tunnelSessionToken') ?? generateSessionToken();
+      localStorage.setItem('tunnelSessionToken', stored);
 
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
@@ -151,13 +154,23 @@ export default function GeneratePage() {
       }
 
       // Returning from Google OAuth with a pending tunnel job
-      const pendingRaw = sessionStorage.getItem('tunnelPending');
+      const pendingRaw = localStorage.getItem('tunnelPending');
       if (pendingRaw) {
-        sessionStorage.removeItem('tunnelPending');
-        let pending: TunnelPending;
+        localStorage.removeItem('tunnelPending');
+        let pending: TunnelPending & { savedAt?: number };
         try {
           pending = JSON.parse(pendingRaw);
         } catch {
+          setState((prev) => ({ ...prev, sessionToken: stored }));
+          setIsAuthChecked(true);
+          setFailReason('Session expired — please try again.');
+          setFailCode(null);
+          setStep('failed');
+          return;
+        }
+
+        // Reject stale pending entries (e.g. leftover from a previous attempt)
+        if (pending.savedAt && Date.now() - pending.savedAt > TUNNEL_PENDING_TTL_MS) {
           setState((prev) => ({ ...prev, sessionToken: stored }));
           setIsAuthChecked(true);
           setFailReason('Session expired — please try again.');
@@ -362,7 +375,8 @@ export default function GeneratePage() {
           ) : (
             <button
               onClick={() => {
-                sessionStorage.removeItem('tunnelSessionToken');
+                localStorage.removeItem('tunnelSessionToken');
+                localStorage.removeItem('tunnelPending');
                 window.location.reload();
               }}
               style={{
