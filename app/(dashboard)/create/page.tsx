@@ -193,10 +193,14 @@ export default function CreatePage() {
       });
 
       if (res.status === 403) {
-        const { error } = await res.json();
-        toast.error(error || 'Video limit reached. Upgrade to continue.');
+        const { code } = await res.json();
         setStep('template');
         setGenerating(false);
+        if (code === 'LIMIT_REACHED') {
+          window.dispatchEvent(new CustomEvent('show-upgrade-modal'));
+        } else {
+          toast.error('You are not allowed to generate videos at this time.');
+        }
         return;
       }
 
@@ -267,80 +271,40 @@ export default function CreatePage() {
   // ─── STEP: UPLOAD ────────────────────────────────────────────────
   if (step === 'upload') {
     return (
-      <div className="relative min-h-screen overflow-hidden">
-
-        {/* ── Animated background ─────────────────────────────────────── */}
-        <style>{`
-          @keyframes orbDrift1 {
-            0%,100% { transform: translate(0,0) scale(1); }
-            35%     { transform: translate(-45px, 35px) scale(1.06); }
-            70%     { transform: translate(30px,-20px) scale(0.96); }
-          }
-          @keyframes orbDrift2 {
-            0%,100% { transform: translate(0,0) scale(1); }
-            40%     { transform: translate(40px,-30px) scale(1.04); }
-            75%     { transform: translate(-20px, 40px) scale(0.97); }
-          }
-          @keyframes orbDrift3 {
-            0%,100% { transform: translate(0,0); }
-            50%     { transform: translate(25px, 20px); }
-          }
-        `}</style>
-
-        {/* Dot grid */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: 'radial-gradient(circle, rgba(26,23,20,0.055) 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
-          }}
-        />
-
-        {/* Ambient orbs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {/* Gold — top-right */}
-          <div
-            className="absolute -top-32 -right-32 w-[560px] h-[560px] rounded-full"
-            style={{
-              background: 'radial-gradient(circle, rgba(240,180,41,0.13) 0%, transparent 65%)',
-              filter: 'blur(72px)',
-              animation: 'orbDrift1 14s ease-in-out infinite',
-            }}
-          />
-          {/* Purple — bottom-left */}
-          <div
-            className="absolute -bottom-24 -left-24 w-[480px] h-[480px] rounded-full"
-            style={{
-              background: 'radial-gradient(circle, rgba(124,58,237,0.09) 0%, transparent 65%)',
-              filter: 'blur(80px)',
-              animation: 'orbDrift2 18s ease-in-out infinite',
-            }}
-          />
-          {/* Warm centre wash */}
-          <div
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[340px] rounded-full"
-            style={{
-              background: 'radial-gradient(ellipse, rgba(240,180,41,0.05) 0%, transparent 70%)',
-              filter: 'blur(60px)',
-              animation: 'orbDrift3 22s ease-in-out infinite',
-            }}
-          />
-        </div>
-
-        {/* Edge vignette for depth */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'radial-gradient(ellipse 100% 100% at 50% 50%, transparent 40%, rgba(20,18,16,0.06) 100%)',
-          }}
-        />
+      <div className="min-h-screen" style={{ background: '#FFFFFF' }}>
 
         {/* ── Content ─────────────────────────────────────────────────── */}
-        <div className="relative p-6 md:p-8 max-w-3xl">
+        <div className="p-6 md:p-8 max-w-3xl">
           <StepHeader step={1} total={4} title="Upload Your Photos" />
-          <p className="text-sm text-[#8A8682] -mt-2 mb-6">
+          <p className="text-sm text-[#8A8682] -mt-2 mb-4">
             Add your best listing shots — we&apos;ll turn them into a cinematic property video.
           </p>
+
+          {/* Compact format picker */}
+          <div className="flex items-center gap-2 mb-6">
+            <span className="text-xs text-[#8A8682]">Format:</span>
+            {([
+              { value: 'vertical',   label: '9:16', hint: 'Reels' },
+              { value: 'square',     label: '1:1',  hint: 'Feed' },
+              { value: 'horizontal', label: '16:9', hint: 'YouTube' },
+            ] as const).map(({ value, label, hint }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setFormat(value)}
+                className={[
+                  'flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all',
+                  format === value
+                    ? 'border-[#1A1714] bg-[#F5F5F3] text-[#1A1714]'
+                    : 'border-[#E2DED6] bg-white text-[#8A8682] hover:border-[#1A1714]/30',
+                ].join(' ')}
+              >
+                <span className="font-mono">{label}</span>
+                <span className={format === value ? 'text-[#6B6760]' : 'text-[#B8B4AE]'}>{hint}</span>
+              </button>
+            ))}
+          </div>
+
           <UploadZone
             userId={userId}
             plan={profile?.plan}
@@ -705,7 +669,7 @@ function StepHeader({ step, total, title }: { step: number; total: number; title
             key={i}
             className={[
               'h-1 rounded-full transition-all duration-300',
-              i < step ? 'bg-[#F0B429] w-8' : 'bg-[#E2DED6] w-4',
+              i < step ? 'bg-[#1A1714] w-8' : 'bg-[#E2DED6] w-4',
             ].join(' ')}
           />
         ))}
