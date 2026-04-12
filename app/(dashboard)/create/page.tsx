@@ -12,7 +12,7 @@ import { TEMPLATES } from '@/lib/shotstack/templates';
 import type { Profile, VideoFormat } from '@/types';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
-type Step = 'upload' | 'details' | 'template' | 'generating' | 'result';
+type Step = 'upload' | 'format' | 'details' | 'template' | 'generating' | 'result';
 
 const LOADING_MESSAGES_BASE = [
   'Analyzing your photos…',
@@ -337,12 +337,13 @@ export default function CreatePage() {
 
         {/* ── Content ─────────────────────────────────────────────────── */}
         <div className="relative p-6 md:p-8 max-w-3xl">
-          <StepHeader step={1} total={3} title="Upload Listing Photos" />
+          <StepHeader step={1} total={4} title="Upload Your Photos" />
           <p className="text-sm text-[#8A8682] -mt-2 mb-6">
             Add your best listing shots — we&apos;ll turn them into a cinematic property video.
           </p>
           <UploadZone
             userId={userId}
+            plan={profile?.plan}
             onUploadComplete={setImages}
             aiVideoIndices={aiVideoIndices}
             onAiIndicesChange={setAiVideoIndices}
@@ -350,9 +351,64 @@ export default function CreatePage() {
             onPromptChange={setVideoPrompt}
             format={format}
             onFormatChange={setFormat}
-            onNext={() => setStep('details')}
+            onNext={() => setStep('format')}
             nextDisabled={images.length < 3}
           />
+        </div>
+      </div>
+    );
+  }
+
+  // ─── STEP: FORMAT ────────────────────────────────────────────────
+  if (step === 'format') {
+    const formatOptions: { value: VideoFormat; label: string; ratio: string; desc: string }[] = [
+      { value: 'vertical',   label: 'Vertical',   ratio: '9:16', desc: 'TikTok · Instagram Reels · YouTube Shorts' },
+      { value: 'square',     label: 'Square',     ratio: '1:1',  desc: 'Instagram Feed · Facebook' },
+      { value: 'horizontal', label: 'Horizontal', ratio: '16:9', desc: 'YouTube · MLS · Desktop' },
+    ];
+    return (
+      <div className="p-6 md:p-8 max-w-2xl">
+        <StepHeader step={2} total={4} title="Choose a Format" />
+        <p className="text-sm text-[#8A8682] -mt-2 mb-6">Pick the aspect ratio for your video.</p>
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          {formatOptions.map(({ value, label, ratio, desc }) => {
+            const isSelected = format === value;
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setFormat(value)}
+                className={[
+                  'flex flex-col items-center gap-3 p-5 rounded-[12px] border-2 transition-all',
+                  isSelected
+                    ? 'border-[#F0B429] bg-[#FDF8EC]'
+                    : 'border-[#E2DED6] bg-white hover:border-[#F0B429]/50',
+                ].join(' ')}
+              >
+                {/* Aspect ratio preview */}
+                <div className="flex items-center justify-center h-16">
+                  {value === 'vertical' && (
+                    <div className={['w-8 h-14 rounded border-2 transition-colors', isSelected ? 'border-[#F0B429] bg-[#F0B429]/10' : 'border-[#C8C4BC]'].join(' ')} />
+                  )}
+                  {value === 'square' && (
+                    <div className={['w-12 h-12 rounded border-2 transition-colors', isSelected ? 'border-[#F0B429] bg-[#F0B429]/10' : 'border-[#C8C4BC]'].join(' ')} />
+                  )}
+                  {value === 'horizontal' && (
+                    <div className={['w-16 h-9 rounded border-2 transition-colors', isSelected ? 'border-[#F0B429] bg-[#F0B429]/10' : 'border-[#C8C4BC]'].join(' ')} />
+                  )}
+                </div>
+                <div className="text-center">
+                  <p className={['font-syne font-bold text-sm', isSelected ? 'text-[#1A1714]' : 'text-[#6B6760]'].join(' ')}>{label}</p>
+                  <p className={['text-xs font-mono mt-0.5', isSelected ? 'text-[#C07A00]' : 'text-[#B8B4AE]'].join(' ')}>{ratio}</p>
+                  <p className="text-[10px] text-[#B8B4AE] mt-1 leading-tight">{desc}</p>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+        <div className="flex gap-3">
+          <Button variant="secondary" size="md" onClick={() => setStep('upload')}>← Back</Button>
+          <Button variant="primary" size="md" onClick={() => setStep('details')}>Next →</Button>
         </div>
       </div>
     );
@@ -362,7 +418,7 @@ export default function CreatePage() {
   if (step === 'details') {
     return (
       <div className="p-6 md:p-8 max-w-2xl">
-        <StepHeader step={2} total={3} title="Listing Details" />
+        <StepHeader step={3} total={4} title="Listing Details" />
         <div className="flex flex-col gap-5">
           <Input
             label="Listing Address (optional)"
@@ -385,7 +441,7 @@ export default function CreatePage() {
 
         </div>
         <div className="flex gap-3 mt-8">
-          <Button variant="secondary" size="md" onClick={() => setStep('upload')}>← Back</Button>
+          <Button variant="secondary" size="md" onClick={() => setStep('format')}>← Back</Button>
           <Button variant="primary"   size="md" onClick={() => setStep('template')}>Next →</Button>
         </div>
       </div>
@@ -396,7 +452,7 @@ export default function CreatePage() {
   if (step === 'template') {
     return (
       <div className="p-6 md:p-8 max-w-3xl">
-        <StepHeader step={3} total={3} title="Choose a Template" />
+        <StepHeader step={4} total={4} title="Choose a Template" />
         <TemplateSelector
           selected={selectedTemplateKey}
           onSelect={setSelectedTemplateKey}

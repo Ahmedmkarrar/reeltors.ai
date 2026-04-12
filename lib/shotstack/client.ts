@@ -42,6 +42,8 @@ export interface GenerateVideoOptions {
   format?: 'vertical' | 'square' | 'horizontal';
   audioUrl?: string;
   callbackUrl?: string;
+  apiKey?: string;
+  env?: ShotstackEnv;
 }
 
 export interface GenerateMixedMediaOptions {
@@ -56,6 +58,8 @@ export interface GenerateMixedMediaOptions {
   format?: 'vertical' | 'square' | 'horizontal';
   audioUrl?: string;
   callbackUrl?: string;
+  apiKey?: string;
+  env?: ShotstackEnv;
 }
 
 // ── Internal timeline types ───────────────────────────────────────────────────
@@ -223,8 +227,8 @@ function buildMediaClips(mediaItems: MediaItem[], config: TemplateConfig): Shots
 
     return {
       asset: item.type === 'video'
-        ? { type: 'video', src: item.url, trim: 0, volume: 0, fit: 'cover' }
-        : { type: 'image', src: item.url, fit: 'cover' },
+        ? { type: 'video', src: item.url, trim: 0, volume: 0 }
+        : { type: 'image', src: item.url },
       start,
       length,
       effect:     item.type === 'image' ? config.mediaEffects[idx % config.mediaEffects.length] : undefined,
@@ -382,13 +386,17 @@ export async function createRender(opts: {
   timeline:     ShotstackTimeline;
   format?:      'vertical' | 'square' | 'horizontal';
   callbackUrl?: string;
+  apiKey?: string;
+  env?: ShotstackEnv;
 }): Promise<ShotstackRenderResponse> {
   if (process.env.MOCK_AI === 'true') {
     return { id: `mock_${Date.now()}`, status: 'queued' };
   }
 
-  const apiKey = process.env.SHOTSTACK_API_KEY;
+  const apiKey = opts.apiKey ?? process.env.SHOTSTACK_API_KEY;
   if (!apiKey) throw new ShotstackError('SHOTSTACK_API_KEY is not set');
+
+  const env = opts.env ?? getEnv();
 
   const body: Record<string, unknown> = {
     timeline: opts.timeline,
@@ -399,7 +407,7 @@ export async function createRender(opts: {
   };
   if (opts.callbackUrl) body.callback = opts.callbackUrl;
 
-  const res = await fetch(`${BASE_URL}/${getEnv()}/render`, {
+  const res = await fetch(`${BASE_URL}/${env}/render`, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
     body:    JSON.stringify(body),
@@ -480,5 +488,7 @@ export async function generateMixedMediaVideo(opts: GenerateMixedMediaOptions): 
     timeline,
     format:      opts.format ?? 'vertical',
     callbackUrl: opts.callbackUrl,
+    apiKey:      opts.apiKey,
+    env:         opts.env,
   });
 }

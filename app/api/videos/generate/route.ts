@@ -235,17 +235,29 @@ export async function POST(req: NextRequest) {
   };
   const callbackUrl = buildCallbackUrl({ video_id: video.id, user_id: user.id });
 
+  // Free users render against the stage (watermarked) key.
+  // Paid users get the production key (no watermark) when set.
+  const isPaidPlan = profile.plan === 'starter' || profile.plan === 'growth' || profile.plan === 'pro' || profile.plan === 'team';
+  const shotstackApiKey = isPaidPlan && process.env.SHOTSTACK_PROD_API_KEY
+    ? process.env.SHOTSTACK_PROD_API_KEY
+    : process.env.SHOTSTACK_API_KEY;
+  const shotstackEnv = isPaidPlan && process.env.SHOTSTACK_PROD_ENV
+    ? (process.env.SHOTSTACK_PROD_ENV as 'v1' | 'stage')
+    : undefined;
+
   const sharedParams = {
     templateKey: templateId,
     listingAddress,
     listingPrice,
-    agentName:   agentName  || profile.full_name  || undefined,
-    brandName:   brandName  || profile.brand_name || undefined,
-    email:       email      || profile.email       || undefined,
-    phone:       phone      || profile.phone       || undefined,
-    audioUrl:    typeof audioUrl === 'string' && audioUrl.startsWith('https://') ? audioUrl : undefined,
-    format:      (format ?? 'vertical') as 'vertical' | 'square' | 'horizontal',
+    agentName:  agentName !== undefined ? (agentName || undefined) : (profile.full_name || undefined),
+    brandName:  brandName  || profile.brand_name || undefined,
+    email:      email      || profile.email       || undefined,
+    phone:      phone      || profile.phone       || undefined,
+    audioUrl:   typeof audioUrl === 'string' && audioUrl.startsWith('https://') ? audioUrl : undefined,
+    format:     (format ?? 'vertical') as 'vertical' | 'square' | 'horizontal',
     callbackUrl,
+    apiKey: shotstackApiKey,
+    env:    shotstackEnv,
   };
 
   let render;
