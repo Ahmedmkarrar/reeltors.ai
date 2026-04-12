@@ -54,8 +54,9 @@ export async function POST(req: NextRequest) {
       await admin.from('profiles').update({ stripe_customer_id: customerId }).eq('id', user.id);
     }
 
-    let appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://reeltor-ai.vercel.app';
+    let appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://reeltors.ai';
     if (!appUrl.startsWith('http')) appUrl = `https://${appUrl}`;
+    appUrl = appUrl.replace(/\/$/, '');
 
     if (embedded) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
