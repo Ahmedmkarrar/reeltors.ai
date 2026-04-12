@@ -82,7 +82,7 @@ export function Hero() {
               </Link>
               <Link href="/generate">
                 <button className="w-full sm:w-auto h-12 px-7 text-[15px] font-semibold text-[#F0B429] border border-[#F0B429]/40 rounded-[6px] hover:border-[#F0B429] hover:bg-[#F0B429]/8 transition-all">
-                  Try 1 free video — no account
+                  Try 1 free video — no card needed
                 </button>
               </Link>
             </motion.div>
