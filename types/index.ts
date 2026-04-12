@@ -68,6 +68,8 @@ export interface CreateVideoPayload {
   /** Optional background music URL (Artlist / Epidemic Sound / royalty-free).
    *  If provided, a dedicated audio track is added with a fadeOut at 15s. */
   audioUrl?: string;
+  /** Optional agent/brand logo URL to overlay in the bottom-right corner. */
+  logoUrl?: string;
 }
 
 export interface GenerateVideoResponse {

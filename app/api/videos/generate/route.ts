@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
-  const { templateId, images, aiVideoIndices: rawAiIndices, listingAddress, listingPrice, agentName, brandName, email, phone, format, title, videoPrompt, audioUrl } = body;
+  const { templateId, images, aiVideoIndices: rawAiIndices, listingAddress, listingPrice, agentName, brandName, email, phone, format, title, videoPrompt, audioUrl, logoUrl } = body;
 
   if (!templateId || typeof templateId !== 'string') {
     return NextResponse.json({ error: 'templateId is required' }, { status: 400 });
@@ -249,11 +249,12 @@ export async function POST(req: NextRequest) {
     templateKey: templateId,
     listingAddress,
     listingPrice,
-    agentName:  agentName !== undefined ? (agentName || undefined) : (profile.full_name || undefined),
+    agentName:  agentName || undefined,
     brandName:  brandName  || profile.brand_name || undefined,
     email:      email      || profile.email       || undefined,
     phone:      phone      || profile.phone       || undefined,
     audioUrl:   typeof audioUrl === 'string' && audioUrl.startsWith('https://') ? audioUrl : undefined,
+    logoUrl:    typeof logoUrl === 'string' && logoUrl.startsWith('https://') ? logoUrl : undefined,
     format:     (format ?? 'vertical') as 'vertical' | 'square' | 'horizontal',
     callbackUrl,
     apiKey: shotstackApiKey,

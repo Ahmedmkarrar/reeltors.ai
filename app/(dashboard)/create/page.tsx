@@ -50,6 +50,9 @@ export default function CreatePage() {
   const [agentName, setAgentName]           = useState('');
   const [format, setFormat]                 = useState<VideoFormat>('vertical');
   const [selectedTemplateKey, setSelectedTemplateKey] = useState('CINEMATIC');
+  const [logoUrl, setLogoUrl]               = useState('');
+  const [logoPreview, setLogoPreview]       = useState('');
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
   // Generation state
   const [, setVideoId]     = useState('');
@@ -70,7 +73,6 @@ export default function CreatePage() {
       const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single<Profile>();
       if (data) {
         setProfile(data);
-        setAgentName(data.full_name || '');
       }
     });
   }, [supabase, router]);
@@ -160,6 +162,43 @@ export default function CreatePage() {
     }, 1000);
   }
 
+  async function handleLogoUpload(file: File) {
+    const isImage = file.type.startsWith('image/');
+    const isUnder2MB = file.size <= 2 * 1024 * 1024;
+    if (!isImage) { toast.error('Please upload an image file'); return; }
+    if (!isUnder2MB) { toast.error('Logo must be under 2 MB'); return; }
+
+    setIsUploadingLogo(true);
+    const preview = URL.createObjectURL(file);
+    setLogoPreview(preview);
+
+    try {
+      const ext  = file.name.split('.').pop();
+      const path = `${profile!.id}/logos/${Date.now()}.${ext}`;
+      const { data, error } = await supabase.storage
+        .from('listing-images')
+        .upload(path, file, { cacheControl: '3600', upsert: false });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('listing-images')
+        .getPublicUrl(data.path);
+
+      setLogoUrl(publicUrl);
+    } catch {
+      toast.error('Logo upload failed — please try again');
+      setLogoPreview('');
+    } finally {
+      setIsUploadingLogo(false);
+    }
+  }
+
+  function removeLogo() {
+    setLogoUrl('');
+    setLogoPreview('');
+  }
+
   async function handleGenerate() {
     if (!profile) return;
     setGenerating(true);
@@ -189,6 +228,7 @@ export default function CreatePage() {
           format,
           title: listingAddress || 'My Listing Video',
           videoPrompt: videoPrompt.trim() || undefined,
+          logoUrl: logoUrl || undefined,
         }),
       });
 
@@ -401,6 +441,63 @@ export default function CreatePage() {
             value={agentName}
             onChange={(e) => setAgentName(e.target.value)}
           />
+
+          {/* Logo upload */}
+          <div>
+            <p className="text-sm font-medium text-[#1A1714] mb-2">
+              Logo / Watermark <span className="text-[#B8B4AE] font-normal">(optional)</span>
+            </p>
+            {logoPreview ? (
+              <div className="flex items-center gap-3 p-3 bg-[#F7F5EF] border border-[#E2DED6] rounded-[10px]">
+                {isUploadingLogo ? (
+                  <div className="w-14 h-14 rounded-[6px] bg-[#EBEBEB] animate-pulse shrink-0" />
+                ) : (
+                  <img
+                    src={logoPreview}
+                    alt="Logo preview"
+                    className="w-14 h-14 object-contain rounded-[6px] bg-white border border-[#EBEBEB] p-1"
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-[#1A1714]">
+                    {isUploadingLogo ? 'Uploading…' : 'Logo added'}
+                  </p>
+                  <p className="text-xs text-[#8A8682]">Shows in bottom-right corner of your video</p>
+                </div>
+                {!isUploadingLogo && (
+                  <button
+                    type="button"
+                    onClick={removeLogo}
+                    className="shrink-0 w-7 h-7 flex items-center justify-center rounded-full hover:bg-[#EBEBEB] text-[#8A8682] hover:text-[#1A1714] transition-colors"
+                    aria-label="Remove logo"
+                  >
+                    <svg viewBox="0 0 16 16" fill="none" className="w-3.5 h-3.5">
+                      <path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ) : (
+              <label className="flex items-center gap-3 p-3 border border-dashed border-[#D0CECA] rounded-[10px] cursor-pointer hover:border-[#1A1714]/40 hover:bg-[#F7F5EF] transition-all group">
+                <div className="w-10 h-10 rounded-[8px] bg-[#F0EDE6] flex items-center justify-center shrink-0 group-hover:bg-[#E8E4DC] transition-colors">
+                  <svg viewBox="0 0 20 20" fill="none" className="w-5 h-5 text-[#8A8682]">
+                    <path d="M10 3v10M5 8l5-5 5 5" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M3 15h14" stroke="currentColor" strokeWidth={1.6} strokeLinecap="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-[#1A1714]">Upload your logo</p>
+                  <p className="text-xs text-[#8A8682]">PNG or SVG with transparent background — under 2 MB</p>
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); e.target.value = ''; }}
+                />
+              </label>
+            )}
+          </div>
         </div>
         <div className="flex gap-2 md:gap-3 mt-6 md:mt-8">
           <Button variant="secondary" size="md" onClick={() => setStep('format')}>← Back</Button>
