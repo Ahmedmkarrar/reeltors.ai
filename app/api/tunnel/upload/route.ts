@@ -31,13 +31,13 @@ export async function POST(req: NextRequest) {
 
   const admin = getSupabaseAdmin();
 
-  // Enforce max 20 photos per session
+  // Enforce max 15 photos per session
   const { data: existingFiles } = await admin.storage
     .from('listing-images')
     .list(`tunnel/${sessionToken}`);
 
-  if ((existingFiles?.length ?? 0) >= 20) {
-    return NextResponse.json({ error: 'Max 20 photos per session' }, { status: 400 });
+  if ((existingFiles?.length ?? 0) >= 15) {
+    return NextResponse.json({ error: 'Max 15 photos per session' }, { status: 400 });
   }
 
   const buffer = await file.arrayBuffer();
@@ -55,8 +55,8 @@ export async function POST(req: NextRequest) {
     });
 
   if (uploadError) {
-    console.error('Tunnel upload error:', uploadError);
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    console.error('Tunnel upload error:', uploadError.message, uploadError);
+    return NextResponse.json({ error: `Upload failed: ${uploadError.message}` }, { status: 500 });
   }
 
   const { data: publicUrlData } = admin.storage
