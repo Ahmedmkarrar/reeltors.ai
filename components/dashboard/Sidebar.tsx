@@ -114,37 +114,43 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="w-[220px] shrink-0 hidden md:flex flex-col h-screen sticky top-0 border-r border-[#F0EDE8]" style={{ background: '#FFFFFF' }}>
+    <aside className="w-[240px] shrink-0 hidden md:flex flex-col sticky top-0 h-screen p-3">
+      <div className="flex flex-col flex-1 rounded-[16px] border border-[#E8E8E8] shadow-[0_2px_12px_rgba(0,0,0,0.06)] overflow-hidden" style={{ background: '#FFFFFF' }}>
 
       {/* logo */}
-      <div className="px-5 py-5 border-b border-[#F0EDE8]">
-        <Link href="/" className="flex items-center gap-2 group">
-          <LogoIcon className="w-8 h-8" />
-          <span className="font-syne font-extrabold text-[17px] text-[#1A1714] group-hover:text-[#F0B429] transition-colors">
+      <div className="px-5 pt-6 pb-5">
+        <Link href="/" className="flex items-center gap-2.5 group">
+          <LogoIcon className="w-7 h-7" />
+          <span className="font-syne font-extrabold text-[16px] text-[#1A1714] group-hover:text-[#F0B429] transition-colors">
             Reeltors<span className="text-[#F0B429]">.</span>ai
           </span>
         </Link>
       </div>
 
-      {/* create cta */}
-      <div className="px-4 py-4 border-b border-[#F0EDE8]">
+      {/* nav */}
+      <nav className="flex-1 px-3 flex flex-col gap-5 overflow-y-auto pb-4">
+        {/* Create CTA as first nav item */}
         <Link
           href="/create"
           prefetch={true}
-          className="flex items-center justify-center gap-2 w-full bg-[#F0B429] hover:bg-[#F5C842] text-[#1A1714] font-bold text-sm rounded-[6px] py-2.5 transition-all shadow-[0_0_20px_rgba(240,180,41,0.2)] hover:shadow-[0_0_30px_rgba(240,180,41,0.35)]"
+          className={[
+            'flex items-center gap-3 px-3 py-2 rounded-[8px] text-sm font-medium transition-all duration-150',
+            pathname.startsWith('/create')
+              ? 'bg-[#F0F0EE] text-[#1A1714]'
+              : 'text-[#4A4744] hover:text-[#1A1714] hover:bg-[#F5F5F3]',
+          ].join(' ')}
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
+          <span className="text-[#9A9690]">
+            <svg className="w-[17px] h-[17px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+          </span>
           Create Video
         </Link>
-      </div>
 
-      {/* nav */}
-      <nav className="flex-1 px-3 py-4 flex flex-col gap-4 overflow-y-auto">
         {NAV_SECTIONS.map(({ label, items }) => (
           <div key={label}>
-            <p className="text-[10px] font-semibold text-[#9A9690] uppercase tracking-widest px-3 mb-1">{label}</p>
+            <p className="text-[11px] text-[#ADADAD] font-normal px-3 mb-1">{label}</p>
             <div className="flex flex-col gap-0.5">
               {items.map(({ href, label: itemLabel, icon }) => {
                 const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
@@ -154,15 +160,13 @@ export function Sidebar() {
                     href={href}
                     prefetch={true}
                     className={[
-                      'flex items-center gap-3 px-3 py-2 rounded-[6px] text-sm font-medium transition-all duration-150',
+                      'flex items-center gap-3 px-3 py-2 rounded-[8px] text-sm font-medium transition-all duration-150',
                       isActive
-                        ? 'bg-[#F5F4F0] text-[#1A1714]'
-                        : 'text-[#4A4744] hover:text-[#1A1714] hover:bg-[#F5F4F0]',
+                        ? 'bg-[#F0F0EE] text-[#1A1714]'
+                        : 'text-[#4A4744] hover:text-[#1A1714] hover:bg-[#F5F5F3]',
                     ].join(' ')}
                   >
-                    <span className={isActive ? 'text-[#C07A00]' : 'text-[#9A9690]'}>
-                      {icon}
-                    </span>
+                    <span className="text-[#9A9690]">{icon}</span>
                     {itemLabel}
                   </Link>
                 );
@@ -172,56 +176,43 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* plan + usage */}
-      <div className="px-4 pb-3">
-        {!profile ? (
-          <div className="h-[80px] rounded-[8px] bg-[#F5F4F0] animate-pulse" />
-        ) : PLAN_LIMITS[profile.plan] ? (
-          <div className="bg-[#F9F8F6] border border-[#EAE8E2] rounded-[8px] p-3.5">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-[11px] text-[#6B6760] font-medium uppercase tracking-wider">Plan</span>
-              <span
-                className="text-[11px] font-bold px-2 py-0.5 rounded-full"
-                style={{ color: planColor, background: `${planColor}18`, border: `1px solid ${planColor}30` }}
-              >
-                {PLAN_LABELS[profile.plan]}
-              </span>
-            </div>
-
-            <div className="flex justify-between text-[11px] mb-2">
-              <span className="text-[#6B6760]">Videos this month</span>
-              <span className="text-[#888888] font-mono">
-                {profile.videos_used_this_month} / {videoLimit}
-              </span>
-            </div>
-
-            <div className="h-1 bg-[#EAE8E2] rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{
-                  width: `${usedPct}%`,
-                  background: usedPct >= 90 ? '#FF5500' : usedPct >= 70 ? '#f59e0b' : '#F0B429',
-                }}
-              />
-            </div>
+      {/* usage bar — only for paid users */}
+      {profile && PLAN_LIMITS[profile.plan] && (
+        <div className="px-4 pb-3">
+          <div className="flex justify-between text-[11px] mb-1.5">
+            <span className="text-[#ADADAD]">Videos this month</span>
+            <span className="text-[#6B6760] font-mono tabular-nums">
+              {profile.videos_used_this_month} / {videoLimit}
+            </span>
           </div>
-        ) : (
+          <div className="h-1 bg-[#EBEBEB] rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${usedPct}%`,
+                background: usedPct >= 90 ? '#FF5500' : usedPct >= 70 ? '#f59e0b' : '#F0B429',
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* free plan upgrade nudge */}
+      {profile && !PLAN_LIMITS[profile.plan] && (
+        <div className="px-4 pb-3">
           <button
             onClick={() => setUpgradeOpen(true)}
-            className="w-full flex items-center justify-center gap-2 bg-[#F0B429] hover:bg-[#F5C842] text-[#1A1714] font-bold text-[12px] rounded-[6px] py-2.5 transition-all shadow-[0_0_16px_rgba(240,180,41,0.2)]"
+            className="w-full text-[12px] font-semibold text-[#1A1714] border border-[#E2DED6] rounded-[8px] py-2 hover:bg-[#F5F5F3] hover:border-[#C8C4BC] transition-all"
           >
-            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 10.5L12 3m0 0l7.5 7.5M12 3v18" />
-            </svg>
-            Upgrade to Get Started
+            Upgrade plan →
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <UpgradeModal isOpen={upgradeOpen} onClose={() => setUpgradeOpen(false)} />
 
       {/* user row */}
-      <div className="px-4 py-4 border-t border-[#F0EDE8] flex items-center gap-3">
+      <div className="px-4 py-4 border-t border-[#EBEBEB] flex items-center gap-3">
         {!profile ? (
           <>
             <div className="w-8 h-8 rounded-full bg-[#F0EDE8] animate-pulse shrink-0" />
@@ -232,21 +223,14 @@ export function Sidebar() {
           </>
         ) : (
           <>
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
-              style={{
-                background: `linear-gradient(135deg, ${planColor}30, ${planColor}10)`,
-                border: `1px solid ${planColor}40`,
-                color: planColor,
-              }}
-            >
+            <div className="w-8 h-8 rounded-full bg-[#F0EDE8] flex items-center justify-center text-xs font-bold text-[#6B6760] shrink-0">
               {initial}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-[12px] font-semibold text-[#1A1714] truncate leading-tight">
                 {profile.full_name || 'Realtor'}
               </p>
-              <p className="text-[10px] text-[#8A8682] truncate">{profile.email}</p>
+              <p className="text-[10px] text-[#ADADAD] truncate">{profile.email}</p>
             </div>
           </>
         )}
@@ -254,12 +238,13 @@ export function Sidebar() {
         <button
           onClick={handleSignOut}
           title="Sign out"
-          className="text-[#B8B4AE] hover:text-[#5C5853] transition-colors p-1 rounded hover:bg-[#F5F4F0]"
+          className="text-[#C8C4BC] hover:text-[#6B6760] transition-colors p-1 rounded-[6px] hover:bg-[#F5F5F3] shrink-0"
         >
           <svg className="w-[15px] h-[15px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
           </svg>
         </button>
+      </div>
       </div>
     </aside>
   );

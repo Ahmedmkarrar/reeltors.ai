@@ -107,45 +107,10 @@ export function UploadZone({
   const [uploading, setUploading]         = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
   const [showPrompts, setShowPrompts]     = useState(false);
-  const [isFocused, setIsFocused]         = useState(false);
-  const [typedText, setTypedText]         = useState('');
   const [showAiPaywall, setShowAiPaywall] = useState(false);
 
   const isFreeUser = !plan || plan === 'free';
 
-  const PLACEHOLDER = 'Describe your vision… or tap ✦ for ready-made prompts';
-
-  // Typewriter animation — runs when the prompt is empty
-  useEffect(() => {
-    if (videoPrompt) { setTypedText(''); return; }
-
-    let index     = 0;
-    let deleting  = false;
-    let timerId: ReturnType<typeof setTimeout>;
-
-    const tick = () => {
-      if (!deleting) {
-        index++;
-        setTypedText(PLACEHOLDER.slice(0, index));
-        if (index === PLACEHOLDER.length) {
-          timerId = setTimeout(() => { deleting = true; tick(); }, 2200);
-          return;
-        }
-        timerId = setTimeout(tick, 48);
-      } else {
-        index--;
-        setTypedText(PLACEHOLDER.slice(0, index));
-        if (index === 0) {
-          timerId = setTimeout(() => { deleting = false; tick(); }, 500);
-          return;
-        }
-        timerId = setTimeout(tick, 22);
-      }
-    };
-
-    timerId = setTimeout(tick, 350);
-    return () => clearTimeout(timerId);
-  }, [videoPrompt]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Native drag-to-reorder state
   const dragIndex = useRef<number | null>(null);
@@ -158,35 +123,43 @@ export function UploadZone({
         return;
       }
 
-      setUploading(true);
-      setUploadingCount(acceptedFiles.length);
-      const newFiles: UploadedFile[] = [];
-
-      for (const file of acceptedFiles) {
+      const validFiles = acceptedFiles.filter((file) => {
         if (file.size > 10 * 1024 * 1024) {
           toast.error(`${file.name} exceeds 10MB limit`);
-          continue;
+          return false;
         }
+        return true;
+      });
 
-        const preview = URL.createObjectURL(file);
-        const ext = file.name.split('.').pop();
-        const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      if (validFiles.length === 0) return;
 
-        const { data, error } = await supabase.storage
-          .from('listing-images')
-          .upload(path, file, { cacheControl: '3600', upsert: false });
+      setUploading(true);
+      setUploadingCount(validFiles.length);
 
-        if (error) {
-          toast.error(`Upload failed: ${error.message}`);
-          continue;
-        }
+      const results = await Promise.all(
+        validFiles.map(async (file) => {
+          const preview = URL.createObjectURL(file);
+          const ext = file.name.split('.').pop();
+          const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
-        const { data: { publicUrl } } = supabase.storage
-          .from('listing-images')
-          .getPublicUrl(data.path);
+          const { data, error } = await supabase.storage
+            .from('listing-images')
+            .upload(path, file, { cacheControl: '3600', upsert: false });
 
-        newFiles.push({ url: publicUrl, name: file.name, preview });
-      }
+          if (error) {
+            toast.error(`Upload failed: ${file.name}`);
+            return null;
+          }
+
+          const { data: { publicUrl } } = supabase.storage
+            .from('listing-images')
+            .getPublicUrl(data.path);
+
+          return { url: publicUrl, name: file.name, preview } as UploadedFile;
+        })
+      );
+
+      const newFiles = results.filter((f): f is UploadedFile => f !== null);
 
       const updated = [...files, ...newFiles];
       setFiles(updated);
@@ -284,20 +257,20 @@ export function UploadZone({
       <div className="min-h-[172px]">
 
       {/* Empty state — big obvious upload zone */}
-      {files.length === 0 && (
+      {files.length === 0 && !uploading && (
         <div
           onClick={open}
           className={[
             'h-full min-h-[220px] rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all duration-200 select-none',
             isDragActive
               ? 'border-[#F0B429] bg-[#FFF8E6]'
-              : 'border-[#D8D4CC] bg-white hover:border-[#F0B429]/60 hover:bg-[#FFFCF5]',
+              : 'border-[#D8D4CC] bg-white hover:border-[#1A1714]/30 hover:bg-[#F9F9F8]',
           ].join(' ')}
         >
           {/* Upload icon */}
           <div className={[
             'w-16 h-16 rounded-full flex items-center justify-center transition-colors',
-            isDragActive ? 'bg-[#F0B429]/20' : 'bg-[#F7F5EF]',
+            isDragActive ? 'bg-[#F0B429]/20' : 'bg-[#F3F3F2]',
           ].join(' ')}>
             <svg className={['w-7 h-7 transition-colors', isDragActive ? 'text-[#F0B429]' : 'text-[#B8B4AE]'].join(' ')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -329,6 +302,30 @@ export function UploadZone({
               </div>
             </>
           )}
+        </div>
+      )}
+
+      {/* First-upload skeleton state */}
+      {files.length === 0 && uploading && (
+        <div>
+          <p className="text-xs text-[#F0B429] animate-pulse mb-3">
+            Uploading {uploadingCount} photo{uploadingCount !== 1 ? 's' : ''}…
+          </p>
+          <div className="flex gap-3 overflow-x-auto pb-2 pt-3 pl-2">
+            {Array.from({ length: uploadingCount }).map((_, i) => (
+              <div key={i} className="relative flex-shrink-0 w-[72px]">
+                <div
+                  className="relative overflow-hidden rounded border border-[#E2DED6] bg-[#F0EDE6] animate-pulse flex items-center justify-center"
+                  style={{ aspectRatio: FORMAT_ASPECT[format] }}
+                >
+                  <svg className="w-5 h-5 text-[#C8C4BC] animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -472,179 +469,166 @@ export function UploadZone({
       )}
       </div>
 
-      {/* Video prompt + Next — unified dark bar (also the visual drop target) */}
+      {/* Upload hint */}
+      {uploading && (
+        <p className="text-center text-[11px] text-[#F0B429] animate-pulse tracking-wide mt-2">
+          Uploading {uploadingCount} photo{uploadingCount !== 1 ? 's' : ''}…
+        </p>
+      )}
+      {!uploading && files.length > 0 && (
+        <p className="text-center text-[11px] text-[#B8B4AE] select-none tracking-wide mt-2">
+          {files.length} photo{files.length !== 1 ? 's' : ''} added · drag to reorder · min 3 to continue
+        </p>
+      )}
+
+      {/* Spacer so content isn't hidden behind the fixed bar */}
+      <div className="h-36" />
+
+      {/* Prompt bar — fixed to viewport bottom */}
       {(() => {
         const wordCount = countWords(videoPrompt);
         const isOver = wordCount > MAX_WORDS;
         return (
-          <div className="relative">
+          <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-30 px-4 md:px-8 pb-4 md:pb-6" style={{ background: '#FFFFFF' }}>
+            {/* Fade gradient above the bar */}
+            <div className="absolute inset-x-0 -top-10 h-10 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent, #FFFFFF)' }} />
             <div
               className={[
-                'flex items-stretch rounded-[8px] overflow-hidden transition-all duration-200',
-                'border',
+                'rounded-[14px] bg-white border shadow-[0_-2px_24px_rgba(26,23,20,0.08)] overflow-visible transition-all duration-200',
                 isDragActive
-                  ? 'border-[#F0B429]/60 ring-2 ring-[#F0B429]/15'
+                  ? 'border-[#F0B429] ring-2 ring-[#F0B429]/20'
                   : isOver
-                  ? 'border-red-500/60 focus-within:ring-1 focus-within:ring-red-500/20'
-                  : 'border-[#2A2622] focus-within:border-[#F0B429]/40 focus-within:ring-1 focus-within:ring-[#F0B429]/10',
+                  ? 'border-red-400'
+                  : 'border-[#E2DED6] focus-within:border-[#1A1714]/20 focus-within:shadow-[0_-2px_28px_rgba(26,23,20,0.08)]',
               ].join(' ')}
-              style={{ background: '#141210' }}
             >
-              {/* Left action column: upload + prompt templates */}
-              <div className="flex-shrink-0 flex flex-col items-center justify-center py-3 px-3.5 gap-4">
+              {/* Textarea row */}
+              <div className="flex items-start gap-3 px-4 pt-3.5 pb-2">
                 <button
                   type="button"
                   onClick={open}
                   disabled={uploading || files.length >= maxFiles}
                   title="Add photos"
-                  className="text-[#484440] hover:text-[#F0B429] transition-colors duration-150 disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="mt-0.5 flex-shrink-0 w-8 h-8 rounded-[8px] border border-[#E2DED6] flex items-center justify-center text-[#B8B4AE] hover:border-[#F0B429]/60 hover:text-[#F0B429] transition-all disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                  <PlusIcon className="w-[17px] h-[17px]" />
+                  <PlusIcon className="w-4 h-4" />
                 </button>
-                <div className="relative group">
-                  <button
-                    type="button"
-                    onClick={() => setShowPrompts((p) => !p)}
-                    className={[
-                      'transition-colors duration-150',
-                      showPrompts ? 'text-[#F0B429]' : 'text-[#484440] hover:text-[#F0B429]',
-                    ].join(' ')}
-                  >
-                    <SparkleIcon className="w-[15px] h-[15px]" />
-                  </button>
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 rounded-md border border-[#2A2622] text-[10px] text-[#C8C4BC] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-150 pointer-events-none" style={{ background: '#1A1714' }}>
-                    Prompt ideas
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent" style={{ borderTopColor: '#2A2622' }} />
-                  </div>
+
+                <div className="relative flex-1 min-w-0">
+                  <textarea
+                    rows={2}
+                    value={videoPrompt}
+                    onChange={(e) => {
+                      const next = e.target.value;
+                      if (countWords(next) <= MAX_WORDS || next.length < videoPrompt.length) {
+                        onPromptChange?.(next);
+                      }
+                    }}
+                    className="w-full resize-none bg-transparent text-sm text-[#1A1714] outline-none leading-relaxed placeholder:text-[#C8C4BC]"
+                    placeholder="Describe your vision for an AI animated shot…"
+                  />
                 </div>
               </div>
 
               {/* Divider */}
-              <div className="w-px bg-[#2A2622] flex-shrink-0 my-2.5" />
+              <div className="h-px bg-[#F0EDE6] mx-4" />
 
-              {/* Textarea */}
-              <div className="relative flex-1 min-w-0">
-                {/* Cursor blink keyframe */}
-                <style>{`@keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}`}</style>
+              {/* Bottom action row */}
+              <div className="flex items-center gap-2 px-4 py-2.5">
+                {/* Prompt templates trigger */}
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowPrompts((p) => !p)}
+                    title="Prompt ideas"
+                    className={[
+                      'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium border transition-all',
+                      showPrompts
+                        ? 'border-[#1A1714]/30 bg-[#F5F5F3] text-[#1A1714]'
+                        : 'border-[#E2DED6] text-[#8A8682] hover:border-[#1A1714]/20 hover:text-[#1A1714]',
+                    ].join(' ')}
+                  >
+                    <SparkleIcon className="w-3 h-3" />
+                    Ideas
+                  </button>
+                </div>
 
-                <textarea
-                  rows={3}
-                  value={videoPrompt}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
-                  onChange={(e) => {
-                    const next = e.target.value;
-                    if (countWords(next) <= MAX_WORDS || next.length < videoPrompt.length) {
-                      onPromptChange?.(next);
-                    }
-                  }}
-                  className="w-full h-full resize-none bg-transparent px-3 pt-3 pb-7 text-sm text-[#E8E4DE] outline-none"
-                />
-
-                {/* Animated typewriter placeholder */}
-                {!videoPrompt && !isFocused && (
-                  <div className="absolute inset-0 px-3 pt-3 pb-7 text-sm text-[#3A3632] pointer-events-none select-none">
-                    {typedText}
-                    <span
-                      className="inline-block w-px h-[13px] bg-[#4A4642] ml-px align-middle"
-                      style={{ animation: 'cursorBlink 1s steps(1) infinite' }}
-                    />
-                  </div>
-                )}
-                <span
-                  className={[
-                    'absolute bottom-2 left-3 text-[11px] tabular-nums pointer-events-none',
-                    isOver ? 'text-red-400' : 'text-[#3A3632]',
-                  ].join(' ')}
-                >
-                  {wordCount} / {MAX_WORDS} words
+                {/* Format chip */}
+                <span className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-[#E2DED6] text-[11px] text-[#8A8682] font-mono">
+                  {FORMAT_LABEL[format]}
                 </span>
-              </div>
 
-              {/* Divider */}
-              {/* Next button */}
-              {onNext && (
-                <div className="flex-shrink-0 flex items-center px-3">
+                <div className="flex-1" />
+
+                {/* Word count */}
+                <span className={['text-[11px] tabular-nums', isOver ? 'text-red-400 font-medium' : 'text-[#C8C4BC]'].join(' ')}>
+                  {wordCount}/{MAX_WORDS}
+                </span>
+
+                {/* Next button */}
+                {onNext && (
                   <button
                     type="button"
                     onClick={onNext}
                     disabled={nextDisabled}
                     className={[
-                      'w-10 h-10 rounded-full flex items-center justify-center',
-                      'font-bold text-sm text-[#1A1714] bg-[#F0B429] transition-all',
-                      'disabled:opacity-35 disabled:cursor-not-allowed',
-                      'hover:bg-[#E8AC22] hover:scale-105 active:scale-95 active:bg-[#D9A01E]',
-                      'shadow-[0_0_16px_rgba(240,180,41,0.35)]',
+                      'flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold transition-all',
+                      'bg-[#1A1714] text-white',
+                      'hover:bg-[#2A2420] hover:shadow-[0_0_16px_rgba(26,23,20,0.3)]',
+                      'disabled:opacity-35 disabled:cursor-not-allowed disabled:shadow-none',
+                      'shadow-[0_2px_12px_rgba(26,23,20,0.2)]',
                     ].join(' ')}
                     title={`Next — ${files.length} photo${files.length !== 1 ? 's' : ''}`}
                   >
-                    →
+                    Next →
                   </button>
+                )}
+              </div>
+
+              {/* Prompt templates popover */}
+              {showPrompts && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setShowPrompts(false)} />
+                  <div className="absolute bottom-full left-0 right-0 mb-2 z-20 rounded-[12px] border border-[#E2DED6] bg-white shadow-[0_8px_32px_rgba(26,23,20,0.12)] overflow-hidden">
+                    <div className="p-3">
+                      <p className="text-[10px] text-[#B8B4AE] font-medium uppercase tracking-widest mb-2.5 px-1">
+                        Prompt ideas
+                      </p>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {PROMPT_TEMPLATES.map((t) => (
+                          <button
+                            key={t.label}
+                            type="button"
+                            onClick={() => {
+                              onPromptChange?.(t.prompt);
+                              setShowPrompts(false);
+                            }}
+                            className="text-left px-3 py-2.5 rounded-[8px] border border-[#F0EDE6] bg-[#FAFAF8] hover:border-[#F0B429]/40 hover:bg-[#FDF8EC] transition-all group"
+                          >
+                            <p className="text-[11px] font-semibold text-[#1A1714] group-hover:text-[#C07A00] transition-colors leading-tight">
+                              {t.label}
+                            </p>
+                            <p className="text-[10px] text-[#B8B4AE] mt-0.5 leading-tight">
+                              {t.preview}
+                            </p>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Drag-active overlay */}
+              {isDragActive && (
+                <div className="absolute inset-0 rounded-[14px] flex items-center justify-center pointer-events-none bg-[#FDF8EC]/80">
+                  <p className="text-[#C07A00] text-sm font-medium">Drop photos here</p>
                 </div>
               )}
             </div>
-
-            {/* Prompt templates popover */}
-            {showPrompts && (
-              <>
-                {/* Backdrop — closes on outside click */}
-                <div className="fixed inset-0 z-10" onClick={() => setShowPrompts(false)} />
-
-                <div
-                  className="absolute bottom-full left-0 right-0 mb-2 z-20 rounded-[10px] overflow-hidden border border-[#2A2622] shadow-2xl"
-                  style={{ background: '#1A1714' }}
-                >
-                  <div className="p-3">
-                    <p className="text-[10px] text-[#484440] font-medium uppercase tracking-widest mb-2.5 px-1">
-                      Prompt templates
-                    </p>
-                    <div className="grid grid-cols-2 gap-1.5">
-                      {PROMPT_TEMPLATES.map((t) => (
-                        <button
-                          key={t.label}
-                          type="button"
-                          onClick={() => {
-                            onPromptChange?.(t.prompt);
-                            setShowPrompts(false);
-                          }}
-                          className="text-left px-3 py-2.5 rounded-[7px] border border-[#2A2622] hover:border-[#F0B429]/30 transition-all group"
-                          style={{ background: '#141210' }}
-                        >
-                          <p className="text-[11px] font-semibold text-[#C8C4BC] group-hover:text-[#F0B429] transition-colors leading-tight">
-                            {t.label}
-                          </p>
-                          <p className="text-[10px] text-[#484440] mt-0.5 leading-tight">
-                            {t.preview}
-                          </p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Drag-active overlay on the bar */}
-            {isDragActive && (
-              <div className="absolute inset-0 rounded-[8px] flex items-center justify-center pointer-events-none" style={{ background: 'rgba(240,180,41,0.06)' }}>
-                <p className="text-[#F0B429] text-sm font-medium tracking-wide">Drop photos here</p>
-              </div>
-            )}
           </div>
         );
       })()}
-
-      {/* Hint / uploading state */}
-      {uploading && (
-        <p className="text-center text-[11px] text-[#F0B429] animate-pulse tracking-wide">
-          Uploading {uploadingCount} photo{uploadingCount !== 1 ? 's' : ''}…
-        </p>
-      )}
-      {!uploading && files.length > 0 && (
-        <p className="text-center text-[11px] text-[#B8B4AE] select-none tracking-wide">
-          {files.length} photo{files.length !== 1 ? 's' : ''} added · drag to reorder · min 3 to continue
-        </p>
-      )}
 
       {/* AI drone shots paywall modal */}
       {showAiPaywall && (
