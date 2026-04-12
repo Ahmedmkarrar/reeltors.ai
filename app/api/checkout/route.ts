@@ -54,9 +54,10 @@ export async function POST(req: NextRequest) {
       await admin.from('profiles').update({ stripe_customer_id: customerId }).eq('id', user.id);
     }
 
-    let appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://reeltors.ai';
-    if (!appUrl.startsWith('http')) appUrl = `https://${appUrl}`;
-    appUrl = appUrl.replace(/\/$/, '');
+    const rawUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim().replace(/^["']|["']$/g, '').replace(/\/$/, '');
+    const appUrl = rawUrl.startsWith('http') ? rawUrl : 'https://reeltors.ai';
+    const returnUrl = `${appUrl}/dashboard?upgraded=1`;
+    console.log('[CHECKOUT] appUrl:', appUrl, '| returnUrl:', returnUrl, '| plan:', plan, '| priceId:', priceId);
 
     if (embedded) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -65,9 +66,9 @@ export async function POST(req: NextRequest) {
         mode: 'subscription',
         line_items: [{ price: priceId, quantity: 1 }],
         ui_mode: 'embedded',
-        return_url: `${appUrl}/dashboard?upgraded=1`,
+        return_url: returnUrl,
         allow_promotion_codes: true,
-      });
+      }) as { client_secret: string };
       return NextResponse.json({ clientSecret: session.client_secret });
     }
 
@@ -75,7 +76,7 @@ export async function POST(req: NextRequest) {
       customer: customerId,
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${appUrl}/dashboard?upgraded=1`,
+      success_url: returnUrl,
       cancel_url: `${appUrl}/subscription`,
       allow_promotion_codes: true,
     });
