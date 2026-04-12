@@ -32,7 +32,7 @@ export function Hero() {
               <div className="flex items-center gap-2 border border-[#F0B429]/30 bg-[#F0B429]/8 rounded-full px-4 py-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#F0B429] animate-pulse shrink-0" />
                 <span className="text-[11px] font-bold text-[#F0B429] tracking-wider uppercase">
-                  Plans from $49.99 · No camera needed
+                  Built for US Realtors · No camera needed
                 </span>
               </div>
             </motion.div>
@@ -64,25 +64,25 @@ export function Hero() {
 
             {/* Sub */}
             <motion.p {...fadeUp(0.32)} className="text-[#8A8682] text-[1.15rem] leading-relaxed mb-8 max-w-[480px]">
-              Turn your listing photos into cinematic TikToks and Reels in{' '}
-              <span className="text-[#FAFAF8] font-semibold">60 seconds flat</span>.
-              No camera. No editor. No excuses.
+              Turn your listing photos into cinematic property videos in{' '}
+              <span className="text-[#FAFAF8] font-semibold">75 seconds flat</span>.
+              No videographer. No editor. No excuses.
             </motion.p>
 
             {/* CTAs */}
             <motion.div {...fadeUp(0.46)} className="flex flex-col sm:flex-row gap-3 mb-8">
-              <Link href="/signup">
+              <Link href="/generate">
                 <Button
                   size="lg"
                   variant="primary"
                   className="w-full sm:w-auto font-bold px-8 text-[15px] shadow-[0_0_40px_rgba(240,180,41,0.4)] hover:shadow-[0_0_60px_rgba(240,180,41,0.6)] transition-all"
                 >
-                  Get Started →
+                  Try it free — no card needed →
                 </Button>
               </Link>
-              <Link href="/generate">
+              <Link href="/signup">
                 <button className="w-full sm:w-auto h-12 px-7 text-[15px] font-semibold text-[#F0B429] border border-[#F0B429]/40 rounded-[6px] hover:border-[#F0B429] hover:bg-[#F0B429]/8 transition-all">
-                  Try 1 free video — no card needed
+                  View pricing
                 </button>
               </Link>
             </motion.div>
@@ -90,9 +90,9 @@ export function Hero() {
             {/* Trust row */}
             <motion.div {...fadeUp(0.58)} className="flex flex-wrap gap-x-5 gap-y-2">
               {[
-                '30-day money-back guarantee',
+                'No credit card required',
                 'Cancel anytime',
-                'Ready in 60 seconds',
+                'Ready in 75 seconds',
                 'No filming needed',
               ].map((t) => (
                 <span key={t} className="flex items-center gap-1.5 text-[12px] text-[#4A4744]">
@@ -135,7 +135,7 @@ export function Hero() {
         <motion.div {...fadeUp(0.65)} className="mt-16 pt-8 border-t border-[#1E1C18]">
           <div className="flex flex-wrap items-center justify-center gap-10">
             {[
-              { n: '60s',   label: 'avg creation time' },
+              { n: '75s',   label: 'avg creation time' },
               { n: '403%',  label: 'more buyer inquiries*' },
               { n: '3',     label: 'platforms per video' },
               { n: '$49',   label: 'to get started' },
