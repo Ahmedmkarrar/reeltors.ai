@@ -18,8 +18,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       <MobileNav />
 
-      {/* Main content — pb-20 on mobile accounts for bottom nav + safe area; create page has no nav */}
-      <main className="flex-1 min-w-0 pb-20 md:pb-0 overflow-x-hidden" style={{ paddingBottom: 'max(5rem, calc(56px + env(safe-area-inset-bottom)))' }}>
+      {/* Main content — mobile-nav-padding adds safe-area-aware pb on mobile, reset on md+ via globals.css */}
+      <main className="flex-1 min-w-0 overflow-x-hidden mobile-nav-padding">
         {children}
       </main>
     </div>
