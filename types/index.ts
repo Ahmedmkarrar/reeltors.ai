@@ -71,19 +71,3 @@ export interface CreateVideoPayload {
   /** Optional agent/brand logo URL to overlay in the bottom-right corner. */
   logoUrl?: string;
 }
-
-export interface GenerateVideoResponse {
-  videoId: string;
-  renderId: string;
-}
-
-export interface RenderStatusResponse {
-  status: string;
-  outputUrl?: string;
-  thumbnailUrl?: string;
-}
-
-export interface ApiError {
-  error: string;
-  message?: string;
-}
