@@ -11,6 +11,7 @@ interface UploadedFile {
   url: string;
   name: string;
   preview: string;
+  isUploading?: boolean;
 }
 
 const MAX_WORDS = 300;
@@ -58,11 +59,6 @@ const FORMAT_ASPECT: Record<VideoFormat, string> = {
   horizontal: '16/9',
 };
 
-const FORMAT_LABEL: Record<VideoFormat, string> = {
-  vertical:   '9:16',
-  square:     '1:1',
-  horizontal: '16:9',
-};
 
 interface UploadZoneProps {
   userId: string;
@@ -97,16 +93,15 @@ export function UploadZone({
   videoPrompt = '',
   onPromptChange,
   format = 'vertical',
-  onFormatChange: _onFormatChange, // eslint-disable-line @typescript-eslint/no-unused-vars
+  onFormatChange,
   onNext,
   nextDisabled = false,
   plan,
 }: UploadZoneProps) {
   const supabase = createClient();
-  const [files, setFiles]                 = useState<UploadedFile[]>([]);
-  const [uploading, setUploading]         = useState(false);
-  const [uploadingCount, setUploadingCount] = useState(0);
-  const [showPrompts, setShowPrompts]     = useState(false);
+  const [files, setFiles]       = useState<UploadedFile[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const [showPrompts, setShowPrompts] = useState(false);
   const [showAiPaywall, setShowAiPaywall] = useState(false);
 
   const isFreeUser = !plan || plan === 'free';
@@ -133,12 +128,20 @@ export function UploadZone({
 
       if (validFiles.length === 0) return;
 
+      // show local previews instantly before upload completes
+      const placeholders: UploadedFile[] = validFiles.map((file) => ({
+        url: '',
+        name: file.name,
+        preview: URL.createObjectURL(file),
+        isUploading: true,
+      }));
+
+      const baseFiles = files; // snapshot before this drop (closure)
+      setFiles([...baseFiles, ...placeholders]);
       setUploading(true);
-      setUploadingCount(validFiles.length);
 
       const results = await Promise.all(
-        validFiles.map(async (file) => {
-          const preview = URL.createObjectURL(file);
+        validFiles.map(async (file, i) => {
           const ext = file.name.split('.').pop();
           const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
@@ -155,17 +158,15 @@ export function UploadZone({
             .from('listing-images')
             .getPublicUrl(data.path);
 
-          return { url: publicUrl, name: file.name, preview } as UploadedFile;
+          return { url: publicUrl, name: file.name, preview: placeholders[i].preview } as UploadedFile;
         })
       );
 
-      const newFiles = results.filter((f): f is UploadedFile => f !== null);
-
-      const updated = [...files, ...newFiles];
+      const completed = results.filter((f): f is UploadedFile => f !== null);
+      const updated = [...baseFiles, ...completed];
       setFiles(updated);
       onUploadComplete(updated.map((f) => f.url));
       setUploading(false);
-      setUploadingCount(0);
     },
     [files, maxFiles, userId, supabase, onUploadComplete]
   );
@@ -257,7 +258,7 @@ export function UploadZone({
       <div className="min-h-[172px]">
 
       {/* Empty state — big obvious upload zone */}
-      {files.length === 0 && !uploading && (
+      {files.length === 0 && (
         <div
           onClick={open}
           className={[
@@ -305,184 +306,11 @@ export function UploadZone({
         </div>
       )}
 
-      {/* First-upload skeleton state */}
-      {files.length === 0 && uploading && (
-        <div>
-          <p className="text-xs text-[#F0B429] animate-pulse mb-3">
-            Uploading {uploadingCount} photo{uploadingCount !== 1 ? 's' : ''}…
-          </p>
-          <div className="flex gap-3 overflow-x-auto pb-2 pt-3 pl-2">
-            {Array.from({ length: uploadingCount }).map((_, i) => (
-              <div key={i} className="relative flex-shrink-0 w-[72px]">
-                <div
-                  className="relative overflow-hidden rounded border border-[#E2DED6] bg-[#F0EDE6] animate-pulse flex items-center justify-center"
-                  style={{ aspectRatio: FORMAT_ASPECT[format] }}
-                >
-                  <svg className="w-5 h-5 text-[#C8C4BC] animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                  </svg>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
-      {files.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-[#6B6760]">
-              <span className="font-medium text-[#1A1714]">{files.length}</span>{' '}
-              photo{files.length !== 1 ? 's' : ''} · drag to reorder · center-cropped to {FORMAT_LABEL[format]}
-            </p>
-            <p className="text-xs text-[#F0B429] font-medium">#1 = cover frame</p>
-          </div>
-
-          {/* AI legend */}
-          <div className="flex items-center gap-1.5 mb-3">
-            <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-[#7C3AED]/10 text-[#7C3AED] border border-[#7C3AED]/30 rounded px-2 py-0.5">
-              <BoltIcon className="w-2.5 h-2.5" /> AI
-            </span>
-            <span className="text-[10px] text-[#8A8682]">animate your video using AI</span>
-          </div>
-
-          <div className="flex gap-3 overflow-x-auto pb-2 pt-3 pl-2">
-            {files.map((file, i) => {
-              const isAi = aiVideoIndices.includes(i);
-              return (
-                <div
-                  key={file.url}
-                  draggable
-                  onDragStart={() => handleDragStart(i)}
-                  onDragOver={(e) => handleDragOver(e, i)}
-                  onDrop={(e) => handleDrop(e, i)}
-                  onDragEnd={handleDragEnd}
-                  className={[
-                    'relative flex-shrink-0 w-[72px] select-none transition-all duration-150 cursor-grab active:cursor-grabbing',
-                    dragOverIndex === i && dragIndex.current !== i
-                      ? 'scale-105 ring-2 ring-[#F0B429] rounded'
-                      : '',
-                    dragIndex.current === i ? 'opacity-40' : 'opacity-100',
-                  ].join(' ')}
-                >
-                  {/* crop preview — aspect ratio mirrors selected format */}
-                  <div
-                    className={[
-                      'relative overflow-hidden rounded border bg-[#F7F5EF]',
-                      isAi ? 'border-[#7C3AED]/60 ring-1 ring-[#7C3AED]/40' : 'border-[#E2DED6]',
-                    ].join(' ')}
-                    style={{ aspectRatio: FORMAT_ASPECT[format] }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={file.preview}
-                      alt={file.name}
-                      className="absolute inset-0 w-full h-full object-cover"
-                      draggable={false}
-                    />
-                    {isAi && <div className="absolute inset-0 bg-[#7C3AED]/10 pointer-events-none" />}
-                    {i === 0 && (
-                      <div className="absolute top-1 left-1 right-1 bg-[#F0B429] text-[#1A1714] text-[8px] font-bold text-center rounded-sm py-0.5 leading-none">
-                        COVER
-                      </div>
-                    )}
-                    {isAi && (
-                      <div className="absolute bottom-5 left-0 right-0 flex justify-center">
-                        <span className="inline-flex items-center gap-0.5 bg-[#7C3AED] text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full leading-none">
-                          <BoltIcon className="w-2 h-2" /> AI
-                        </span>
-                      </div>
-                    )}
-                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
-                      {[0, 1, 2].map((dot) => (
-                        <div key={dot} className="w-0.5 h-2 bg-white/60 rounded-full" />
-                      ))}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(i)}
-                      className="absolute top-1 right-1 w-4 h-4 bg-black/70 rounded-full flex items-center justify-center text-white text-[8px] hover:bg-red-600 transition-colors"
-                    >
-                      ✕
-                    </button>
-                  </div>
-
-                  {/* Order number */}
-                  <div className="absolute -top-1.5 -left-1.5 w-4 h-4 bg-[#F0B429] rounded-full flex items-center justify-center text-[8px] font-bold text-[#1A1714] shadow-sm">
-                    {i + 1}
-                  </div>
-
-                  {/* AI toggle */}
-                  <button
-                    type="button"
-                    title={isAi ? 'Remove AI drone shot' : 'Generate AI drone shot'}
-                    onClick={() => toggleAiForIndex(i)}
-                    className={[
-                      'absolute -bottom-2 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full flex items-center justify-center shadow-sm transition-all border',
-                      isAi
-                        ? 'bg-[#7C3AED] border-[#6D28D9] text-white'
-                        : 'bg-white border-[#D8D4CC] text-[#B8B4AE] hover:border-[#7C3AED] hover:text-[#7C3AED]',
-                    ].join(' ')}
-                  >
-                    <BoltIcon className="w-2.5 h-2.5" />
-                  </button>
-                </div>
-              );
-            })}
-
-            {/* Skeleton cards for in-progress uploads */}
-            {Array.from({ length: uploadingCount }).map((_, i) => (
-              <div
-                key={`skeleton-${i}`}
-                className="relative flex-shrink-0 w-[72px]"
-              >
-                <div
-                  className="relative overflow-hidden rounded border border-[#E2DED6] bg-[#F7F5EF] animate-pulse"
-                  style={{ aspectRatio: FORMAT_ASPECT[format] }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent skeleton-shimmer" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <svg className="w-5 h-5 text-[#C8C4BC] animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {/* Add more slot — click calls open(), drag is caught by outer wrapper */}
-            {files.length < maxFiles && (
-              <button
-                type="button"
-                onClick={open}
-                disabled={uploading}
-                className="flex-shrink-0 w-[72px] border-2 border-dashed border-[#E2DED6] rounded flex items-center justify-center hover:border-[#F0B429]/50 transition-colors disabled:opacity-40"
-                style={{ aspectRatio: FORMAT_ASPECT[format] }}
-              >
-                <span className="text-xl text-[#C8C4BC]">+</span>
-              </button>
-            )}
-          </div>
-        </div>
-      )}
       </div>
 
-      {/* Upload hint */}
-      {uploading && (
-        <p className="text-center text-[11px] text-[#F0B429] animate-pulse tracking-wide mt-2">
-          Uploading {uploadingCount} photo{uploadingCount !== 1 ? 's' : ''}…
-        </p>
-      )}
-      {!uploading && files.length > 0 && (
-        <p className="text-center text-[11px] text-[#B8B4AE] select-none tracking-wide mt-2">
-          {files.length} photo{files.length !== 1 ? 's' : ''} added · drag to reorder · min 3 to continue
-        </p>
-      )}
-
       {/* Spacer so content isn't hidden behind the fixed bar */}
-      <div className="h-48 md:h-36" />
+      <div className="h-[320px] md:h-[280px]" />
 
       {/* Prompt bar — fixed to viewport bottom */}
       {(() => {
@@ -502,6 +330,141 @@ export function UploadZone({
                   : 'border-[#E2DED6] focus-within:border-[#1A1714]/20 focus-within:shadow-[0_-2px_28px_rgba(26,23,20,0.08)]',
               ].join(' ')}
             >
+              {/* Format picker row — always visible */}
+              <div className="flex items-center gap-2 px-4 pt-3 pb-2.5 border-b border-[#F0EDE6]">
+                <span className="text-[11px] text-[#B8B4AE] shrink-0">Format</span>
+                {([
+                  { value: 'vertical',   label: '9:16', hint: 'Reels' },
+                  { value: 'square',     label: '1:1',  hint: 'Feed' },
+                  { value: 'horizontal', label: '16:9', hint: 'YouTube' },
+                ] as const).map(({ value, label, hint }) => (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => onFormatChange?.(value)}
+                    className={[
+                      'flex items-center gap-1 px-2.5 py-1 rounded-full border text-[11px] font-medium transition-all',
+                      format === value
+                        ? 'border-[#1A1714] bg-[#F5F5F3] text-[#1A1714]'
+                        : 'border-[#E2DED6] text-[#8A8682] hover:border-[#1A1714]/30',
+                    ].join(' ')}
+                  >
+                    <span className="font-mono">{label}</span>
+                    <span className={format === value ? 'text-[#6B6760]' : 'text-[#B8B4AE]'}>{hint}</span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Photo strip — shown inside the bar once photos exist */}
+              {files.length > 0 && (
+                <>
+                  <div className="px-4 pt-3 pb-1">
+                    <div className="flex items-center gap-1.5 mb-2.5">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#0D9488] text-white rounded-md px-2.5 py-1">
+                        <BoltIcon className="w-3 h-3" /> AI
+                      </span>
+                      <span className="text-xs text-[#8A8682]">
+                        {uploading
+                          ? <span className="text-[#F0B429] animate-pulse">Uploading {files.filter((f) => f.isUploading).length} photo{files.filter((f) => f.isUploading).length !== 1 ? 's' : ''}…</span>
+                          : 'tap ⚡ to animate with AI · drag to reorder'}
+                      </span>
+                    </div>
+                    <div className="flex gap-2.5 overflow-x-auto pb-3 pt-2 pl-1">
+                      {files.map((file, i) => {
+                        const isAi = aiVideoIndices.includes(i);
+                        const isCardUploading = !!file.isUploading;
+                        return (
+                          <div
+                            key={file.preview}
+                            draggable={!isCardUploading}
+                            onDragStart={() => !isCardUploading && handleDragStart(i)}
+                            onDragOver={(e) => !isCardUploading && handleDragOver(e, i)}
+                            onDrop={(e) => !isCardUploading && handleDrop(e, i)}
+                            onDragEnd={handleDragEnd}
+                            className={[
+                              'relative flex-shrink-0 w-[60px] select-none transition-all duration-150',
+                              isCardUploading ? 'cursor-default' : 'cursor-grab active:cursor-grabbing',
+                              dragOverIndex === i && dragIndex.current !== i ? 'scale-105 ring-2 ring-[#F0B429] rounded' : '',
+                              dragIndex.current === i ? 'opacity-40' : 'opacity-100',
+                            ].join(' ')}
+                          >
+                            <div
+                              className={[
+                                'relative overflow-hidden rounded border bg-[#F7F5EF]',
+                                isAi && !isCardUploading ? 'border-[#0D9488]/70 ring-1 ring-[#0D9488]/30' : 'border-[#E2DED6]',
+                              ].join(' ')}
+                              style={{ aspectRatio: FORMAT_ASPECT[format] }}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={file.preview} alt={file.name} className="absolute inset-0 w-full h-full object-cover" draggable={false} />
+                              {isCardUploading && (
+                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                  <svg className="w-3 h-3 text-white animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-30" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                                    <path className="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                                  </svg>
+                                </div>
+                              )}
+                              {isAi && !isCardUploading && <div className="absolute inset-0 bg-[#0D9488]/10 pointer-events-none" />}
+                              {isAi && !isCardUploading && (
+                                <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+                                  <span className="inline-flex items-center gap-0.5 bg-[#0D9488] text-white text-[6px] font-bold px-1 py-0.5 rounded-full leading-none">
+                                    <BoltIcon className="w-1.5 h-1.5" /> AI
+                                  </span>
+                                </div>
+                              )}
+                              {!isCardUploading && (
+                                <button
+                                  type="button"
+                                  onClick={() => removeFile(i)}
+                                  className="absolute top-0.5 right-0.5 w-3.5 h-3.5 bg-black/70 rounded-full flex items-center justify-center text-white text-[7px] hover:bg-red-600 transition-colors"
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                            <div className={[
+                              'absolute -top-1.5 -left-1.5 w-3.5 h-3.5 rounded-full flex items-center justify-center text-[7px] font-bold shadow-sm border',
+                              isCardUploading ? 'bg-[#F3F3F2] border-[#E2DED6] text-[#ADADAD]' : 'bg-white border-[#D0CECA] text-[#1A1714]',
+                            ].join(' ')}>
+                              {i + 1}
+                            </div>
+                            <button
+                              type="button"
+                              title={isAi ? 'Remove AI drone shot' : 'Generate AI drone shot'}
+                              onClick={() => !isCardUploading && toggleAiForIndex(i)}
+                              disabled={isCardUploading}
+                              className={[
+                                'absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full flex items-center justify-center shadow-sm transition-all border',
+                                isCardUploading
+                                  ? 'bg-white border-[#D8D4CC] text-[#C8C4BC] opacity-50 cursor-not-allowed'
+                                  : isAi
+                                  ? 'bg-[#0D9488] border-[#0B7A70] text-white'
+                                  : 'bg-white border-[#D8D4CC] text-[#B8B4AE] hover:border-[#0D9488] hover:text-[#0D9488]',
+                              ].join(' ')}
+                            >
+                              <BoltIcon className="w-2 h-2" />
+                            </button>
+                          </div>
+                        );
+                      })}
+                      {files.length < maxFiles && (
+                        <button
+                          type="button"
+                          onClick={open}
+                          disabled={uploading}
+                          className="flex-shrink-0 w-[60px] border-2 border-dashed border-[#E2DED6] rounded flex items-center justify-center hover:border-[#F0B429]/50 transition-colors disabled:opacity-40"
+                          style={{ aspectRatio: FORMAT_ASPECT[format] }}
+                        >
+                          <span className="text-lg text-[#C8C4BC]">+</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="h-px bg-[#F0EDE6]" />
+                </>
+              )}
+
               {/* Textarea row */}
               <div className="flex items-start gap-3 px-4 pt-3.5 pb-2">
                 <button
@@ -553,11 +516,6 @@ export function UploadZone({
                   </button>
                 </div>
 
-                {/* Format chip */}
-                <span className="flex items-center gap-1 px-2.5 py-1 rounded-full border border-[#E2DED6] text-[11px] text-[#8A8682] font-mono">
-                  {FORMAT_LABEL[format]}
-                </span>
-
                 <div className="flex-1" />
 
                 {/* Word count */}
@@ -570,7 +528,7 @@ export function UploadZone({
                   <button
                     type="button"
                     onClick={onNext}
-                    disabled={nextDisabled}
+                    disabled={nextDisabled || uploading}
                     className={[
                       'flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold transition-all',
                       'bg-[#1A1714] text-white',
@@ -647,8 +605,8 @@ export function UploadZone({
             </button>
 
             {/* Icon */}
-            <div className="w-12 h-12 rounded-full bg-[#7C3AED]/10 flex items-center justify-center mb-4">
-              <BoltIcon className="w-5 h-5 text-[#7C3AED]" />
+            <div className="w-12 h-12 rounded-full bg-[#1A1714]/8 flex items-center justify-center mb-4">
+              <BoltIcon className="w-5 h-5 text-[#1A1714]" />
             </div>
 
             <h3 className="font-syne font-bold text-lg text-[#1A1714] mb-1">AI Drone Shots</h3>

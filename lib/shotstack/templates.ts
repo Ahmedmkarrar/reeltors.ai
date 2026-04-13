@@ -42,16 +42,20 @@ export const TEMPLATE_BEST_FOR: Record<TemplateStyle, string> = {
   STORY:          'Before & after',
 };
 
+const SUPABASE_PREVIEW_BASE = 'https://vdlkzibfehioklgxgefq.supabase.co/storage/v1/object/public/template-previews';
+
 export const TEMPLATE_PREVIEW_URLS: Record<TemplateStyle, string> = {
-  CINEMATIC:      'https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=400',
-  LUXURY_REVEAL:  'https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=400',
-  MODERN_MINIMAL: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=400',
-  TIKTOK_FAST:    'https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=400',
-  LUXURY_MANSION: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=400',
-  STORY:          'https://images.unsplash.com/photo-1613490493576-7fde63acd811?q=80&w=400',
+  CINEMATIC:      `${SUPABASE_PREVIEW_BASE}/previewCinm.mp4`,
+  TIKTOK_FAST:    `${SUPABASE_PREVIEW_BASE}/previewTiktok.mp4`,
+  MODERN_MINIMAL: `${SUPABASE_PREVIEW_BASE}/previewLuxary.mp4`,
+  LUXURY_REVEAL:  '',
+  LUXURY_MANSION: '',
+  STORY:          '',
 };
 
-export const TEMPLATES = (Object.keys(TEMPLATE_IDS) as TemplateStyle[]).slice(0, 3).map((key) => ({
+const ACTIVE_TEMPLATES: TemplateStyle[] = ['CINEMATIC', 'TIKTOK_FAST', 'MODERN_MINIMAL'];
+
+export const TEMPLATES = ACTIVE_TEMPLATES.map((key) => ({
   id:          key,
   templateKey: TEMPLATE_IDS[key],
   name:        TEMPLATE_NAMES[key],
