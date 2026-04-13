@@ -311,39 +311,12 @@ export default function CreatePage() {
   // ─── STEP: UPLOAD ────────────────────────────────────────────────
   if (step === 'upload') {
     return (
-      <div className="min-h-screen" style={{ background: '#FFFFFF' }}>
-
-        {/* ── Content ─────────────────────────────────────────────────── */}
+      <div className="h-screen overflow-hidden" style={{ background: '#FFFFFF' }}>
         <div className="p-4 md:p-8 max-w-3xl">
           <StepHeader step={1} total={4} title="Upload Your Photos" />
           <p className="text-sm text-[#8A8682] -mt-2 mb-4">
             Add your best listing shots — we&apos;ll turn them into a cinematic property video.
           </p>
-
-          {/* Compact format picker */}
-          <div className="flex items-center gap-2 mb-6">
-            <span className="text-xs text-[#8A8682]">Format:</span>
-            {([
-              { value: 'vertical',   label: '9:16', hint: 'Reels' },
-              { value: 'square',     label: '1:1',  hint: 'Feed' },
-              { value: 'horizontal', label: '16:9', hint: 'YouTube' },
-            ] as const).map(({ value, label, hint }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setFormat(value)}
-                className={[
-                  'flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-xs font-medium transition-all',
-                  format === value
-                    ? 'border-[#1A1714] bg-[#F5F5F3] text-[#1A1714]'
-                    : 'border-[#E2DED6] bg-white text-[#8A8682] hover:border-[#1A1714]/30',
-                ].join(' ')}
-              >
-                <span className="font-mono">{label}</span>
-                <span className={format === value ? 'text-[#6B6760]' : 'text-[#B8B4AE]'}>{hint}</span>
-              </button>
-            ))}
-          </div>
 
           <UploadZone
             userId={userId}
