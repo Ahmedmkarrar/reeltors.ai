@@ -97,8 +97,23 @@ export default function StepResult({ videoUrl, email }: StepResultProps) {
             borderTop: '1px solid #C9A96E40',
             padding: '28px 24px 36px',
             textAlign: 'center',
+            position: 'relative',
           }}
         >
+          <button
+            onClick={() => setIsUpsellVisible(false)}
+            aria-label="Dismiss"
+            style={{
+              position: 'absolute', top: 14, right: 16,
+              background: '#1E1B17', border: '1px solid #2E2B27',
+              color: '#8A8682', borderRadius: '50%',
+              width: 36, height: 36, fontSize: 20, lineHeight: '1',
+              cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontWeight: 400,
+            }}
+          >
+            ×
+          </button>
           {/* Usage bar */}
           <div style={{ marginBottom: 22 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
@@ -136,20 +151,22 @@ export default function StepResult({ videoUrl, email }: StepResultProps) {
             Get 15 Videos/Month — $49 →
           </a>
 
-          {/* Social proof */}
-          <p style={{ color: '#4A4642', fontSize: 11, margin: '0 0 12px' }}>
-            ✓ No contract &nbsp;·&nbsp; ✓ Cancel anytime &nbsp;·&nbsp; ✓ Used by 247 agents today
-          </p>
-
           <button
             onClick={() => setIsUpsellVisible(false)}
             style={{
-              background: 'transparent', border: 'none',
-              color: '#3A3730', fontSize: 12, cursor: 'pointer', padding: '4px 8px',
+              background: 'transparent', border: '1px solid #C9A96E60',
+              color: '#C9A96E', fontSize: 15, fontWeight: 600,
+              cursor: 'pointer', padding: '12px 32px', borderRadius: 8,
+              width: '100%', letterSpacing: '-0.1px', marginBottom: 16,
             }}
           >
             Maybe later
           </button>
+
+          {/* Social proof */}
+          <p style={{ color: '#4A4642', fontSize: 11, margin: 0 }}>
+            ✓ No contract &nbsp;·&nbsp; ✓ Cancel anytime &nbsp;·&nbsp; ✓ Used by 247 agents today
+          </p>
         </div>
       </div>
     </div>

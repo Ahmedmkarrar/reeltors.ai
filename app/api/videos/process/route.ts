@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { waitUntil } from '@vercel/functions';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { generateVideo, generateMixedMediaVideo, ShotstackError } from '@/lib/shotstack/client';
 import type { MediaItem } from '@/lib/shotstack/client';
@@ -44,6 +45,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
+  // Respond immediately so the generate route's waitUntil resolves fast.
+  // The heavy work (fal.ai + Shotstack) runs in the background via waitUntil
+  // under this route's own maxDuration=300 budget.
+  waitUntil(runProcess(payload));
+  return NextResponse.json({ accepted: true }, { status: 202 });
+}
+
+async function runProcess(payload: ProcessVideoPayload) {
   const {
     videoId, userId, images, aiIndices, templateId,
     listingAddress, listingPrice, agentName, brandName,
@@ -52,7 +61,6 @@ export async function POST(req: NextRequest) {
   } = payload;
 
   const admin = getSupabaseAdmin();
-
   const markFailed = () =>
     admin.from('videos').update({ status: 'failed' }).eq('id', videoId);
 
@@ -136,7 +144,6 @@ export async function POST(req: NextRequest) {
     }
   } catch (err) {
     await markFailed();
-
     if (err instanceof ShotstackError) {
       console.error('Shotstack API error:', err.message);
     } else if (err instanceof FalError) {
@@ -144,7 +151,7 @@ export async function POST(req: NextRequest) {
     } else {
       console.error('Unexpected error calling video services:', err);
     }
-    return NextResponse.json({ error: 'Video processing failed' }, { status: 502 });
+    return;
   }
 
   // ── 5. Update record with render ID + conditionally increment usage ──────
@@ -192,6 +199,4 @@ export async function POST(req: NextRequest) {
   }
 
   await Promise.allSettled(ops);
-
-  return NextResponse.json({ renderId: render.id });
 }

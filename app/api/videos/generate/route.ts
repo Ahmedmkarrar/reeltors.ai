@@ -6,6 +6,10 @@ import type { CreateVideoPayload } from '@/types';
 import { isDisposableEmail, getClientIp } from '@/lib/abuse/email';
 import { clampAiIndices } from '@/lib/fal/client';
 
+// Needs enough headroom to wait for the process route to acknowledge (202).
+// The process route itself has maxDuration=300 and uses waitUntil internally.
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   const supabase = createClient();
 
@@ -179,11 +183,20 @@ export async function POST(req: NextRequest) {
   // ── 5. Fire-and-forget the heavy processing (fal.ai + Shotstack) ──────────
   // The process route runs as its own independent Vercel Function invocation
   // with its own maxDuration=300, so the client gets an immediate 202.
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
-  const processUrl = `${appUrl}/api/videos/process`;
+  //
+  // Use localhost for server-to-server calls — NEXT_PUBLIC_APP_URL may point to
+  // a localtunnel/ngrok URL that intercepts programmatic requests with a bypass
+  // page, so the process route would never actually execute.
+  // On Vercel, VERCEL_URL is set automatically to the deployment domain.
+  const internalBase = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : `http://localhost:${process.env.PORT ?? '3000'}`;
+  const processUrl = `${internalBase}/api/videos/process`;
 
   const isPaidPlan = profile.plan === 'starter' || profile.plan === 'growth' || profile.plan === 'pro' || profile.plan === 'team';
 
+  // The process route now responds 202 immediately and runs heavy work via its
+  // own waitUntil, so this fetch resolves fast (no multi-minute wait).
   const processPromise = fetch(processUrl, {
     method: 'POST',
     headers: {
@@ -211,14 +224,17 @@ export async function POST(req: NextRequest) {
       clientIp,
       fingerprintId,
     }),
+  }).then(async (res) => {
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({})) as Record<string, string>;
+      console.error(`Process route returned ${res.status}:`, body.error ?? '(no message)');
+      await admin.from('videos').update({ status: 'failed' }).eq('id', video.id);
+    }
   }).catch((err) => {
-    // Process route failed to start — mark video failed so the UI doesn't hang
-    console.error('Failed to trigger video processing:', err);
-    return admin.from('videos').update({ status: 'failed' }).eq('id', video.id);
+    console.error('Failed to reach process route:', err);
+    void Promise.resolve(admin.from('videos').update({ status: 'failed' }).eq('id', video.id));
   });
 
-  // waitUntil keeps the Vercel Function alive until processPromise settles,
-  // even after the 202 response has been sent to the client.
   waitUntil(processPromise);
 
   return NextResponse.json({ videoId: video.id }, { status: 202 });

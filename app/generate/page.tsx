@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { TEMPLATE_IDS } from '@/lib/shotstack/templates';
+import type { VideoFormat } from '@/types';
 import StepUpload from '@/components/tunnel/StepUpload';
 import StepTemplates from '@/components/tunnel/StepTemplates';
 import StepEmailGate from '@/components/tunnel/StepEmailGate';
@@ -12,6 +13,7 @@ import StepResult from '@/components/tunnel/StepResult';
 type Step = 'upload' | 'templates' | 'email' | 'generating' | 'result' | 'failed';
 
 const GENERATION_STORAGE_KEY = 'reeltors_generation_v1';
+const TUNNEL_UPLOADED_KEY = 'tunnelUploaded';
 // Match StepGenerating's hard timeout so stale entries are auto-evicted on resume
 const MAX_RESUME_AGE_MS = 10 * 60 * 1000;
 
@@ -24,6 +26,7 @@ interface TunnelState {
   sessionToken: string;
   imageUrls:    string[];
   templateKey:  string;
+  format:       VideoFormat;
   pollUrl:      string;
   email:        string;
   videoUrl:     string;
@@ -36,6 +39,7 @@ interface TunnelPending {
   sessionToken: string;
   imageUrls: string[];
   templateKey: string;
+  format: VideoFormat;
 }
 
 function generateSessionToken(): string {
@@ -51,6 +55,7 @@ export default function GeneratePage() {
     sessionToken: '',
     imageUrls:    [],
     templateKey:  '',
+    format:       'vertical',
     pollUrl:      '',
     email:        '',
     videoUrl:     '',
@@ -90,6 +95,7 @@ export default function GeneratePage() {
         body: JSON.stringify({
           templateId,
           images: pending.imageUrls,
+          format: pending.format ?? 'vertical',
           title: 'My Listing Video',
         }),
       });
@@ -148,6 +154,19 @@ export default function GeneratePage() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
+        try {
+          const uploadedRaw = localStorage.getItem(TUNNEL_UPLOADED_KEY);
+          if (uploadedRaw) {
+            const uploaded: { sessionToken: string; imageUrls: string[]; savedAt: number } = JSON.parse(uploadedRaw);
+            if (Date.now() - uploaded.savedAt < TUNNEL_PENDING_TTL_MS && uploaded.imageUrls?.length) {
+              setState((prev) => ({ ...prev, sessionToken: uploaded.sessionToken || stored, imageUrls: uploaded.imageUrls }));
+              setIsAuthChecked(true);
+              setStep('templates');
+              return;
+            }
+            localStorage.removeItem(TUNNEL_UPLOADED_KEY);
+          }
+        } catch { /* localStorage unavailable */ }
         setState((prev) => ({ ...prev, sessionToken: stored }));
         setIsAuthChecked(true);
         return;
@@ -183,6 +202,7 @@ export default function GeneratePage() {
           sessionToken: pending.sessionToken,
           imageUrls: pending.imageUrls,
           templateKey: pending.templateKey,
+          format: pending.format ?? 'vertical',
           email: user.email ?? '',
         }));
         setIsAuthChecked(true);
@@ -215,7 +235,20 @@ export default function GeneratePage() {
         }
       } catch { /* localStorage unavailable — fall through to normal flow */ }
 
-      // Already logged in — skip email gate when they hit that step
+      // Already logged in — restore uploaded photos if available, skip email gate
+      try {
+        const uploadedRaw = localStorage.getItem(TUNNEL_UPLOADED_KEY);
+        if (uploadedRaw) {
+          const uploaded: { sessionToken: string; imageUrls: string[]; savedAt: number } = JSON.parse(uploadedRaw);
+          if (Date.now() - uploaded.savedAt < TUNNEL_PENDING_TTL_MS && uploaded.imageUrls?.length) {
+            setState((prev) => ({ ...prev, sessionToken: uploaded.sessionToken || stored, imageUrls: uploaded.imageUrls, email: user.email ?? '' }));
+            setIsAuthChecked(true);
+            setStep('templates');
+            return;
+          }
+          localStorage.removeItem(TUNNEL_UPLOADED_KEY);
+        }
+      } catch { /* localStorage unavailable */ }
       setState((prev) => ({ ...prev, sessionToken: stored, email: user.email ?? '' }));
       setIsAuthChecked(true);
     })();
@@ -223,13 +256,19 @@ export default function GeneratePage() {
   }, []);
 
   const handleUploadComplete = useCallback((imageUrls: string[]) => {
-    setState((prev) => ({ ...prev, imageUrls }));
+    setState((prev) => {
+      try {
+        const sessionToken = localStorage.getItem('tunnelSessionToken') ?? '';
+        localStorage.setItem(TUNNEL_UPLOADED_KEY, JSON.stringify({ sessionToken, imageUrls, savedAt: Date.now() }));
+      } catch { /* ignore */ }
+      return { ...prev, imageUrls };
+    });
     setStep('templates');
   }, []);
 
-  const handleTemplateGenerate = useCallback(async (templateKey: string) => {
+  const handleTemplateGenerate = useCallback(async (templateKey: string, format: VideoFormat) => {
     if (isGeneratingRef.current) return;
-    setState((prev) => ({ ...prev, templateKey }));
+    setState((prev) => ({ ...prev, templateKey, format }));
 
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -240,12 +279,13 @@ export default function GeneratePage() {
           sessionToken: prev.sessionToken,
           imageUrls: prev.imageUrls,
           templateKey,
+          format,
         };
         // Fire after state flush so prev values are captured correctly
         Promise.resolve().then(() =>
           startAuthenticatedGeneration(pending, user.email ?? '')
         );
-        return { ...prev, templateKey, email: user.email ?? '' };
+        return { ...prev, templateKey, format, email: user.email ?? '' };
       });
     } else {
       setStep('email');
@@ -259,7 +299,10 @@ export default function GeneratePage() {
   }, []);
 
   const handleVideoComplete = useCallback((videoUrl: string, thumbnailUrl: string | null) => {
-    try { localStorage.removeItem(GENERATION_STORAGE_KEY); } catch { /* ignore */ }
+    try {
+      localStorage.removeItem(GENERATION_STORAGE_KEY);
+      localStorage.removeItem(TUNNEL_UPLOADED_KEY);
+    } catch { /* ignore */ }
     setState((prev) => ({ ...prev, videoUrl, thumbnailUrl }));
     setStep('result');
   }, []);
@@ -320,6 +363,7 @@ export default function GeneratePage() {
               templateKey={state.templateKey}
               imageUrls={state.imageUrls}
               sessionToken={state.sessionToken}
+              format={state.format}
               onSuccess={handleEmailSuccess}
             />
           )}
@@ -377,6 +421,7 @@ export default function GeneratePage() {
               onClick={() => {
                 localStorage.removeItem('tunnelSessionToken');
                 localStorage.removeItem('tunnelPending');
+                localStorage.removeItem(TUNNEL_UPLOADED_KEY);
                 window.location.reload();
               }}
               style={{

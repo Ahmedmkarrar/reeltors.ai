@@ -11,9 +11,10 @@ interface StepUploadProps {
 interface UploadedPhoto {
   url: string;
   previewUrl: string;
+  isUploading?: boolean;
 }
 
-const UPLOAD_TIMEOUT_MS = 15_000;
+const UPLOAD_TIMEOUT_MS = 60_000;
 
 export default function StepUpload({ sessionToken, onComplete }: StepUploadProps) {
   const [photos, setPhotos] = useState<UploadedPhoto[]>([]);
@@ -21,7 +22,6 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
   const [uploadError, setUploadError] = useState<string | null>(null);
   const previewUrlsRef = useRef<Set<string>>(new Set());
 
-  // Revoke all object URLs on unmount to prevent memory leaks
   useEffect(() => {
     const urls = previewUrlsRef.current;
     return () => { urls.forEach((u) => URL.revokeObjectURL(u)); };
@@ -44,12 +44,8 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
 
       const body = await res.json().catch(() => ({})) as Record<string, string>;
 
-      if (!res.ok) {
-        throw new Error(body.error ?? 'Upload failed');
-      }
-      if (!body.url) {
-        throw new Error('Upload succeeded but no URL returned');
-      }
+      if (!res.ok) throw new Error(body.error ?? 'Upload failed');
+      if (!body.url) throw new Error('Upload succeeded but no URL returned');
       return body.url;
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
@@ -66,34 +62,32 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
       setUploadError('Max 15 photos allowed.');
       return;
     }
-
-    setIsUploading(true);
     setUploadError(null);
 
+    // Show instant previews before upload completes
+    const placeholders: UploadedPhoto[] = acceptedFiles.map((file) => {
+      const previewUrl = URL.createObjectURL(file);
+      previewUrlsRef.current.add(previewUrl);
+      return { url: '', previewUrl, isUploading: true };
+    });
+
+    const basePhotos = photos;
+    setPhotos([...basePhotos, ...placeholders]);
+    setIsUploading(true);
+
     const results = await Promise.allSettled(
-      acceptedFiles.map(async (file) => {
-        const previewUrl = URL.createObjectURL(file);
-        previewUrlsRef.current.add(previewUrl);
-        const url = await uploadFile(file);
-        return { url, previewUrl };
-      })
+      acceptedFiles.map((file) => uploadFile(file))
     );
 
-    const succeeded = results
-      .filter((r): r is PromiseFulfilledResult<UploadedPhoto> => r.status === 'fulfilled')
-      .map((r) => r.value);
-
-    // Revoke preview URLs for failed uploads
-    results
-      .filter((r) => r.status === 'rejected')
-      .forEach((_, i) => {
-        const file = acceptedFiles[i];
-        if (file) {
-          // Find and revoke the preview URL we created for the failed file
-          const failedPreview = succeeded.find(() => false); // noop — already added to ref
-          void failedPreview;
-        }
-      });
+    const completed: UploadedPhoto[] = results.flatMap((result, i) => {
+      if (result.status === 'fulfilled') {
+        return [{ url: result.value, previewUrl: placeholders[i].previewUrl, isUploading: false }];
+      }
+      // Revoke blob URL for failed uploads
+      URL.revokeObjectURL(placeholders[i].previewUrl);
+      previewUrlsRef.current.delete(placeholders[i].previewUrl);
+      return [];
+    });
 
     const failedCount = results.filter((r) => r.status === 'rejected').length;
     if (failedCount > 0) {
@@ -102,15 +96,17 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
       setUploadError(`${failedCount} photo(s) failed: ${msg}`);
     }
 
-    setPhotos((prev) => [...prev, ...succeeded]);
+    const updatedPhotos = [...basePhotos, ...completed];
+    setPhotos(updatedPhotos);
     setIsUploading(false);
-  }, [photos.length, uploadFile]);
+  }, [photos, uploadFile]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({
     onDrop,
     accept: { 'image/jpeg': [], 'image/png': [], 'image/webp': [] },
     maxFiles: 15,
     disabled: isUploading || photos.length >= 15,
+    noClick: true,
   });
 
   const removePhoto = (index: number) => {
@@ -124,6 +120,9 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
     });
   };
 
+  const completedPhotos = photos.filter((p) => !p.isUploading);
+  const uploadingCount = photos.filter((p) => p.isUploading).length;
+
   return (
     <div style={{ maxWidth: 680, margin: '0 auto', padding: '48px 24px' }}>
       <div style={{ textAlign: 'center', marginBottom: 40 }}>
@@ -135,44 +134,44 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
         </p>
       </div>
 
+      {/* Dropzone — always visible, shrinks when photos exist */}
       <div
         {...getRootProps()}
+        onClick={open}
         style={{
           border: `2px dashed ${isDragActive ? '#F0B429' : '#2E2B27'}`,
           borderRadius: 12,
-          padding: '48px 24px',
+          padding: photos.length > 0 ? '24px' : '48px 24px',
           textAlign: 'center',
           cursor: photos.length >= 15 ? 'default' : 'pointer',
-          transition: 'border-color 0.2s',
+          transition: 'border-color 0.2s, padding 0.2s',
           background: isDragActive ? 'rgba(240, 180, 41, 0.05)' : 'transparent',
-          marginBottom: 24,
+          marginBottom: 16,
         }}
       >
         <input {...getInputProps()} />
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 12 }}>
           <div style={{
-            width: 56, height: 56, borderRadius: '50%',
+            width: 48, height: 48, borderRadius: '50%',
             background: 'rgba(240,180,41,0.08)',
             border: '1px solid rgba(240,180,41,0.18)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#C9A96E" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
               <polyline points="17 8 12 3 7 8" />
               <line x1="12" y1="3" x2="12" y2="15" />
             </svg>
           </div>
         </div>
-        {isUploading ? (
-          <p style={{ color: '#C9A96E', fontWeight: 600, fontSize: 15 }}>Uploading...</p>
-        ) : isDragActive ? (
-          <p style={{ color: '#C9A96E', fontWeight: 600, fontSize: 15 }}>Release to upload</p>
+        {isDragActive ? (
+          <p style={{ color: '#C9A96E', fontWeight: 600, fontSize: 14 }}>Release to upload</p>
         ) : (
           <>
-            <p style={{ color: '#E8E4DE', fontWeight: 600, fontSize: 15, marginBottom: 6 }}>
-              Drop listing photos here, or click to browse
+            <p style={{ color: '#E8E4DE', fontWeight: 600, fontSize: 14, marginBottom: 4 }}>
+              {photos.length > 0 ? 'Add more photos' : 'Drop listing photos here, or click to browse'}
             </p>
-            <p style={{ color: '#4A4642', fontSize: 13, margin: 0, letterSpacing: '0.01em' }}>
+            <p style={{ color: '#4A4642', fontSize: 12, margin: 0 }}>
               JPEG · PNG · WEBP &nbsp;·&nbsp; max 10 MB each &nbsp;·&nbsp; up to 15 photos
             </p>
           </>
@@ -185,6 +184,7 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
         </p>
       )}
 
+      {/* Photo grid — appears instantly with placeholders */}
       {photos.length > 0 && (
         <>
           <div
@@ -192,50 +192,94 @@ export default function StepUpload({ sessionToken, onComplete }: StepUploadProps
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fill, minmax(100px, 1fr))',
               gap: 8,
-              marginBottom: 32,
+              marginBottom: 16,
             }}
           >
             {photos.map((photo, i) => (
-              <div key={photo.url} style={{ position: 'relative', aspectRatio: '1', borderRadius: 8, overflow: 'hidden' }}>
+              <div
+                key={photo.previewUrl}
+                style={{ position: 'relative', aspectRatio: '1', borderRadius: 8, overflow: 'hidden', background: '#1A1714' }}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photo.previewUrl}
                   alt={`Photo ${i + 1}`}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
-                <button
-                  onClick={() => removePhoto(i)}
+                {/* Uploading overlay with spinner */}
+                {photo.isUploading && (
+                  <div
+                    style={{
+                      position: 'absolute', inset: 0,
+                      background: 'rgba(13,11,8,0.55)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}
+                  >
+                    <svg
+                      width="20" height="20" viewBox="0 0 24 24" fill="none"
+                      style={{ animation: 'spin 0.8s linear infinite' }}
+                    >
+                      <circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.25)" strokeWidth="3" />
+                      <path d="M12 2a10 10 0 0 1 10 10" stroke="#F0B429" strokeWidth="3" strokeLinecap="round" />
+                    </svg>
+                  </div>
+                )}
+                {!photo.isUploading && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); removePhoto(i); }}
+                    style={{
+                      position: 'absolute', top: 4, right: 4,
+                      background: 'rgba(13,11,8,0.8)', color: '#F0F0EB',
+                      border: 'none', borderRadius: '50%', width: 20, height: 20,
+                      cursor: 'pointer', fontSize: 12, lineHeight: '20px', padding: 0,
+                    }}
+                  >
+                    ×
+                  </button>
+                )}
+                {/* Number badge */}
+                <div
                   style={{
-                    position: 'absolute', top: 4, right: 4,
-                    background: 'rgba(13,11,8,0.8)', color: '#F0F0EB',
-                    border: 'none', borderRadius: '50%', width: 20, height: 20,
-                    cursor: 'pointer', fontSize: 12, lineHeight: '20px', padding: 0,
+                    position: 'absolute', bottom: 4, left: 6,
+                    background: 'rgba(13,11,8,0.7)',
+                    color: '#F0F0EB', fontSize: 10, fontWeight: 700,
+                    borderRadius: 4, padding: '1px 5px',
                   }}
                 >
-                  ×
-                </button>
+                  {i + 1}
+                </div>
               </div>
             ))}
           </div>
 
-          <div style={{ textAlign: 'center' }}>
+          <div style={{ textAlign: 'center', marginBottom: 32 }}>
             <p style={{ color: '#6B6760', fontSize: 13, marginBottom: 20 }}>
-              {photos.length} of 15 photos uploaded
+              {isUploading
+                ? <span style={{ color: '#F0B429' }}>Uploading {uploadingCount} photo{uploadingCount !== 1 ? 's' : ''}…</span>
+                : `${completedPhotos.length} of 15 photos uploaded`}
             </p>
             <button
-              onClick={() => onComplete(photos.map((p) => p.url))}
+              onClick={() => !isUploading && onComplete(completedPhotos.map((p) => p.url))}
+              disabled={isUploading || completedPhotos.length === 0}
               style={{
-                background: '#F0B429', color: '#0D0B08',
+                background: isUploading ? '#2E2B27' : '#F0B429',
+                color: isUploading ? '#6B6760' : '#0D0B08',
                 border: 'none', borderRadius: 8, padding: '16px 40px',
-                fontSize: 17, fontWeight: 700, cursor: 'pointer',
+                fontSize: 17, fontWeight: 700,
+                cursor: isUploading ? 'not-allowed' : 'pointer',
                 width: '100%', maxWidth: 320,
+                transition: 'background 0.2s, color 0.2s',
               }}
             >
-              Continue — Pick a style →
+              {isUploading ? 'Uploading…' : 'Continue — Pick a style →'}
             </button>
           </div>
         </>
       )}
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }
