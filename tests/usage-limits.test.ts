@@ -28,6 +28,8 @@ const mockAdmin = {
   rpc:  vi.fn().mockResolvedValue({ data: null, error: null }),
 };
 
+vi.mock('@vercel/functions', () => ({ waitUntil: vi.fn() }));
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: () => ({
     auth: { getUser: vi.fn().mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null }) },
@@ -72,6 +74,8 @@ function makeGenerateRequest(overrides: Record<string, unknown> = {}) {
 describe('Usage limit enforcement (POST /api/videos/generate)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Mock fetch so the fire-and-forget to /api/videos/process doesn't throw
+    global.fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ ok: true }), { status: 200 }));
     userChain.single.mockImplementation(() =>
       Promise.resolve({ data: mockProfile, error: null })
     );
@@ -109,7 +113,7 @@ describe('Usage limit enforcement (POST /api/videos/generate)', () => {
 
     const { POST } = await import('@/app/api/videos/generate/route');
     const res = await POST(makeGenerateRequest());
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(202);
   });
 
   it('allows pro user regardless of usage count', async () => {
@@ -120,7 +124,7 @@ describe('Usage limit enforcement (POST /api/videos/generate)', () => {
 
     const { POST } = await import('@/app/api/videos/generate/route');
     const res = await POST(makeGenerateRequest());
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(202);
   });
 
   it('allows team plan user regardless of usage count', async () => {
@@ -131,17 +135,23 @@ describe('Usage limit enforcement (POST /api/videos/generate)', () => {
 
     const { POST } = await import('@/app/api/videos/generate/route');
     const res = await POST(makeGenerateRequest());
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(202);
   });
 
-  it('increments usage counter when generation succeeds', async () => {
+  it('triggers the process route when generation is accepted', async () => {
+    // Usage increment now happens inside /api/videos/process (the background route).
+    // The generate route's contract is: accepted → 202 + fire fetch to process route.
     mockProfile = {
       plan: 'starter', videos_used_this_month: 5, videos_limit: 15,
       full_name: 'Test', email: null, phone: null, brand_name: null,
     };
 
     const { POST } = await import('@/app/api/videos/generate/route');
-    await POST(makeGenerateRequest());
-    expect(mockAdmin.rpc).toHaveBeenCalledWith('increment_videos_used', { p_user_id: 'user-1' });
+    const res = await POST(makeGenerateRequest());
+    expect(res.status).toBe(202);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const [, fetchInit] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const body = JSON.parse(fetchInit.body as string);
+    expect(body).toMatchObject({ userId: 'user-1', templateId: 'tmpl-1' });
   });
 });

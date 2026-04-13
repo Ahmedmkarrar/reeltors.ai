@@ -32,9 +32,7 @@ const mockAdmin = {
   rpc:  vi.fn().mockResolvedValue({ data: null, error: null }),
 };
 
-const mockGenerateVideo           = vi.fn().mockResolvedValue({ id: 'render-1', status: 'planned' });
-const mockGenerateMixedMediaVideo = vi.fn().mockResolvedValue({ id: 'render-mixed', status: 'planned' });
-const mockGenerateDroneShots      = vi.fn().mockResolvedValue(new Map());
+vi.mock('@vercel/functions', () => ({ waitUntil: vi.fn() }));
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: () => ({
@@ -52,15 +50,15 @@ vi.mock('@/lib/supabase/admin', () => ({
 }));
 
 vi.mock('@/lib/shotstack/client', () => ({
-  generateVideo:           mockGenerateVideo,
-  generateMixedMediaVideo: mockGenerateMixedMediaVideo,
+  generateVideo:           vi.fn().mockResolvedValue({ id: 'render-1', status: 'planned' }),
+  generateMixedMediaVideo: vi.fn().mockResolvedValue({ id: 'render-mixed', status: 'planned' }),
   ShotstackError: class ShotstackError extends Error {
     constructor(msg: string, public statusCode?: number) { super(msg); }
   },
 }));
 
 vi.mock('@/lib/fal/client', () => ({
-  generateDroneShotsForIndices: mockGenerateDroneShots,
+  generateDroneShotsForIndices: vi.fn().mockResolvedValue(new Map()),
   clampAiIndices: (indices: number[], count: number) =>
     [...new Set(indices)].filter((i) => Number.isInteger(i) && i >= 0 && i < count).slice(0, 3),
   FalError: class FalError extends Error {},
@@ -81,6 +79,7 @@ function makeRequest(body: Record<string, unknown>) {
 describe('POST /api/videos/generate — auth & validation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    global.fetch = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
     mockUser    = { id: 'user-1' };
     mockProfile = {
       plan: 'starter', videos_used_this_month: 0, videos_limit: 15,
@@ -90,8 +89,6 @@ describe('POST /api/videos/generate — auth & validation', () => {
       Promise.resolve({ data: mockProfile, error: null })
     );
     adminChain.single.mockResolvedValue({ data: { id: 'vid-1' }, error: null });
-    mockGenerateVideo.mockResolvedValue({ id: 'render-1', status: 'planned' });
-    mockGenerateDroneShots.mockResolvedValue(new Map());
   });
 
   it('returns 401 when user is not authenticated', async () => {
@@ -152,6 +149,8 @@ describe('POST /api/videos/generate — auth & validation', () => {
 describe('POST /api/videos/generate — generation flow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Stable fetch mock so fire-and-forget doesn't throw
+    global.fetch = vi.fn().mockResolvedValue(new Response('{}', { status: 200 }));
     mockUser = { id: 'user-1' };
     mockProfile = {
       plan: 'starter', videos_used_this_month: 0, videos_limit: 15,
@@ -161,75 +160,57 @@ describe('POST /api/videos/generate — generation flow', () => {
       Promise.resolve({ data: mockProfile, error: null })
     );
     adminChain.single.mockResolvedValue({ data: { id: 'vid-1' }, error: null });
-    mockGenerateVideo.mockResolvedValue({ id: 'render-1', status: 'planned' });
-    mockGenerateDroneShots.mockResolvedValue(new Map());
   });
 
-  it('calls generateVideo with correct templateId for standard flow', async () => {
-    process.env.NEXT_PUBLIC_APP_URL = '';
+  it('dispatches correct templateId to the process route', async () => {
+    // generateVideo/generateMixedMediaVideo now run inside /api/videos/process.
+    // The generate route's responsibility is to pass the right payload to that route.
     const { POST } = await import('@/app/api/videos/generate/route');
     await POST(makeRequest({ templateId: 'tmpl-abc', images: ['https://a.com/1.jpg'] }));
-    expect(mockGenerateVideo).toHaveBeenCalledWith(
-      expect.objectContaining({ templateKey: 'tmpl-abc' }),
-    );
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const [, init] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const body = JSON.parse(init.body as string);
+    expect(body).toMatchObject({ templateId: 'tmpl-abc', userId: 'user-1' });
   });
 
-  it('calls generateMixedMediaVideo when fal.ai returns videos', async () => {
-    process.env.FAL_KEY = 'test-fal-key';
-    process.env.NEXT_PUBLIC_APP_URL = '';
-    const falMap = new Map([[0, 'https://cdn.fal.ai/video.mp4']]);
-    mockGenerateDroneShots.mockResolvedValue(falMap);
-
-    const { POST } = await import('@/app/api/videos/generate/route');
-    const res = await POST(makeRequest({
-      templateId: 'tmpl-1',
-      images: ['https://a.com/1.jpg'],
-      aiVideoIndices: [0],
-    }));
-    expect(res.status).toBe(200);
-    expect(mockGenerateMixedMediaVideo).toHaveBeenCalled();
-    const json = await res.json();
-    expect(json.aiVideosGenerated).toBe(1);
-  });
-
-  it('falls back to generateVideo when fal.ai fails entirely', async () => {
-    process.env.FAL_KEY = 'test-fal-key';
-    process.env.NEXT_PUBLIC_APP_URL = '';
-    mockGenerateDroneShots.mockRejectedValue(new Error('fal.ai timeout'));
-
-    const { POST } = await import('@/app/api/videos/generate/route');
-    const res = await POST(makeRequest({
-      templateId: 'tmpl-1',
-      images: ['https://a.com/1.jpg'],
-      aiVideoIndices: [0],
-    }));
-    expect(res.status).toBe(200);
-    expect(mockGenerateVideo).toHaveBeenCalled();
-    const json = await res.json();
-    expect(json.aiVideosFailed).toBe(true);
-  });
-
-  it('does not increment usage when all fal.ai shots fail', async () => {
-    process.env.FAL_KEY = 'test-fal-key';
-    process.env.NEXT_PUBLIC_APP_URL = '';
-    mockGenerateDroneShots.mockRejectedValue(new Error('fal timeout'));
-
+  it('includes aiIndices in the process route payload when ai shots are requested', async () => {
     const { POST } = await import('@/app/api/videos/generate/route');
     await POST(makeRequest({
       templateId: 'tmpl-1',
       images: ['https://a.com/1.jpg'],
       aiVideoIndices: [0],
     }));
-    expect(mockAdmin.rpc).not.toHaveBeenCalledWith('increment_videos_used', expect.anything());
+
+    const [, init] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const body = JSON.parse(init.body as string);
+    expect(body.aiIndices).toEqual([0]);
   });
 
-  it('returns videoId and renderId on success', async () => {
-    process.env.NEXT_PUBLIC_APP_URL = '';
+  it('sets aiIndices to empty array when no ai shots are requested', async () => {
+    const { POST } = await import('@/app/api/videos/generate/route');
+    await POST(makeRequest({ templateId: 'tmpl-1', images: ['https://a.com/1.jpg'] }));
+
+    const [, init] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const body = JSON.parse(init.body as string);
+    expect(body.aiIndices).toEqual([]);
+  });
+
+  it('does not trigger the process route when the video record insert fails', async () => {
+    adminChain.single.mockResolvedValue({ data: null, error: new Error('db error') });
+
     const { POST } = await import('@/app/api/videos/generate/route');
     const res = await POST(makeRequest({ templateId: 'tmpl-1', images: ['https://a.com/1.jpg'] }));
-    expect(res.status).toBe(200);
+
+    expect(res.status).toBe(500);
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it('returns 202 with videoId on success', async () => {
+    const { POST } = await import('@/app/api/videos/generate/route');
+    const res = await POST(makeRequest({ templateId: 'tmpl-1', images: ['https://a.com/1.jpg'] }));
+    expect(res.status).toBe(202);
     const json = await res.json();
     expect(json).toHaveProperty('videoId');
-    expect(json).toHaveProperty('renderId');
   });
 });

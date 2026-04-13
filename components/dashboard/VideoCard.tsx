@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import { formatDate } from '@/lib/utils';
 import type { Video } from '@/types';
 import toast from 'react-hot-toast';
@@ -8,6 +9,7 @@ import toast from 'react-hot-toast';
 interface VideoCardProps {
   video: Video;
   onDelete?: (id: string) => void;
+  priority?: boolean;
 }
 
 const FORMAT_LABEL: Record<string, string> = {
@@ -23,7 +25,7 @@ const STATUS_CONFIG = {
   failed:     { label: 'Failed',    dot: '#ef4444', text: '#dc2626', bg: 'rgba(239,68,68,0.08)',   border: 'rgba(239,68,68,0.18)'  },
 };
 
-export function VideoCard({ video, onDelete }: VideoCardProps) {
+export function VideoCard({ video, onDelete, priority = false }: VideoCardProps) {
   const [deleting, setDeleting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [hovered,  setHovered]  = useState(false);
@@ -72,18 +74,22 @@ export function VideoCard({ video, onDelete }: VideoCardProps) {
       {/* Thumbnail */}
       <div className="relative aspect-video bg-[#F5F5F3] overflow-hidden">
         {video.thumbnail_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={video.thumbnail_url}
             alt={video.title}
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            priority={priority}
           />
         ) : video.source_images?.[0] ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={video.source_images[0]}
             alt={video.title}
-            className="w-full h-full object-cover opacity-40 transition-transform duration-500 group-hover:scale-105"
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover opacity-40 transition-transform duration-500 group-hover:scale-105"
+            unoptimized
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
