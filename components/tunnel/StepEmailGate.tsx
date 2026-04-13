@@ -1,11 +1,13 @@
 'use client';
 
 import { createClient } from '@/lib/supabase/client';
+import type { VideoFormat } from '@/types';
 
 interface StepEmailGateProps {
   templateKey: string;
   imageUrls: string[];
   sessionToken: string;
+  format: VideoFormat;
   onSuccess: (sessionId: string, email: string) => void;
 }
 
@@ -13,12 +15,13 @@ export default function StepEmailGate({
   templateKey,
   imageUrls,
   sessionToken,
+  format,
 }: StepEmailGateProps) {
   const handleContinueWithGoogle = async () => {
     // Use localStorage (not sessionStorage) — sessionStorage is wiped by external OAuth redirects in Safari/iOS
     localStorage.setItem(
       'tunnelPending',
-      JSON.stringify({ sessionToken, imageUrls, templateKey, savedAt: Date.now() })
+      JSON.stringify({ sessionToken, imageUrls, templateKey, format, savedAt: Date.now() })
     );
     // tell the auth callback to return to /generate (not /dashboard)
     // client-set cookie — server reads it in /auth/callback via cookies()
