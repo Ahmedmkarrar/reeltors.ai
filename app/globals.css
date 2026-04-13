@@ -255,4 +255,14 @@
     95%  { opacity: 1; }
     100% { transform: translateY(100vh); opacity: 0; }
   }
+
+  /* ── Mobile nav bottom padding (safe-area-aware, reset on desktop) ── */
+  .mobile-nav-padding {
+    padding-bottom: max(5rem, calc(56px + env(safe-area-inset-bottom, 0px)));
+  }
+  @media (min-width: 768px) {
+    .mobile-nav-padding {
+      padding-bottom: 0;
+    }
+  }
 }
