@@ -6,10 +6,10 @@ import { MobileNav } from '@/components/dashboard/MobileNav';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
-  // getSession reads the JWT from cookie — no network call, instant
-  const { data: { session } } = await supabase.auth.getSession();
+  // getUser() validates the JWT with Supabase Auth — prevents stale session false positives
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session) redirect('/login');
+  if (!user) redirect('/login');
 
   return (
     <div className="flex min-h-screen" style={{ background: '#FAFAF8' }}>

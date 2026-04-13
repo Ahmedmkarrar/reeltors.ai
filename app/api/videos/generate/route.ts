@@ -1,15 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { waitUntil } from '@vercel/functions';
 import { createClient } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
-import { generateVideo, generateMixedMediaVideo, ShotstackError } from '@/lib/shotstack/client';
-import type { MediaItem } from '@/lib/shotstack/client';
-import { generateDroneShotsForIndices, clampAiIndices, FalError } from '@/lib/fal/client';
 import type { CreateVideoPayload } from '@/types';
 import { isDisposableEmail, getClientIp } from '@/lib/abuse/email';
-
-// Allow up to 5 minutes — fal.ai video generation takes ~1–2 min per clip.
-// Up to 3 clips run in parallel, so worst-case ~3 min before Shotstack starts.
-export const maxDuration = 300;
+import { clampAiIndices } from '@/lib/fal/client';
 
 export async function POST(req: NextRequest) {
   const supabase = createClient();
@@ -35,7 +30,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 
-  const { templateId, images, aiVideoIndices: rawAiIndices, listingAddress, listingPrice, agentName, brandName, email, phone, format, title, videoPrompt, audioUrl, logoUrl } = body;
+  const {
+    templateId, images, aiVideoIndices: rawAiIndices,
+    listingAddress, listingPrice, agentName, brandName,
+    email, phone, format, title, videoPrompt, audioUrl, logoUrl,
+  } = body;
 
   if (!templateId || typeof templateId !== 'string') {
     return NextResponse.json({ error: 'templateId is required' }, { status: 400 });
@@ -47,7 +46,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'All images must be valid HTTP URLs' }, { status: 400 });
   }
 
-  // AI drone shots: only run if user explicitly selected indices (empty = no AI).
   const aiIndices = clampAiIndices(
     Array.isArray(rawAiIndices) ? rawAiIndices : [],
     images.length,
@@ -63,7 +61,6 @@ export async function POST(req: NextRequest) {
     .single();
 
   if (!profile) {
-    // DB trigger may have failed — upsert to recover
     const { data: upserted } = await admin
       .from('profiles')
       .upsert(
@@ -73,7 +70,7 @@ export async function POST(req: NextRequest) {
           full_name: (user.user_metadata?.full_name as string) ?? null,
           email_verified: user.app_metadata?.provider !== 'email',
         },
-        { onConflict: 'id' }
+        { onConflict: 'id' },
       )
       .select('plan, videos_used_this_month, videos_limit, full_name, email, phone, brand_name, email_verified, session_fingerprint, session_fingerprint_updated_at')
       .single();
@@ -88,17 +85,15 @@ export async function POST(req: NextRequest) {
   if (!isUnlimited && (profile.videos_used_this_month ?? 0) >= (profile.videos_limit ?? 1)) {
     return NextResponse.json(
       { error: 'Monthly video limit reached. Upgrade your plan to create more videos.', code: 'LIMIT_REACHED' },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
   const clientIp = getClientIp(req);
-  // x-device-fingerprint is set by the FingerprintJS client script
   const fingerprintId = req.headers.get('x-device-fingerprint') ?? null;
   const isFree = profile.plan === 'free' || !profile.plan;
 
   if (isFree) {
-    // layer 1: require email OTP verification before first free render
     if (!profile.email_verified) {
       return NextResponse.json(
         { error: 'Please verify your email before generating a video.', code: 'EMAIL_NOT_VERIFIED' },
@@ -108,8 +103,6 @@ export async function POST(req: NextRequest) {
 
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-    // layer 3 + 4: check if this IP or fingerprint has already been used for a free generation
-    // by a different account in the last 30 days (signals abuse, not the same user returning)
     const [ipCheck, fpCheck] = await Promise.all([
       clientIp !== '0.0.0.0'
         ? admin
@@ -131,7 +124,6 @@ export async function POST(req: NextRequest) {
         : Promise.resolve({ data: [], error: null }),
     ]);
 
-    // fingerprint match = hard block (strongest signal)
     if (fpCheck.data && fpCheck.data.length > 0) {
       return NextResponse.json(
         { error: 'Your free video has already been used. Upgrade to create more.', code: 'DEVICE_LIMIT_REACHED' },
@@ -139,7 +131,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // IP match alone = soft block with upgrade prompt (shared IPs can be false positives)
     if (ipCheck.data && ipCheck.data.length > 0) {
       return NextResponse.json(
         { error: 'A free video was already generated from your network. Upgrade to create more.', code: 'IP_LIMIT_REACHED' },
@@ -147,17 +138,10 @@ export async function POST(req: NextRequest) {
       );
     }
   } else {
-    // layer 5: concurrent session check for paid plans
-    // if the stored fingerprint differs and was updated very recently, another device is actively using this account
     const storedFingerprint = profile.session_fingerprint;
     const storedUpdatedAt = profile.session_fingerprint_updated_at;
 
-    if (
-      fingerprintId &&
-      storedFingerprint &&
-      storedFingerprint !== fingerprintId &&
-      storedUpdatedAt
-    ) {
+    if (fingerprintId && storedFingerprint && storedFingerprint !== fingerprintId && storedUpdatedAt) {
       const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
       if (storedUpdatedAt > fiveMinutesAgo) {
         return NextResponse.json(
@@ -179,8 +163,8 @@ export async function POST(req: NextRequest) {
       status:          'pending',
       template_id:     templateId,
       listing_address: listingAddress?.slice(0, 500) ?? null,
-      listing_price:   listingPrice?.slice(0, 50)   ?? null,
-      agent_name:      agentName?.slice(0, 200)      ?? null,
+      listing_price:   listingPrice?.slice(0, 50)    ?? null,
+      agent_name:      agentName?.slice(0, 200)       ?? null,
       source_images:   images,
       format:          format ?? 'vertical',
     })
@@ -192,172 +176,50 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to create video record' }, { status: 500 });
   }
 
-  // ── 5. Generate AI drone shots via fal.ai (parallel, max 3) ───────────────
-  // aiIndices are already clamped to MAX_AI_VIDEOS (3) by clampAiIndices.
-  let falVideoMap = new Map<number, string>();
-  let falFailed = false;
-
-  if (aiIndices.length > 0 && process.env.FAL_KEY) {
-    try {
-      falVideoMap = await generateDroneShotsForIndices(images, aiIndices, videoPrompt, format ?? 'vertical');
-      if (falVideoMap.size === 0) {
-        console.warn(`fal.ai: all ${aiIndices.length} generation(s) failed — falling back to images`);
-        falFailed = true;
-      }
-    } catch (err) {
-      console.error('fal.ai generation error, falling back to images:', err);
-      falFailed = true;
-    }
-  } else if (aiIndices.length > 0 && !process.env.FAL_KEY) {
-    console.warn('FAL_KEY not set — skipping AI drone shot generation, using images as-is');
-  }
-
-  // ── 6. Build the final media array (videos + images) ──────────────────────
-  const mediaItems: MediaItem[] = images.map((url, idx) => {
-    const videoUrl = falVideoMap.get(idx);
-    return videoUrl
-      ? { type: 'video' as const, url: videoUrl }
-      : { type: 'image' as const, url };
-  });
-
-  const hasAiVideos = falVideoMap.size > 0;
-
-  // ── 7. Call Shotstack ─────────────────────────────────────────────────────
-  // Only send a webhook if we have a publicly reachable URL (not localhost)
+  // ── 5. Fire-and-forget the heavy processing (fal.ai + Shotstack) ──────────
+  // The process route runs as its own independent Vercel Function invocation
+  // with its own maxDuration=300, so the client gets an immediate 202.
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
-  const isPublic = appUrl.startsWith('https://');
-  const buildCallbackUrl = (extra: Record<string, string>) => {
-    if (!isPublic) return undefined;
-    const url = new URL(`${appUrl}/api/webhooks/shotstack`);
-    if (process.env.WEBHOOK_SECRET) url.searchParams.set('token', process.env.WEBHOOK_SECRET);
-    Object.entries(extra).forEach(([k, v]) => url.searchParams.set(k, v));
-    return url.toString();
-  };
-  const callbackUrl = buildCallbackUrl({ video_id: video.id, user_id: user.id });
+  const processUrl = `${appUrl}/api/videos/process`;
 
-  // Free users render against the stage (watermarked) key.
-  // Paid users get the production key (no watermark) when set.
   const isPaidPlan = profile.plan === 'starter' || profile.plan === 'growth' || profile.plan === 'pro' || profile.plan === 'team';
-  const shotstackApiKey = isPaidPlan && process.env.SHOTSTACK_PROD_API_KEY
-    ? process.env.SHOTSTACK_PROD_API_KEY
-    : process.env.SHOTSTACK_API_KEY;
-  const shotstackEnv = isPaidPlan && process.env.SHOTSTACK_PROD_ENV
-    ? (process.env.SHOTSTACK_PROD_ENV as 'v1' | 'stage')
-    : undefined;
 
-  const sharedParams = {
-    templateKey: templateId,
-    listingAddress,
-    listingPrice,
-    agentName:  agentName || undefined,
-    brandName:  brandName  || profile.brand_name || undefined,
-    email:      email      || profile.email       || undefined,
-    phone:      phone      || profile.phone       || undefined,
-    audioUrl:   typeof audioUrl === 'string' && audioUrl.startsWith('https://') ? audioUrl : undefined,
-    logoUrl:    typeof logoUrl === 'string' && logoUrl.startsWith('https://') ? logoUrl : undefined,
-    format:     (format ?? 'vertical') as 'vertical' | 'square' | 'horizontal',
-    callbackUrl,
-    apiKey: shotstackApiKey,
-    env:    shotstackEnv,
-  };
-
-  let render;
-  try {
-    if (hasAiVideos) {
-      // Custom timeline: fal.ai videos + static images stitched together
-      try {
-        render = await generateMixedMediaVideo({ mediaItems, ...sharedParams });
-      } catch (mixedErr) {
-        // Mixed-media failed — log it and fall back to the standard template
-        console.error('Mixed-media render failed, falling back to template:', mixedErr);
-        render = await generateVideo({ images, ...sharedParams });
-      }
-    } else {
-      // No AI videos (fal.ai skipped/failed) — use existing template approach
-      render = await generateVideo({ images, ...sharedParams });
-    }
-  } catch (err) {
-    await admin
-      .from('videos')
-      .update({ status: 'failed' })
-      .eq('id', video.id);
-
-    if (err instanceof ShotstackError) {
-      console.error('Shotstack API error:', err.message);
-      return NextResponse.json({ error: `Shotstack: ${err.message}` }, { status: 502 });
-    }
-    if (err instanceof FalError) {
-      console.error('fal.ai error during Shotstack fallback path:', err.message);
-      return NextResponse.json({ error: 'AI video generation failed. Please try again.' }, { status: 502 });
-    }
-    console.error('Unexpected error calling video services:', err);
-    return NextResponse.json({ error: 'Failed to start video generation' }, { status: 500 });
-  }
-
-  // ── 8. Update record with render ID + conditionally increment usage ──────
-  // If the user requested AI shots but every single one failed, we fall back
-  // to a plain static video — don't penalise them by counting it against their
-  // monthly limit. Only skip when ALL AI shots failed (falFailed=true); partial
-  // success (some shots generated) still counts normally.
-  const aiRequestedButFullyFailed = falFailed && aiIndices.length > 0;
-
-  const ops: Promise<unknown>[] = [
-    Promise.resolve(
-      admin
-        .from('videos')
-        .update({
-          status:               'processing',
-          render_id: render.id,
-        })
-        .eq('id', video.id)
-    ),
-  ];
-
-  if (!aiRequestedButFullyFailed) {
-    ops.push(Promise.resolve(admin.rpc('increment_videos_used', { p_user_id: user.id })));
-  } else {
-    console.info(`AI shots fully failed for video ${video.id} — usage counter not incremented.`);
-  }
-
-  // layer 3 + 4: log free-tier generation for future IP/fingerprint checks
-  if (isFree) {
-    ops.push(
-      Promise.resolve(
-        admin.from('free_generation_logs').insert({
-          user_id: user.id,
-          ip_address: clientIp !== '0.0.0.0' ? clientIp : null,
-          fingerprint_id: fingerprintId,
-        }),
-      ),
-    );
-  }
-
-  // layer 5: update session fingerprint so concurrent-session detection stays current
-  if (fingerprintId) {
-    ops.push(
-      Promise.resolve(
-        admin
-          .from('profiles')
-          .update({
-            session_fingerprint: fingerprintId,
-            session_fingerprint_updated_at: new Date().toISOString(),
-          })
-          .eq('id', user.id),
-      ),
-    );
-  }
-
-  const [updateResult] = await Promise.allSettled(ops);
-
-  if (updateResult.status === 'rejected') {
-    console.error('Failed to update video record after render start:', updateResult.reason);
-    // Non-fatal — video is processing
-  }
-
-  return NextResponse.json({
-    videoId:           video.id,
-    renderId:          render.id,
-    aiVideosGenerated: falVideoMap.size,
-    aiVideosFailed:    aiRequestedButFullyFailed,
+  const processPromise = fetch(processUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.WEBHOOK_SECRET ?? ''}`,
+    },
+    body: JSON.stringify({
+      videoId:       video.id,
+      userId:        user.id,
+      images,
+      aiIndices,
+      templateId,
+      listingAddress,
+      listingPrice,
+      agentName:     agentName     || profile.full_name  || undefined,
+      brandName:     brandName     || profile.brand_name || undefined,
+      email:         email         || profile.email      || undefined,
+      phone:         phone         || profile.phone      || undefined,
+      format:        format ?? 'vertical',
+      audioUrl,
+      logoUrl,
+      videoPrompt,
+      isPaidPlan,
+      isFree,
+      clientIp,
+      fingerprintId,
+    }),
+  }).catch((err) => {
+    // Process route failed to start — mark video failed so the UI doesn't hang
+    console.error('Failed to trigger video processing:', err);
+    return admin.from('videos').update({ status: 'failed' }).eq('id', video.id);
   });
+
+  // waitUntil keeps the Vercel Function alive until processPromise settles,
+  // even after the 202 response has been sent to the client.
+  waitUntil(processPromise);
+
+  return NextResponse.json({ videoId: video.id }, { status: 202 });
 }

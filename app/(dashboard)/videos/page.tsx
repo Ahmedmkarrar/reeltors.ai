@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { useGenerationStatus } from '@/hooks/useGenerationStatus';
 import { VideoCard } from '@/components/dashboard/VideoCard';
 import Link from 'next/link';
-import type { Video, VideoStatus } from '@/types';
+import type { VideoStatus } from '@/types';
 
 type Filter = 'all' | VideoStatus;
 
@@ -17,76 +18,17 @@ const FILTERS: { key: Filter; label: string }[] = [
 
 export default function VideosPage() {
   const supabase = createClient();
-  const [videos,  setVideos]  = useState<Video[]>([]);
-  const [filter,  setFilter]  = useState<Filter>('all');
-  const [loading, setLoading] = useState(true);
-  const [search,  setSearch]  = useState('');
+  const [userId, setUserId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<Filter>('all');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
-    let channel: ReturnType<typeof supabase.channel>;
-    let pollInterval: ReturnType<typeof setInterval>;
-    let userId: string;
-
-    async function fetchAll() {
-      const { data } = await supabase
-        .from('videos')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-      if (data) setVideos(data as Video[]);
-    }
-
-    async function load() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
-      userId = session.user.id;
-
-      await fetchAll();
-      setLoading(false);
-
-      channel = supabase
-        .channel(`videos-realtime-${Date.now()}`)
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'videos', filter: `user_id=eq.${userId}` },
-          (payload) => {
-            if (payload.eventType === 'INSERT') {
-              setVideos((v) => [payload.new as Video, ...v]);
-            } else if (payload.eventType === 'UPDATE') {
-              setVideos((v) => v.map((vid) => vid.id === (payload.new as Video).id ? payload.new as Video : vid));
-            } else if (payload.eventType === 'DELETE') {
-              setVideos((v) => v.filter((vid) => vid.id !== (payload.old as Video).id));
-            }
-          }
-        )
-        .subscribe();
-
-      pollInterval = setInterval(async () => {
-        const { data } = await supabase
-          .from('videos')
-          .select('*')
-          .eq('user_id', userId)
-          .order('created_at', { ascending: false });
-        if (!data) return;
-        setVideos(data as Video[]);
-        const stillProcessing = data.some(
-          (v) => v.status === 'pending' || v.status === 'processing'
-        );
-        if (!stillProcessing) clearInterval(pollInterval);
-      }, 4000);
-    }
-
-    load();
-
-    return () => {
-      if (channel) supabase.removeChannel(channel);
-      clearInterval(pollInterval);
-    };
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setUserId(user.id);
+    });
   }, [supabase]);
 
-  function handleDelete(id: string) {
-    setVideos((v) => v.filter((video) => video.id !== id));
-  }
+  const { videos, isLoaded, removeVideo } = useGenerationStatus(userId);
 
   const counts = {
     all:        videos.length,
@@ -96,8 +38,16 @@ export default function VideosPage() {
   };
 
   const filtered = videos
-    .filter((v) => filter === 'all' ? true : filter === 'processing' ? (v.status === 'processing' || v.status === 'pending') : v.status === filter)
-    .filter((v) => search ? v.title.toLowerCase().includes(search.toLowerCase()) : true);
+    .filter((v) =>
+      filter === 'all'
+        ? true
+        : filter === 'processing'
+          ? v.status === 'processing' || v.status === 'pending'
+          : v.status === filter,
+    )
+    .filter((v) =>
+      search ? v.title.toLowerCase().includes(search.toLowerCase()) : true,
+    );
 
   return (
     <div className="p-4 md:p-10 max-w-5xl">
@@ -173,7 +123,7 @@ export default function VideosPage() {
       </div>
 
       {/* Content */}
-      {loading ? (
+      {!isLoaded ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <div key={i} className="bg-white border border-[#EBEBEB] rounded-[12px] overflow-hidden">
@@ -223,8 +173,13 @@ export default function VideosPage() {
         )
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map((video) => (
-            <VideoCard key={video.id} video={video} onDelete={handleDelete} />
+          {filtered.map((video, idx) => (
+            <VideoCard
+              key={video.id}
+              video={video}
+              onDelete={removeVideo}
+              priority={idx < 3}
+            />
           ))}
         </div>
       )}

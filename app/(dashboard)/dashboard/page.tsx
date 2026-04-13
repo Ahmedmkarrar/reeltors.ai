@@ -17,12 +17,21 @@ function getGreeting(): string {
 
 export default async function DashboardPage() {
   const supabase = createClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) redirect('/login');
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
 
   const [{ data: profile }, { data: videos }] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', session.user.id).single<Profile>(),
-    supabase.from('videos').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false }).limit(6),
+    supabase
+      .from('profiles')
+      .select('id, plan, videos_used_this_month, videos_limit, full_name')
+      .eq('id', user.id)
+      .single<Profile>(),
+    supabase
+      .from('videos')
+      .select('id, user_id, title, status, output_url, thumbnail_url, source_images, format, created_at, render_id, template_id, listing_address, listing_price, agent_name, duration_seconds, updated_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(6),
   ]);
 
   if (!profile) redirect('/login');
@@ -123,8 +132,8 @@ export default async function DashboardPage() {
           <EmptyState />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {allVideos.map((video) => (
-              <VideoCard key={video.id} video={video} />
+            {allVideos.map((video, idx) => (
+              <VideoCard key={video.id} video={video} priority={idx < 3} />
             ))}
           </div>
         )}
