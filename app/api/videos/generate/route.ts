@@ -202,7 +202,7 @@ export async function POST(req: NextRequest) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${(process.env.WEBHOOK_SECRET ?? '').replace(/[^\x20-\x7E]/g, '')}`,
+      'x-internal-secret': (process.env.WEBHOOK_SECRET ?? '').replace(/[^\x20-\x7E]/g, ''),
     },
     body: JSON.stringify({
       videoId:       video.id,

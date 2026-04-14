@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${webhookSecret}`,
+        'x-internal-secret': webhookSecret,
       },
       body: JSON.stringify({ videoId: 'debug-test', userId: 'debug', images: [], aiIndices: [], templateId: 'CINEMATIC', isPaidPlan: false, isFree: true }),
     });

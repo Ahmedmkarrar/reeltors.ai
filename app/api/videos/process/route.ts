@@ -32,10 +32,9 @@ interface ProcessVideoPayload {
 
 export async function POST(req: NextRequest) {
   // Internal-only — verify the shared secret
-  const authHeader = req.headers.get('Authorization');
-  // strip all non-printable chars (handles \r, null bytes, invisible unicode beyond .trim())
+  const authHeader = req.headers.get('x-internal-secret');
   const expectedToken = process.env.WEBHOOK_SECRET?.replace(/[^\x20-\x7E]/g, '');
-  if (expectedToken && authHeader !== `Bearer ${expectedToken}`) {
+  if (expectedToken && authHeader !== expectedToken) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
