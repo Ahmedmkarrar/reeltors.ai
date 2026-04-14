@@ -6,6 +6,8 @@ import type { CreateVideoPayload } from '@/types';
 import { isDisposableEmail, getClientIp } from '@/lib/abuse/email';
 import { clampAiIndices } from '@/lib/fal/client';
 
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   const supabase = createClient();
 
@@ -179,7 +181,7 @@ export async function POST(req: NextRequest) {
   // ── 5. Fire-and-forget the heavy processing (fal.ai + Shotstack) ──────────
   // The process route runs as its own independent Vercel Function invocation
   // with its own maxDuration=300, so the client gets an immediate 202.
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim();
   const processUrl = `${appUrl}/api/videos/process`;
 
   const isPaidPlan = profile.plan === 'starter' || profile.plan === 'growth' || profile.plan === 'pro' || profile.plan === 'team';
@@ -188,7 +190,7 @@ export async function POST(req: NextRequest) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.WEBHOOK_SECRET ?? ''}`,
+      'Authorization': `Bearer ${(process.env.WEBHOOK_SECRET ?? '').trim()}`,
     },
     body: JSON.stringify({
       videoId:       video.id,

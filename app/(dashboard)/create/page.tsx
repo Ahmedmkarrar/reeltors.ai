@@ -708,7 +708,7 @@ export default function CreatePage() {
           <Button variant="secondary" size="md" onClick={() => {
             setStep('upload');
             setImages([]);
-            setAiVideoIndices([0]);
+            setAiVideoIndices([]);
             setListingAddress('');
             setListingPrice('');
             setOutputUrl('');
