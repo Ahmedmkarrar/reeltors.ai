@@ -411,10 +411,10 @@ export async function createRender(opts: {
     return { id: `mock_${Date.now()}`, status: 'queued' };
   }
 
-  const apiKey = opts.apiKey ?? process.env.SHOTSTACK_API_KEY;
+  const apiKey = (opts.apiKey ?? process.env.SHOTSTACK_API_KEY ?? '').trim();
   if (!apiKey) throw new ShotstackError('SHOTSTACK_API_KEY is not set');
 
-  const env = opts.env ?? getEnv();
+  const env = (opts.env ?? getEnv()).trim() as ShotstackEnv;
 
   const body: Record<string, unknown> = {
     timeline: opts.timeline,
@@ -453,10 +453,10 @@ export async function getRenderStatus(renderId: string): Promise<ShotstackRender
     return { id: renderId, status: 'done', url: MOCK_VIDEO_URL };
   }
 
-  const apiKey = process.env.SHOTSTACK_API_KEY;
+  const apiKey = (process.env.SHOTSTACK_API_KEY ?? '').trim();
   if (!apiKey) throw new ShotstackError('SHOTSTACK_API_KEY is not set');
 
-  const res = await fetch(`${BASE_URL}/${getEnv()}/render/${renderId}`, {
+  const res = await fetch(`${BASE_URL}/${getEnv().trim()}/render/${renderId}`, {
     headers: { 'x-api-key': apiKey },
   });
 

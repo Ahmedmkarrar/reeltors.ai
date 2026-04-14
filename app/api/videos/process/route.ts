@@ -107,10 +107,10 @@ async function runProcess(payload: ProcessVideoPayload) {
   })();
 
   const shotstackApiKey = isPaidPlan && process.env.SHOTSTACK_PROD_API_KEY
-    ? process.env.SHOTSTACK_PROD_API_KEY
-    : process.env.SHOTSTACK_API_KEY;
+    ? process.env.SHOTSTACK_PROD_API_KEY.trim()
+    : process.env.SHOTSTACK_API_KEY?.trim();
   const shotstackEnv = isPaidPlan && process.env.SHOTSTACK_PROD_ENV
-    ? (process.env.SHOTSTACK_PROD_ENV as 'v1' | 'stage')
+    ? (process.env.SHOTSTACK_PROD_ENV.trim() as 'v1' | 'stage')
     : undefined;
 
   const sharedParams = {
