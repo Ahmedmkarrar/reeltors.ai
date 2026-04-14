@@ -13,8 +13,9 @@ export async function GET(req: NextRequest) {
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim();
   const vercelUrl = process.env.VERCEL_URL ?? '';
 
-  const processUrl = vercelUrl
-    ? `https://${vercelUrl}/api/videos/process`
+  // Match exactly what generate/route.ts does after the fix
+  const processUrl = appUrl.startsWith('https://')
+    ? `${appUrl}/api/videos/process`
     : `http://localhost:${process.env.PORT ?? '3000'}/api/videos/process`;
 
   // 1. Test process route auth
