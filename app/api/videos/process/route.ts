@@ -33,7 +33,8 @@ interface ProcessVideoPayload {
 export async function POST(req: NextRequest) {
   // Internal-only — verify the shared secret
   const authHeader = req.headers.get('Authorization');
-  const expectedToken = process.env.WEBHOOK_SECRET?.trim();
+  // strip all non-printable chars (handles \r, null bytes, invisible unicode beyond .trim())
+  const expectedToken = process.env.WEBHOOK_SECRET?.replace(/[^\x20-\x7E]/g, '');
   if (expectedToken && authHeader !== `Bearer ${expectedToken}`) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
@@ -100,7 +101,7 @@ async function runProcess(payload: ProcessVideoPayload) {
   const callbackUrl = (() => {
     if (!isPublic) return undefined;
     const url = new URL(`${appUrl}/api/webhooks/shotstack`);
-    if (process.env.WEBHOOK_SECRET) url.searchParams.set('token', process.env.WEBHOOK_SECRET.trim());
+    if (process.env.WEBHOOK_SECRET) url.searchParams.set('token', process.env.WEBHOOK_SECRET.replace(/[^\x20-\x7E]/g, ''));
     url.searchParams.set('video_id', videoId);
     url.searchParams.set('user_id', userId);
     return url.toString();

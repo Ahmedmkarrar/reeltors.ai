@@ -3,13 +3,15 @@ import { getSupabaseAdmin } from '@/lib/supabase/admin';
 
 export async function GET(req: NextRequest) {
   const secret = req.nextUrl.searchParams.get('secret');
-  if (secret !== process.env.WEBHOOK_SECRET?.trim()) {
+  const rawSecret = process.env.WEBHOOK_SECRET ?? '';
+  const cleanSecret = rawSecret.replace(/[^\x20-\x7E]/g, '');
+  if (secret !== cleanSecret) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const apiKey = (process.env.SHOTSTACK_API_KEY ?? '').trim();
   const env    = (process.env.SHOTSTACK_ENV ?? 'stage').trim();
-  const webhookSecret = process.env.WEBHOOK_SECRET?.trim() ?? '';
+  const webhookSecret = cleanSecret;
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim();
   const vercelUrl = process.env.VERCEL_URL ?? '';
 
@@ -58,6 +60,8 @@ export async function GET(req: NextRequest) {
       vercelUrl,
       processUrl,
       webhookSecretSet: !!webhookSecret,
+      webhookSecretRawLen: rawSecret.length,
+      webhookSecretCleanLen: cleanSecret.length,
     },
     processRouteAuth: processAuthResult,
     lastFailedVideo,
