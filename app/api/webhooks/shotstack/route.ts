@@ -90,7 +90,7 @@ async function handleTunnelWebhook(
 export async function POST(req: NextRequest) {
   // ── 1. Verify webhook token ───────────────────────────────────────────────
   const token         = req.nextUrl.searchParams.get('token');
-  const expectedToken = process.env.WEBHOOK_SECRET;
+  const expectedToken = process.env.WEBHOOK_SECRET?.trim();
 
   if (expectedToken && token !== expectedToken) {
     console.warn('Shotstack webhook: invalid token');

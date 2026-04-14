@@ -33,7 +33,7 @@ interface ProcessVideoPayload {
 export async function POST(req: NextRequest) {
   // Internal-only — verify the shared secret
   const authHeader = req.headers.get('Authorization');
-  const expectedToken = process.env.WEBHOOK_SECRET;
+  const expectedToken = process.env.WEBHOOK_SECRET?.trim();
   if (expectedToken && authHeader !== `Bearer ${expectedToken}`) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
@@ -94,13 +94,13 @@ async function runProcess(payload: ProcessVideoPayload) {
   const hasAiVideos = falVideoMap.size > 0;
 
   // ── 3. Build Shotstack callback URL ───────────────────────────────────────
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim();
   const isPublic = appUrl.startsWith('https://');
 
   const callbackUrl = (() => {
     if (!isPublic) return undefined;
     const url = new URL(`${appUrl}/api/webhooks/shotstack`);
-    if (process.env.WEBHOOK_SECRET) url.searchParams.set('token', process.env.WEBHOOK_SECRET);
+    if (process.env.WEBHOOK_SECRET) url.searchParams.set('token', process.env.WEBHOOK_SECRET.trim());
     url.searchParams.set('video_id', videoId);
     url.searchParams.set('user_id', userId);
     return url.toString();
