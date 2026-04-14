@@ -184,12 +184,13 @@ export async function POST(req: NextRequest) {
   // The process route runs as its own independent Vercel Function invocation
   // with its own maxDuration=300, so the client gets an immediate 202.
   //
-  // Use localhost for server-to-server calls — NEXT_PUBLIC_APP_URL may point to
-  // a localtunnel/ngrok URL that intercepts programmatic requests with a bypass
-  // page, so the process route would never actually execute.
-  // On Vercel, VERCEL_URL is set automatically to the deployment domain.
-  const internalBase = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
+  // VERCEL_URL is the deployment-specific URL which has Vercel team auth
+  // protection enabled — external HTTP calls to it return 401 before reaching
+  // our code. Use the production domain (NEXT_PUBLIC_APP_URL) instead, which
+  // has no protection. Fall back to localhost in local development.
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim();
+  const internalBase = appUrl.startsWith('https://')
+    ? appUrl
     : `http://localhost:${process.env.PORT ?? '3000'}`;
   const processUrl = `${internalBase}/api/videos/process`;
 
