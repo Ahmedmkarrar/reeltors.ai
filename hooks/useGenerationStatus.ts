@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import toast from 'react-hot-toast';
 import type { Video } from '@/types';
 
 const SELECTED_COLUMNS = [
@@ -52,11 +51,6 @@ export function useGenerationStatus(userId: string | null): UseGenerationStatusR
     if (fallbackActiveRef.current) return;
     fallbackActiveRef.current = true;
     setIsUsingFallback(true);
-    toast('Live connection lost — syncing every 4s', {
-      icon: '📡',
-      duration: 5000,
-      id: 'ws-fallback',
-    });
     pollRef.current = setInterval(async () => {
       const rows = await fetchVideos();
       const stillProcessing = rows.some(
@@ -115,11 +109,9 @@ export function useGenerationStatus(userId: string | null): UseGenerationStatusR
           activateFallback();
         }
         if (status === 'SUBSCRIBED' && fallbackActiveRef.current) {
-          // WebSocket recovered — stop polling and restore live mode
           stopPoll();
           fallbackActiveRef.current = false;
           setIsUsingFallback(false);
-          toast.dismiss('ws-fallback');
         }
       });
 
