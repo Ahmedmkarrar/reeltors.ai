@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSupabaseAdmin } from '@/lib/supabase/admin';
 
 export async function GET(req: NextRequest) {
   const secret = req.nextUrl.searchParams.get('secret');
@@ -7,53 +8,57 @@ export async function GET(req: NextRequest) {
   }
 
   const apiKey = (process.env.SHOTSTACK_API_KEY ?? '').trim();
-  const env = (process.env.SHOTSTACK_ENV ?? 'stage').trim();
+  const env    = (process.env.SHOTSTACK_ENV ?? 'stage').trim();
+  const webhookSecret = process.env.WEBHOOK_SECRET?.trim() ?? '';
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim();
+  const vercelUrl = process.env.VERCEL_URL ?? '';
 
-  if (!apiKey) {
-    return NextResponse.json({ error: 'SHOTSTACK_API_KEY is not set' }, { status: 500 });
-  }
+  const processUrl = vercelUrl
+    ? `https://${vercelUrl}/api/videos/process`
+    : `http://localhost:${process.env.PORT ?? '3000'}/api/videos/process`;
 
-  const url = `https://api.shotstack.io/edit/${env}/render`;
-
-  const testTimeline = {
-    timeline: {
-      background: '#000000',
-      tracks: [{
-        clips: [{
-          asset: { type: 'image', src: 'https://via.placeholder.com/1080x1920.jpg' },
-          start: 0,
-          length: 2,
-        }],
-      }],
-    },
-    output: { format: 'mp4', size: { width: 1080, height: 1920 } },
-  };
-
+  // 1. Test process route auth
+  let processAuthResult: unknown;
   try {
-    const res = await fetch(url, {
+    const r = await fetch(processUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
-      body: JSON.stringify(testTimeline),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${webhookSecret}`,
+      },
+      body: JSON.stringify({ videoId: 'debug-test', userId: 'debug', images: [], aiIndices: [], templateId: 'CINEMATIC', isPaidPlan: false, isFree: true }),
     });
-
-    const text = await res.text();
-    let json: unknown;
-    try { json = JSON.parse(text); } catch { json = text; }
-
-    return NextResponse.json({
-      status: res.status,
-      ok: res.ok,
-      apiKeyPrefix: apiKey.slice(0, 8) + '...',
-      env,
-      url,
-      response: json,
-    });
+    processAuthResult = { status: r.status, ok: r.ok, body: await r.json().catch(() => null) };
   } catch (err) {
-    return NextResponse.json({
-      error: err instanceof Error ? err.message : String(err),
-      apiKeyPrefix: apiKey.slice(0, 8) + '...',
-      env,
-      url,
-    }, { status: 500 });
+    processAuthResult = { error: err instanceof Error ? err.message : String(err) };
   }
+
+  // 2. Check latest failed video for clues
+  let lastFailedVideo: unknown;
+  try {
+    const admin = getSupabaseAdmin();
+    const { data } = await admin
+      .from('videos')
+      .select('id, status, render_id, created_at, source_images')
+      .eq('status', 'failed')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+    lastFailedVideo = data;
+  } catch (err) {
+    lastFailedVideo = { error: err instanceof Error ? err.message : String(err) };
+  }
+
+  return NextResponse.json({
+    env: {
+      apiKeyPrefix:   apiKey ? apiKey.slice(0, 8) + '...' : 'NOT SET',
+      shotstack_env:  env,
+      appUrl,
+      vercelUrl,
+      processUrl,
+      webhookSecretSet: !!webhookSecret,
+    },
+    processRouteAuth: processAuthResult,
+    lastFailedVideo,
+  });
 }
