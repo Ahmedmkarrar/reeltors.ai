@@ -128,15 +128,27 @@ export default function SignupPage() {
             </Link>
           </p>
 
-          <p className="text-center text-sm text-[#6B6760] mt-3">
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px bg-[#E2DED6]" />
+            <span className="text-xs text-[#B0ABA3]">or</span>
+            <div className="flex-1 h-px bg-[#E2DED6]" />
+          </div>
+
+          <Link
+            href="/login?email=1"
+            className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-white border border-[#E2DED6] rounded-[8px] text-sm font-semibold text-[#1A1714] hover:bg-[#F5F3EF] hover:border-[#D4D0C8] transition-colors shadow-sm"
+          >
+            <svg className="w-4 h-4 text-[#6B6760]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2" />
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+            </svg>
+            Continue with Email
+          </Link>
+
+          <p className="text-center text-sm text-[#6B6760] mt-5">
             Already have an account?{' '}
             <Link href="/login" className="text-[#C07A00] font-semibold hover:underline">
               Log in →
-            </Link>
-          </p>
-          <p className="text-center mt-1">
-            <Link href="/login?email=1" className="text-xs text-[#8A8682] hover:text-[#6B6760] underline underline-offset-2 transition-colors">
-              or sign in with email
             </Link>
           </p>
         </div>

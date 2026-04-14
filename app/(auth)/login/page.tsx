@@ -140,33 +140,48 @@ function LoginForm() {
             <div className="flex-1 h-px bg-[#E2DED6]" />
           </div>
 
-          <div className="text-center">
+          <div>
             {!showEmail ? (
               <button
                 onClick={() => setShowEmail(true)}
-                className="text-xs text-[#8A8682] hover:text-[#6B6760] underline underline-offset-2 transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-white border border-[#E2DED6] rounded-[8px] text-sm font-semibold text-[#1A1714] hover:bg-[#F5F3EF] hover:border-[#D4D0C8] transition-colors shadow-sm"
               >
-                sign in with email
+                <svg className="w-4 h-4 text-[#6B6760]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="4" width="20" height="16" rx="2" />
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+                </svg>
+                Continue with Email
               </button>
             ) : emailSent ? (
-              <p className="text-xs text-[#6B6760]">Check your inbox — we sent a magic link to <strong>{email}</strong></p>
+              <div className="px-4 py-4 bg-[#F5F3EF] border border-[#E2DED6] rounded-[8px] text-center">
+                <p className="text-sm font-semibold text-[#1A1714] mb-1">Check your inbox</p>
+                <p className="text-xs text-[#6B6760]">We sent a magic link to <strong>{email}</strong></p>
+              </div>
             ) : (
-              <form onSubmit={handleEmailLogin} className="mt-1 space-y-2">
+              <form onSubmit={handleEmailLogin} className="space-y-3">
                 <input
                   type="email"
                   required
+                  autoFocus
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-full px-3 py-2.5 text-sm border border-[#E2DED6] rounded-[8px] bg-white text-[#1A1714] placeholder:text-[#B0ABA3] focus:outline-none focus:border-[#C07A00] transition-colors"
+                  className="w-full px-4 py-3.5 text-sm border border-[#E2DED6] rounded-[8px] bg-white text-[#1A1714] placeholder:text-[#B0ABA3] focus:outline-none focus:border-[#C07A00] transition-colors"
                 />
-                {emailError && <p className="text-xs text-red-500 text-left">{emailError}</p>}
+                {emailError && <p className="text-xs text-red-500">{emailError}</p>}
                 <button
                   type="submit"
                   disabled={emailLoading}
-                  className="w-full py-2.5 text-sm font-semibold text-white bg-[#1A1714] rounded-[8px] hover:bg-[#2A2724] transition-colors disabled:opacity-60"
+                  className="w-full py-3.5 text-sm font-semibold text-white bg-[#1A1714] rounded-[8px] hover:bg-[#2A2724] transition-colors disabled:opacity-60"
                 >
-                  {emailLoading ? 'Sending...' : 'Send magic link'}
+                  {emailLoading ? 'Sending...' : 'Send magic link →'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowEmail(false)}
+                  className="w-full text-xs text-[#8A8682] hover:text-[#6B6760] transition-colors"
+                >
+                  ← Back
                 </button>
               </form>
             )}
