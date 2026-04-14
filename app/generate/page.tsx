@@ -146,8 +146,16 @@ export default function GeneratePage() {
   // On mount: assign session token + check if returning from Google OAuth
   useEffect(() => {
     (async () => {
-      // localStorage survives external OAuth redirects; sessionStorage does not (esp. Safari)
-      const stored = localStorage.getItem('tunnelSessionToken') ?? generateSessionToken();
+      // Reuse the stored token only when there is a live pending upload (needed to
+      // survive Google OAuth redirects). Otherwise generate a fresh token so that
+      // stale files from a previous session don't count against the 15-photo limit.
+      const hasPending = !!(
+        localStorage.getItem(TUNNEL_UPLOADED_KEY) ||
+        localStorage.getItem('tunnelPending')
+      );
+      const stored = hasPending
+        ? (localStorage.getItem('tunnelSessionToken') ?? generateSessionToken())
+        : generateSessionToken();
       localStorage.setItem('tunnelSessionToken', stored);
 
       const supabase = createClient();
