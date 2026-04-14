@@ -315,8 +315,9 @@ export default function GeneratePage() {
     setStep('result');
   }, []);
 
-  const handleGenerationFailed = useCallback(() => {
+  const handleGenerationFailed = useCallback((reason?: string) => {
     try { localStorage.removeItem(GENERATION_STORAGE_KEY); } catch { /* ignore */ }
+    if (reason) setFailReason(reason);
     setStep('failed');
   }, []);
 

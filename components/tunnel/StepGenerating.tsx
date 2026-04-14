@@ -69,7 +69,7 @@ interface StepGeneratingProps {
    *  rather than starting from zero. */
   startedAt?: number;
   onComplete: (videoUrl: string, thumbnailUrl: string | null) => void;
-  onFailed:   () => void;
+  onFailed:   (reason?: string) => void;
 }
 
 export default function StepGenerating({
@@ -109,7 +109,10 @@ export default function StepGenerating({
         const res = await fetch(pollUrl);
         if (!res.ok) {
           consecutiveErrors.current += 1;
-          if (consecutiveErrors.current >= MAX_CONSECUTIVE_ERRORS) onFailed();
+          console.error(`[StepGenerating] poll ${res.status} (${consecutiveErrors.current}/${MAX_CONSECUTIVE_ERRORS})`);
+          if (consecutiveErrors.current >= MAX_CONSECUTIVE_ERRORS) {
+            onFailed('Could not reach the server after several attempts. Check your connection and try again.');
+          }
           return;
         }
 
@@ -131,15 +134,22 @@ export default function StepGenerating({
           if (pollRef.current) clearInterval(pollRef.current);
           setTimeout(() => onComplete(videoUrl, thumbUrl), 800);
         } else if (status === 'failed') {
-          onFailed();
+          console.error('[StepGenerating] video status returned failed, pollUrl:', pollUrl);
+          onFailed('The video render failed on our end. Please try again — this is usually a one-off issue.');
         }
-      } catch {
+      } catch (err) {
         consecutiveErrors.current += 1;
-        if (consecutiveErrors.current >= MAX_CONSECUTIVE_ERRORS) onFailed();
+        console.error('[StepGenerating] poll threw:', err, `(${consecutiveErrors.current}/${MAX_CONSECUTIVE_ERRORS})`);
+        if (consecutiveErrors.current >= MAX_CONSECUTIVE_ERRORS) {
+          onFailed('Could not reach the server after several attempts. Check your connection and try again.');
+        }
       }
     }, 4_000);
 
-    const hardTimeout = setTimeout(onFailed, MAX_POLL_DURATION_MS);
+    const hardTimeout = setTimeout(
+      () => onFailed('Generation is taking longer than expected. Please try again.'),
+      MAX_POLL_DURATION_MS,
+    );
 
     return () => {
       if (tickRef.current) clearInterval(tickRef.current);
