@@ -326,8 +326,31 @@ export default function GeneratePage() {
   return (
     <main style={{ background: '#0D0B08', minHeight: '100vh', color: '#F0F0EB' }}>
       {step !== 'result' && (
-        <header style={{ padding: '20px 24px', borderBottom: '1px solid #1A1714' }}>
+        <header style={{ padding: '20px 24px', borderBottom: '1px solid #1A1714', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ color: '#F0B429', fontWeight: 800, fontSize: 20 }}>ReeltorsAI</span>
+          {state.email && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ color: '#6B6760', fontSize: 13 }}>{state.email}</span>
+              <button
+                onClick={async () => {
+                  const supabase = createClient();
+                  await supabase.auth.signOut();
+                  localStorage.removeItem('tunnelSessionToken');
+                  localStorage.removeItem('tunnelPending');
+                  localStorage.removeItem(TUNNEL_UPLOADED_KEY);
+                  localStorage.removeItem(GENERATION_STORAGE_KEY);
+                  window.location.reload();
+                }}
+                style={{
+                  background: 'transparent', border: '1px solid #2E2B27',
+                  color: '#6B6760', borderRadius: 6, padding: '6px 12px',
+                  fontSize: 12, cursor: 'pointer',
+                }}
+              >
+                Sign out
+              </button>
+            </div>
+          )}
         </header>
       )}
 
