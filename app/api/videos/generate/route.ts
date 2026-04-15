@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
           id: user.id,
           email: user.email ?? '',
           full_name: (user.user_metadata?.full_name as string) ?? null,
-          email_verified: user.app_metadata?.provider !== 'email',
+          email_verified: true,
         },
         { onConflict: 'id' },
       )
@@ -188,8 +188,12 @@ export async function POST(req: NextRequest) {
   // protection enabled — external HTTP calls to it return 401 before reaching
   // our code. Use the production domain (NEXT_PUBLIC_APP_URL) instead, which
   // has no protection. Fall back to localhost in local development.
+  // In local dev, always use localhost for internal server-to-server calls
+  // (the NEXT_PUBLIC_APP_URL may be a localtunnel URL that's unreliable).
+  // On Vercel, use the public URL to bypass deployment auth protection.
+  const isVercel = !!process.env.VERCEL;
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim();
-  const internalBase = appUrl.startsWith('https://')
+  const internalBase = isVercel && appUrl.startsWith('https://')
     ? appUrl
     : `http://localhost:${process.env.PORT ?? '3000'}`;
   const processUrl = `${internalBase}/api/videos/process`;
