@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 
 interface StepResultProps {
   videoUrl: string;
@@ -13,10 +14,16 @@ export default function StepResult({ videoUrl, email }: StepResultProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isUpsellVisible, setIsUpsellVisible] = useState(false);
   const [hasDownloaded, setHasDownloaded] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsUpsellVisible(true), 5_000);
     videoRef.current?.play().catch(() => {});
+
+    createClient().auth.getUser().then(({ data: { user } }) => {
+      if (user) setIsLoggedIn(true);
+    });
+
     return () => clearTimeout(timer);
   }, []);
 
@@ -70,7 +77,7 @@ export default function StepResult({ videoUrl, email }: StepResultProps) {
         </button>
 
         <a
-          href={signupUrl}
+          href={isLoggedIn ? `${APP_BASE}/videos` : signupUrl}
           style={{
             display: 'block', width: '100%', background: 'transparent',
             color: '#8A8682', border: '1px solid #2E2B27',
@@ -79,7 +86,20 @@ export default function StepResult({ videoUrl, email }: StepResultProps) {
             boxSizing: 'border-box',
           }}
         >
-          Save to account →
+          {isLoggedIn ? 'View My Videos →' : 'Save to account →'}
+        </a>
+
+        <a
+          href={`${APP_BASE}/create`}
+          style={{
+            display: 'block', width: '100%', background: 'transparent',
+            color: '#6B6760', border: 'none',
+            borderRadius: 10, padding: '14px 24px',
+            fontSize: 14, fontWeight: 500, textDecoration: 'none',
+            boxSizing: 'border-box', marginTop: 4,
+          }}
+        >
+          Generate Another Video →
         </a>
       </div>
 

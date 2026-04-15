@@ -204,7 +204,7 @@ export default function StepTemplates({ onGenerate }: StepTemplatesProps) {
           Generate My Free Video →
         </button>
         <p style={{ color: '#4A4642', fontSize: 12, marginTop: 12 }}>
-          Free with Google sign-in · No credit card · 30–90 seconds
+          Free with sign-in · No credit card · 30–90 seconds
         </p>
       </div>
     </div>

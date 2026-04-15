@@ -50,16 +50,13 @@ export async function GET(request: Request) {
     );
   }
 
-  // OAuth providers (Google) verify email ownership — mark email_verified in profile
-  const provider = sessionData?.user?.app_metadata?.provider;
-  if (provider && provider !== 'email') {
-    const admin = getSupabaseAdmin();
-    await admin
-      .from('profiles')
-      .update({ email_verified: true })
-      .eq('id', sessionData.user.id)
-      .eq('email_verified', false);
-  }
+  // Both OAuth (Google) and magic link verify email ownership — mark email_verified in profile
+  const admin = getSupabaseAdmin();
+  await admin
+    .from('profiles')
+    .update({ email_verified: true })
+    .eq('id', sessionData.user.id)
+    .eq('email_verified', false);
 
   const redirectResponse = NextResponse.redirect(`${origin}${next}`);
   redirectResponse.cookies.set('auth_next', '', { path: '/', maxAge: 0 });
