@@ -34,6 +34,9 @@ ENV NEXT_PUBLIC_POSTHOG_HOST=$NEXT_PUBLIC_POSTHOG_HOST
 # next build reads NEXT_TELEMETRY_DISABLED to skip phoning home
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# cap heap during build — prevents OOM kill on 2GB RAM hosts
+ENV NODE_OPTIONS=--max_old_space_size=1536
+
 RUN npm run build
 
 
