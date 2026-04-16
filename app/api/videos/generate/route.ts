@@ -191,12 +191,7 @@ export async function POST(req: NextRequest) {
   // In local dev, always use localhost for internal server-to-server calls
   // (the NEXT_PUBLIC_APP_URL may be a localtunnel URL that's unreliable).
   // On Vercel, use the public URL to bypass deployment auth protection.
-  const isVercel = !!process.env.VERCEL;
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim();
-  const internalBase = isVercel && appUrl.startsWith('https://')
-    ? appUrl
-    : `http://localhost:${process.env.PORT ?? '3000'}`;
-  const processUrl = `${internalBase}/api/videos/process`;
+  const processUrl = `${process.env.BACKEND_URL}/api/generate`;
 
   const isPaidPlan = profile.plan === 'starter' || profile.plan === 'growth' || profile.plan === 'pro' || profile.plan === 'team';
 
