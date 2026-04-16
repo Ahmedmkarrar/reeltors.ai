@@ -1,0 +1,9 @@
+.git
+.next
+node_modules
+server/node_modules
+server/dist
+server/temp
+.env*
+*.md
+.claude
