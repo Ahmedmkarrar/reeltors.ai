@@ -32,10 +32,11 @@ COPY --from=builder --chown=appuser:appgroup /app/package.json ./
 # temp dir for local frame processing
 RUN mkdir -p temp && chown appuser:appgroup temp
 
+COPY --chown=appuser:appgroup start.sh ./
+RUN chmod +x start.sh
+
 USER appuser
 
 EXPOSE 4000
 
-# cap heap at 1536 MB — leaves ~512 MB headroom for Redis + OS on a 2 GB host
-# 4 GB swap absorbs bursts during peak Shotstack/fal.ai processing
-CMD ["node", "--max-old-space-size=1536", "dist/index.js"]
+CMD ["./start.sh"]
