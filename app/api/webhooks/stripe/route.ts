@@ -41,6 +41,9 @@ export async function POST(req: NextRequest) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0]?.price.id;
         const plan    = getPlanFromPriceId(priceId);
+        if (!PLAN_LIMITS[plan]) {
+          console.error(`[STRIPE] Unknown priceId ${priceId} — defaulting to free plan`);
+        }
 
         // Look up by stripe_customer_id (set during checkout session creation)
         // Fall back to customer metadata.supabase_user_id if not yet saved
@@ -77,10 +80,13 @@ export async function POST(req: NextRequest) {
       }
 
       case 'customer.subscription.updated': {
-        const sub     = event.data.object as Stripe.Subscription;
-        const priceId = sub.items.data[0]?.price.id;
-        const plan    = getPlanFromPriceId(priceId);
+        const sub      = event.data.object as Stripe.Subscription;
+        const priceId  = sub.items.data[0]?.price.id;
+        const plan     = getPlanFromPriceId(priceId);
         const isActive = sub.status === 'active' || sub.status === 'trialing';
+        if (isActive && !PLAN_LIMITS[plan]) {
+          console.error(`[STRIPE] Unknown priceId ${priceId} on subscription update — defaulting to free`);
+        }
 
         await admin
           .from('profiles')

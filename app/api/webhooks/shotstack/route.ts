@@ -92,7 +92,11 @@ export async function POST(req: NextRequest) {
   const token         = req.nextUrl.searchParams.get('token');
   const expectedToken = process.env.WEBHOOK_SECRET?.replace(/[^\x20-\x7E]/g, '');
 
-  if (expectedToken && token !== expectedToken) {
+  if (!expectedToken) {
+    console.error('WEBHOOK_SECRET not configured — rejecting all webhook calls');
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  if (token !== expectedToken) {
     console.warn('Shotstack webhook: invalid token');
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }

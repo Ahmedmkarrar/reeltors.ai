@@ -3,15 +3,18 @@ import Stripe from 'stripe';
 import { createClient } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getStripe } from '@/lib/stripe/client';
+import { rateLimit } from '@/lib/rate-limit';
 import { PLANS } from '@/lib/stripe/plans';
 import type { PlanKey } from '@/lib/stripe/plans';
 
 export async function POST(req: NextRequest) {
   try {
-    // Auth check via cookie-based client
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { allowed } = rateLimit(`checkout:${user.id}`, 5, 60 * 60 * 1000);
+    if (!allowed) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
 
     const { plan, annual, embedded } = await req.json() as { plan: PlanKey; annual?: boolean; embedded?: boolean };
     if (!plan || !(plan in PLANS)) {

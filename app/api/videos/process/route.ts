@@ -34,7 +34,11 @@ export async function POST(req: NextRequest) {
   // Internal-only — verify the shared secret
   const authHeader = req.headers.get('x-internal-secret');
   const expectedToken = process.env.WEBHOOK_SECRET?.replace(/[^\x20-\x7E]/g, '');
-  if (expectedToken && authHeader !== expectedToken) {
+  if (!expectedToken) {
+    console.error('WEBHOOK_SECRET not configured — rejecting process route call');
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+  }
+  if (authHeader !== expectedToken) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
@@ -157,23 +161,36 @@ async function runProcess(payload: ProcessVideoPayload) {
   // ── 5. Update record with render ID + conditionally increment usage ──────
   const aiRequestedButFullyFailed = falFailed && aiIndices.length > 0;
 
-  const ops: Promise<unknown>[] = [
-    Promise.resolve(
-      admin
-        .from('videos')
-        .update({ status: 'processing', render_id: render.id })
-        .eq('id', videoId),
-    ),
-  ];
+  // Critical: update the video record with render_id so the webhook can find it.
+  // If this fails the video is orphaned — catch and mark failed.
+  const { error: updateError } = await admin
+    .from('videos')
+    .update({ status: 'processing', render_id: render.id })
+    .eq('id', videoId);
+
+  if (updateError) {
+    console.error(`[PROCESS] Failed to store render_id for video ${videoId}:`, updateError);
+    const { error: failError } = await admin
+      .from('videos')
+      .update({ status: 'failed' })
+      .eq('id', videoId);
+    if (failError) {
+      console.error(`[PROCESS] Recovery failed — video ${videoId} is orphaned:`, failError);
+    }
+    return;
+  }
+
+  // Non-critical side-effects — log failures but don't fail the job
+  const sideEffects: Promise<unknown>[] = [];
 
   if (!aiRequestedButFullyFailed) {
-    ops.push(Promise.resolve(admin.rpc('increment_videos_used', { p_user_id: userId })));
+    sideEffects.push(Promise.resolve(admin.rpc('increment_videos_used', { p_user_id: userId })));
   } else {
     console.info(`AI shots fully failed for video ${videoId} — usage counter not incremented.`);
   }
 
   if (isFree) {
-    ops.push(
+    sideEffects.push(
       Promise.resolve(
         admin.from('free_generation_logs').insert({
           user_id:        userId,
@@ -185,7 +202,7 @@ async function runProcess(payload: ProcessVideoPayload) {
   }
 
   if (fingerprintId) {
-    ops.push(
+    sideEffects.push(
       Promise.resolve(
         admin
           .from('profiles')
@@ -198,5 +215,10 @@ async function runProcess(payload: ProcessVideoPayload) {
     );
   }
 
-  await Promise.allSettled(ops);
+  const results = await Promise.allSettled(sideEffects);
+  results.forEach((result, i) => {
+    if (result.status === 'rejected') {
+      console.error(`[PROCESS] Side-effect ${i} failed for video ${videoId}:`, result.reason);
+    }
+  });
 }

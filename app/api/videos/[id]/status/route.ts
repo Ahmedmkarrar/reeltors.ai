@@ -57,12 +57,17 @@ export async function GET(
       console.error('Failed to store video, using CDN URL as fallback:', e);
     }
 
-    await admin
+    // Conditional update — only applies if webhook hasn't already marked it complete.
+    // Prevents double-download race between this polling route and the webhook handler.
+    const { data: updated } = await admin
       .from('videos')
       .update({ status: 'complete', output_url: finalUrl })
-      .eq('id', video.id);
+      .eq('id', video.id)
+      .eq('status', 'processing')
+      .select('output_url');
 
-    return NextResponse.json({ status: 'complete', output_url: finalUrl });
+    const resolvedUrl = updated?.[0]?.output_url ?? finalUrl;
+    return NextResponse.json({ status: 'complete', output_url: resolvedUrl });
   }
 
   if (render.status === 'failed' || render.error) {

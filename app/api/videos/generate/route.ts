@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import type { CreateVideoPayload } from '@/types';
 import { isDisposableEmail, getClientIp } from '@/lib/abuse/email';
 import { clampAiIndices } from '@/lib/fal/client';
+import { rateLimit } from '@/lib/rate-limit';
 
 // Needs enough headroom to wait for the process route to acknowledge (202).
 // The process route itself has maxDuration=300 and uses waitUntil internally.
@@ -18,6 +19,9 @@ export async function POST(req: NextRequest) {
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
+
+  const { allowed } = rateLimit(`videos-generate:${user.id}`, 10, 60 * 60 * 1000);
+  if (!allowed) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
 
   if (user.email && isDisposableEmail(user.email)) {
     return NextResponse.json(

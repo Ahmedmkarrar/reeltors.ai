@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { generateVideo, ShotstackError } from '@/lib/shotstack/client';
 import { TEMPLATE_IDS } from '@/lib/shotstack/templates';
 import { runAbuseChecks, getAbuseBlockMessage } from '@/lib/tunnel/abuse';
+import { rateLimit, getIp } from '@/lib/rate-limit';
 
 export const maxDuration = 60;
 
@@ -25,6 +26,9 @@ function getClientIp(req: NextRequest): string {
 }
 
 export async function POST(req: NextRequest) {
+  const { allowed } = rateLimit(`tunnel-generate:${getIp(req)}`, 5, 60 * 60 * 1000);
+  if (!allowed) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+
   let body: GenerateBody;
   try {
     body = await req.json();
