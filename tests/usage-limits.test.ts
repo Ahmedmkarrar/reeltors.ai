@@ -19,8 +19,8 @@ const adminChain = {
   select: vi.fn().mockReturnThis(),
   eq:     vi.fn().mockReturnThis(),
   single: vi.fn().mockResolvedValue({ data: { id: 'vid-1' }, error: null }),
-  then:   (res: Function) =>
-    Promise.resolve({ data: [{ id: 'vid-1' }], error: null }).then(res as any),
+  then:   (res: (v: { data: { id: string }[]; error: null }) => unknown) =>
+    Promise.resolve({ data: [{ id: 'vid-1' }], error: null }).then(res),
 };
 
 const mockAdmin = {
@@ -80,8 +80,8 @@ describe('Usage limit enforcement (POST /api/videos/generate)', () => {
       Promise.resolve({ data: mockProfile, error: null })
     );
     adminChain.single.mockResolvedValue({ data: { id: 'vid-1' }, error: null });
-    adminChain.then = (res: Function) =>
-      Promise.resolve({ data: [{ id: 'vid-1' }], error: null }).then(res as any);
+    adminChain.then = (res: (v: { data: { id: string }[]; error: null }) => unknown) =>
+      Promise.resolve({ data: [{ id: 'vid-1' }], error: null }).then(res);
   });
 
   it('blocks free user who has reached their 1-video limit', async () => {

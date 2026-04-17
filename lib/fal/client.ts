@@ -156,6 +156,16 @@ export function clampAiIndices(indices: number[], imageCount: number): number[] 
     .slice(0, MAX_AI_VIDEOS);
 }
 
+const FETCH_TIMEOUT_MS = 15_000;
+
+function fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() =>
+    clearTimeout(timer),
+  );
+}
+
 async function pollForResult(
   requestId: string,
   statusUrl: string,
@@ -163,18 +173,24 @@ async function pollForResult(
   key: string,
   timeoutMs: number,
 ): Promise<string> {
-  const deadline   = Date.now() + timeoutMs;
-  const POLL_MS    = 4_000;
+  const deadline = Date.now() + timeoutMs;
+  const POLL_MS  = 4_000;
 
   while (Date.now() < deadline) {
     await sleep(POLL_MS);
 
-    const statusRes = await fetch(statusUrl, {
-      headers: { Authorization: `Key ${key}` },
-    });
+    let statusRes: Response;
+    try {
+      statusRes = await fetchWithTimeout(statusUrl, {
+        headers: { Authorization: `Key ${key}` },
+      });
+    } catch (err) {
+      const isAbort = err instanceof Error && err.name === 'AbortError';
+      console.warn(`fal.ai status fetch ${isAbort ? 'timed out' : 'failed'} for ${requestId}, retrying…`);
+      continue;
+    }
 
     if (!statusRes.ok) {
-      // Transient network error — keep polling
       console.warn(`fal.ai status poll ${statusRes.status} for ${requestId}, retrying…`);
       continue;
     }
@@ -182,7 +198,7 @@ async function pollForResult(
     const statusData = (await statusRes.json()) as FalStatusResponse;
 
     if (statusData.status === 'COMPLETED') {
-      const resultRes = await fetch(responseUrl, {
+      const resultRes = await fetchWithTimeout(responseUrl, {
         headers: { Authorization: `Key ${key}` },
       });
       if (!resultRes.ok) {

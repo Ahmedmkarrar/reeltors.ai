@@ -6,6 +6,7 @@ import type { CreateVideoPayload } from '@/types';
 import { isDisposableEmail, getClientIp } from '@/lib/abuse/email';
 import { clampAiIndices } from '@/lib/fal/client';
 import { rateLimit } from '@/lib/rate-limit';
+import { validateExternalUrlHttp } from '@/lib/validate-url';
 
 // Needs enough headroom to wait for the process route to acknowledge (202).
 // The process route itself has maxDuration=300 and uses waitUntil internally.
@@ -50,8 +51,8 @@ export async function POST(req: NextRequest) {
   if (!Array.isArray(images) || images.length < 1 || images.length > 15) {
     return NextResponse.json({ error: 'images must be an array of 1–15 URLs' }, { status: 400 });
   }
-  if (images.some((url) => typeof url !== 'string' || !url.startsWith('http'))) {
-    return NextResponse.json({ error: 'All images must be valid HTTP URLs' }, { status: 400 });
+  if (images.some((url) => !validateExternalUrlHttp(url))) {
+    return NextResponse.json({ error: 'All images must be valid HTTPS URLs' }, { status: 400 });
   }
 
   const aiIndices = clampAiIndices(

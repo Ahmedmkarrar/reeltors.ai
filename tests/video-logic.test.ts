@@ -23,8 +23,8 @@ const adminChain = {
   select: vi.fn().mockReturnThis(),
   eq:     vi.fn().mockReturnThis(),
   single: vi.fn().mockResolvedValue({ data: { id: 'vid-1' }, error: null }),
-  then:   (res: Function) =>
-    Promise.resolve({ data: [{ id: 'vid-1' }], error: null }).then(res as any),
+  then:   (res: (v: { data: { id: string }[]; error: null }) => unknown) =>
+    Promise.resolve({ data: [{ id: 'vid-1' }], error: null }).then(res),
 };
 
 const mockAdmin = {

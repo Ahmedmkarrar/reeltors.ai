@@ -41,7 +41,24 @@ export async function POST(req: NextRequest) {
   }
 
   const buffer = await file.arrayBuffer();
-  const ext = file.type === 'image/png' ? 'png' : file.type === 'image/webp' ? 'webp' : 'jpg';
+  const bytes  = new Uint8Array(buffer);
+
+  // Verify actual file content matches claimed MIME type
+  const isJpeg = bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  const isPng  = bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
+  const isWebp = bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46
+              && bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50;
+
+  const mimeMatchesMagic =
+    (file.type === 'image/jpeg' && isJpeg) ||
+    (file.type === 'image/png'  && isPng)  ||
+    (file.type === 'image/webp' && isWebp);
+
+  if (!mimeMatchesMagic) {
+    return NextResponse.json({ error: 'File content does not match declared type' }, { status: 400 });
+  }
+
+  const ext = isPng ? 'png' : isWebp ? 'webp' : 'jpg';
   const randomBytes = crypto.getRandomValues(new Uint8Array(12));
   const randomHex = Array.from(randomBytes, (b) => b.toString(16).padStart(2, '0')).join('');
   const filename = `${Date.now()}-${randomHex}.${ext}`;

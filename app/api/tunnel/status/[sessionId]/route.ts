@@ -7,8 +7,9 @@ export async function GET(
 ) {
   const { sessionId } = await params;
 
-  if (!sessionId || typeof sessionId !== 'string') {
-    return NextResponse.json({ error: 'sessionId is required' }, { status: 400 });
+  const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!sessionId || !UUID_REGEX.test(sessionId)) {
+    return NextResponse.json({ error: 'Invalid session ID' }, { status: 400 });
   }
 
   const admin = getSupabaseAdmin();
