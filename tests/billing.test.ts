@@ -4,7 +4,7 @@ import { NextRequest } from 'next/server';
 // ── Supabase admin mock ───────────────────────────────────────────────────────
 
 const mockChain = () => {
-  const chain: Record<string, ReturnType<typeof vi.fn>> & { then: Function } = {
+  const chain = {
     select: vi.fn().mockReturnThis(),
     update: vi.fn().mockReturnThis(),
     insert: vi.fn().mockReturnThis(),
