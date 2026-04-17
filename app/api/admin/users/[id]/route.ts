@@ -3,8 +3,9 @@ import { createClient } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { PLAN_LIMITS } from '@/lib/stripe/plans';
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createClient();
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user || user.email !== process.env.ADMIN_EMAIL) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -24,7 +25,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       videos_limit: PLAN_LIMITS[plan] ?? 1,
       subscription_status: plan === 'free' ? 'free' : 'active',
     })
-    .eq('id', params.id);
+    .eq('id', id);
 
   if (error) {
     console.error('[ADMIN_UPDATE_USER]', error);
@@ -34,8 +35,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   return NextResponse.json({ ok: true });
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const supabase = createClient();
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user || user.email !== process.env.ADMIN_EMAIL) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
@@ -44,8 +46,8 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   const admin = getSupabaseAdmin();
 
   // Delete videos first, then profile
-  await admin.from('videos').delete().eq('user_id', params.id);
-  const { error } = await admin.from('profiles').delete().eq('id', params.id);
+  await admin.from('videos').delete().eq('user_id', id);
+  const { error } = await admin.from('profiles').delete().eq('id', id);
 
   if (error) {
     console.error('[ADMIN_DELETE_USER]', error);

@@ -9,7 +9,7 @@ const OTP_EXPIRY_MINUTES = 10;
 const MAX_SENDS_PER_HOUR = 3;
 
 export async function POST(_req: NextRequest) { // eslint-disable-line @typescript-eslint/no-unused-vars
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {

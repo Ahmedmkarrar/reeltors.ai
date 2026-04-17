@@ -23,7 +23,7 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${siteUrl}/login?error=missing_code`);
   }
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const next = searchParams.get('next') ?? cookieStore.get('auth_next')?.value ?? '/dashboard';
 
   const supabase = createServerClient(
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
   if (error) {
     console.error('PKCE code exchange failed:', error.message);
     return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(error.message)}`,
+      `${siteUrl}/login?error=${encodeURIComponent(error.message)}`,
     );
   }
 
