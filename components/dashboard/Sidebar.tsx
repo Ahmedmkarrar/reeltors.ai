@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { LogoIcon } from '@/components/ui/LogoIcon';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { UpgradeModal } from '@/components/dashboard/UpgradeModal';
@@ -71,7 +71,7 @@ const NAV_SECTIONS = [
 export function Sidebar() {
   const pathname = usePathname();
   const router   = useRouter();
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
 
@@ -82,7 +82,7 @@ export function Sidebar() {
         if (data) setProfile(data);
       });
     });
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     const allRoutes = NAV_SECTIONS.flatMap((s) => s.items.map((i) => i.href));
