@@ -451,10 +451,17 @@ export default function GeneratePage() {
           ) : (
             <button
               onClick={() => {
-                localStorage.removeItem('tunnelSessionToken');
-                localStorage.removeItem('tunnelPending');
-                localStorage.removeItem(TUNNEL_UPLOADED_KEY);
-                window.location.reload();
+                isGeneratingRef.current = false;
+                setFailReason(null);
+                setFailCode(null);
+                // keep uploaded photos — go back to template picker, not upload
+                if (state.imageUrls.length > 0) {
+                  setStep('templates');
+                } else {
+                  localStorage.removeItem('tunnelSessionToken');
+                  localStorage.removeItem(TUNNEL_UPLOADED_KEY);
+                  setStep('upload');
+                }
               }}
               style={{
                 background: '#F0B429', color: '#0D0B08',
