@@ -35,6 +35,8 @@ vi.mock('@/lib/resend/tunnel-emails', () => ({
 
 function makeRequest(body: Record<string, unknown>, params: Record<string, string> = {}) {
   const url = new URL('http://localhost/api/webhooks/shotstack');
+  // include the test secret by default so auth doesn't block every test
+  url.searchParams.set('token', 'secret-token');
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   return new NextRequest(url.toString(), {
     method:  'POST',
@@ -55,7 +57,7 @@ const validPayload = {
 describe('POST /api/webhooks/shotstack', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete process.env.WEBHOOK_SECRET;
+    process.env.WEBHOOK_SECRET = 'secret-token';
     adminChain.eq.mockReturnThis();
     adminChain.update.mockReturnThis();
     adminChain.then = (res: Function) =>
@@ -66,9 +68,16 @@ describe('POST /api/webhooks/shotstack', () => {
   });
 
   it('returns 403 when WEBHOOK_SECRET is set but token is missing', async () => {
-    process.env.WEBHOOK_SECRET = 'secret-token';
     const { POST } = await import('@/app/api/webhooks/shotstack/route');
-    const res = await POST(makeRequest(validPayload, { video_id: 'vid-1', user_id: 'user-1' }));
+    const url = new URL('http://localhost/api/webhooks/shotstack');
+    url.searchParams.set('video_id', 'vid-1');
+    url.searchParams.set('user_id', 'user-1');
+    const req = new NextRequest(url.toString(), {
+      method: 'POST',
+      body: JSON.stringify(validPayload),
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const res = await POST(req);
     expect(res.status).toBe(403);
   });
 
@@ -79,15 +88,16 @@ describe('POST /api/webhooks/shotstack', () => {
     expect(res.status).toBe(403);
   });
 
-  it('passes through when WEBHOOK_SECRET is not set (local dev)', async () => {
+  it('returns 403 when WEBHOOK_SECRET is not configured', async () => {
+    delete process.env.WEBHOOK_SECRET;
     const { POST } = await import('@/app/api/webhooks/shotstack/route');
     const res = await POST(makeRequest(validPayload, { video_id: 'vid-1', user_id: 'user-1' }));
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(403);
   });
 
   it('returns 400 on invalid JSON', async () => {
     const { POST } = await import('@/app/api/webhooks/shotstack/route');
-    const req = new NextRequest('http://localhost/api/webhooks/shotstack', {
+    const req = new NextRequest('http://localhost/api/webhooks/shotstack?token=secret-token', {
       method: 'POST', body: 'not-json',
     });
     const res = await POST(req);

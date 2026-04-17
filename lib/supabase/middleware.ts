@@ -5,8 +5,22 @@ export async function updateSession(request: NextRequest) {
   const supabaseUrl  = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey  = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // If env vars are missing, pass through without auth (avoids hard crash)
   if (!supabaseUrl || !supabaseKey) {
+    console.error('CRITICAL: Supabase env vars missing — blocking protected routes');
+    const pathname = request.nextUrl.pathname;
+    const isProtected =
+      pathname.startsWith('/dashboard') ||
+      pathname.startsWith('/create') ||
+      pathname.startsWith('/videos') ||
+      pathname.startsWith('/account') ||
+      pathname.startsWith('/subscription') ||
+      pathname.startsWith('/feedback') ||
+      pathname.startsWith('/admin');
+    if (isProtected) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      return NextResponse.redirect(url);
+    }
     return NextResponse.next({ request });
   }
 

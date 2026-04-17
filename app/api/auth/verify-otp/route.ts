@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
@@ -56,7 +57,11 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  if (verification.code_hash !== hashOtp(code)) {
+  const storedHash = Buffer.from(verification.code_hash);
+  const inputHash  = Buffer.from(hashOtp(code));
+  const isMatch    = storedHash.length === inputHash.length && timingSafeEqual(storedHash, inputHash);
+
+  if (!isMatch) {
     await admin
       .from('email_verifications')
       .update({ attempts: (verification.attempts ?? 0) + 1 })
