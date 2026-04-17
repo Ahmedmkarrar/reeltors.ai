@@ -60,7 +60,7 @@ vi.mock('@/lib/shotstack/client', () => ({
 vi.mock('@/lib/fal/client', () => ({
   generateDroneShotsForIndices: vi.fn().mockResolvedValue(new Map()),
   clampAiIndices: (indices: number[], count: number) =>
-    [...new Set(indices)].filter((i) => Number.isInteger(i) && i >= 0 && i < count).slice(0, 3),
+    Array.from(new Set(indices)).filter((i) => Number.isInteger(i) && i >= 0 && i < count).slice(0, 3),
   FalError: class FalError extends Error {},
 }));
 

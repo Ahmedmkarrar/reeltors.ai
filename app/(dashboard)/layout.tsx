@@ -5,7 +5,7 @@ import { PaywallModal } from '@/components/dashboard/PaywallModal';
 import { MobileNav } from '@/components/dashboard/MobileNav';
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   // getUser() validates the JWT with Supabase Auth — prevents stale session false positives
   const { data: { user } } = await supabase.auth.getUser();
 

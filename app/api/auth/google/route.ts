@@ -4,7 +4,7 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const next = searchParams.get('next') ?? '/dashboard';
 
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL!;
 
   // redirect_to must exactly match an entry in Supabase → Auth → URL Configuration.
   // Pass `next` via a short-lived cookie instead of a query param so the base URL stays clean.

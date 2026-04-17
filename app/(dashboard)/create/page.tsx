@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
@@ -425,9 +426,12 @@ export default function CreatePage() {
                 {isUploadingLogo ? (
                   <div className="w-14 h-14 rounded-[6px] bg-[#EBEBEB] animate-pulse shrink-0" />
                 ) : (
-                  <img
+                  <Image
                     src={logoPreview}
                     alt="Logo preview"
+                    width={56}
+                    height={56}
+                    unoptimized
                     className="w-14 h-14 object-contain rounded-[6px] bg-white border border-[#EBEBEB] p-1"
                   />
                 )}

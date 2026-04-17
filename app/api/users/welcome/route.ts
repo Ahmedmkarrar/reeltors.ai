@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { sendWelcomeEmail } from '@/lib/resend/emails';
 
 export async function POST() {
-  const supabase = createClient();
+  const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
