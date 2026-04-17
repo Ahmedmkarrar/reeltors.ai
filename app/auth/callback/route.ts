@@ -4,21 +4,23 @@ import { NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const code = searchParams.get('code');
   const errorParam = searchParams.get('error');
   const errorDescription = searchParams.get('error_description');
+
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL!;
 
   // OAuth provider sent back an error (e.g. user denied consent)
   if (errorParam) {
     const message = errorDescription ?? errorParam;
     return NextResponse.redirect(
-      `${origin}/login?error=${encodeURIComponent(message)}`,
+      `${siteUrl}/login?error=${encodeURIComponent(message)}`,
     );
   }
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=missing_code`);
+    return NextResponse.redirect(`${siteUrl}/login?error=missing_code`);
   }
 
   const cookieStore = cookies();
@@ -58,7 +60,7 @@ export async function GET(request: Request) {
     .eq('id', sessionData.user.id)
     .eq('email_verified', false);
 
-  const redirectResponse = NextResponse.redirect(`${origin}${next}`);
+  const redirectResponse = NextResponse.redirect(`${siteUrl}${next}`);
   redirectResponse.cookies.set('auth_next', '', { path: '/', maxAge: 0 });
   return redirectResponse;
 }
