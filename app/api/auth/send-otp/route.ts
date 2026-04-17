@@ -4,11 +4,15 @@ import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { generateOtp, hashOtp } from '@/lib/abuse/otp';
 import { isDisposableEmail } from '@/lib/abuse/email';
 import { sendOtpEmail } from '@/lib/resend/emails';
+import { rateLimit, getIp } from '@/lib/rate-limit';
 
 const OTP_EXPIRY_MINUTES = 10;
 const MAX_SENDS_PER_HOUR = 3;
 
-export async function POST(_req: NextRequest) { // eslint-disable-line @typescript-eslint/no-unused-vars
+export async function POST(req: NextRequest) {
+  const { allowed } = rateLimit(`send-otp:${getIp(req)}`, 5, 15 * 60 * 1000);
+  if (!allowed) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
+
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
