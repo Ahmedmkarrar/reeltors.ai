@@ -8,8 +8,8 @@ const adminChain = {
   select:   vi.fn().mockReturnThis(),
   eq:       vi.fn().mockReturnThis(),
   single:   vi.fn().mockResolvedValue({ data: { email: 'a@b.com', full_name: 'Agent' }, error: null }),
-  then:     (res: Function) =>
-    Promise.resolve({ data: null, error: null }).then(res as any),
+  then:     (res: (v: { data: null; error: null }) => unknown) =>
+    Promise.resolve({ data: null, error: null }).then(res),
 };
 
 const mockAdmin = { from: vi.fn().mockReturnValue(adminChain) };
@@ -60,8 +60,8 @@ describe('POST /api/webhooks/shotstack', () => {
     process.env.WEBHOOK_SECRET = 'secret-token';
     adminChain.eq.mockReturnThis();
     adminChain.update.mockReturnThis();
-    adminChain.then = (res: Function) =>
-      Promise.resolve({ data: null, error: null }).then(res as any);
+    adminChain.then = (res: (v: { data: null; error: null }) => unknown) =>
+      Promise.resolve({ data: null, error: null }).then(res);
     adminChain.single.mockResolvedValue({
       data: { email: 'a@b.com', full_name: 'Agent' }, error: null,
     });

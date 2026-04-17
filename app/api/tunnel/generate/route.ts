@@ -38,8 +38,9 @@ export async function POST(req: NextRequest) {
 
   const { sessionToken, templateKey, imageUrls, email, deviceFingerprint } = body;
 
-  if (!sessionToken || typeof sessionToken !== 'string') {
-    return NextResponse.json({ error: 'sessionToken is required' }, { status: 400 });
+  const SESSION_TOKEN_REGEX = /^[a-zA-Z0-9_-]{8,128}$/;
+  if (!sessionToken || !SESSION_TOKEN_REGEX.test(sessionToken)) {
+    return NextResponse.json({ error: 'Invalid session token' }, { status: 400 });
   }
   if (!templateKey || !VALID_TEMPLATE_KEYS.has(templateKey)) {
     return NextResponse.json({ error: 'Invalid template' }, { status: 400 });

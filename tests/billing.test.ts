@@ -12,8 +12,8 @@ const mockChain = () => {
     eq:     vi.fn().mockReturnThis(),
     single: vi.fn().mockResolvedValue({ data: null, error: null }),
     // make the chain itself awaitable
-    then: (res: Function, rej?: Function) =>
-      Promise.resolve({ data: [], error: null }).then(res as any, rej as any),
+    then: (res: (v: { data: unknown[]; error: null }) => unknown, rej?: (r: unknown) => unknown) =>
+      Promise.resolve({ data: [], error: null }).then(res, rej),
   };
   return chain;
 };
@@ -109,8 +109,8 @@ describe('POST /api/webhooks/stripe', () => {
     const sub = makeSubscription('price_starter');
     mockSubscriptionsRetrieve.mockResolvedValue(sub);
     // first eq().select() call returns a matched row (no fallback needed)
-    adminChain.then = (res: Function) =>
-      Promise.resolve({ data: [{ id: 'user-1' }], error: null }).then(res as any);
+    adminChain.then = (res: (v: { data: { id: string }[]; error: null }) => unknown) =>
+      Promise.resolve({ data: [{ id: 'user-1' }], error: null }).then(res);
 
     mockConstructEvent.mockReturnValue({
       type: 'checkout.session.completed',
@@ -139,8 +139,8 @@ describe('POST /api/webhooks/stripe', () => {
       metadata: { supabase_user_id: 'user-fallback' },
     });
     // first update returns empty (no match on stripe_customer_id)
-    adminChain.then = (res: Function) =>
-      Promise.resolve({ data: [], error: null }).then(res as any);
+    adminChain.then = (res: (v: { data: unknown[]; error: null }) => unknown) =>
+      Promise.resolve({ data: [], error: null }).then(res);
 
     mockConstructEvent.mockReturnValue({
       type: 'checkout.session.completed',

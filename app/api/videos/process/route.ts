@@ -3,6 +3,7 @@ import { waitUntil } from '@vercel/functions';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { generateVideo, generateMixedMediaVideo, ShotstackError } from '@/lib/shotstack/client';
 import type { MediaItem } from '@/lib/shotstack/client';
+import { validateExternalUrl } from '@/lib/validate-url';
 import { generateDroneShotsForIndices, FalError } from '@/lib/fal/client';
 
 // Up to 5 minutes — fal.ai takes ~1-2 min per clip, max 3 clips in parallel
@@ -125,8 +126,8 @@ async function runProcess(payload: ProcessVideoPayload) {
     brandName:  brandName  || undefined,
     email:      email      || undefined,
     phone:      phone      || undefined,
-    audioUrl:   typeof audioUrl === 'string' && audioUrl.startsWith('https://') ? audioUrl : undefined,
-    logoUrl:    typeof logoUrl === 'string' && logoUrl.startsWith('https://') ? logoUrl : undefined,
+    audioUrl:   validateExternalUrl(audioUrl),
+    logoUrl:    validateExternalUrl(logoUrl),
     format:     (format ?? 'vertical') as 'vertical' | 'square' | 'horizontal',
     callbackUrl,
     apiKey: shotstackApiKey,
