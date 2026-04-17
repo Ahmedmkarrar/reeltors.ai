@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-  const { origin, searchParams } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
   const next = searchParams.get('next') ?? '/dashboard';
+
+  const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
 
   // redirect_to must exactly match an entry in Supabase → Auth → URL Configuration.
   // Pass `next` via a short-lived cookie instead of a query param so the base URL stays clean.
-  const redirectTo = `${origin}/auth/callback`;
+  const redirectTo = `${siteUrl}/auth/callback`;
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!supabaseUrl) {
