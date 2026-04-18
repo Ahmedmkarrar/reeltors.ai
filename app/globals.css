@@ -2,19 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* self-hosted Syne with size-adjust to match pre-upgrade rendering */
-@font-face {
-  font-family: 'syne';
-  src: url('/fonts/Syne-Variable-Latin.woff2') format('woff2');
-  font-weight: 400 800;
-  font-style: normal;
-  font-display: swap;
-  size-adjust: 68%;
-}
-
 @layer base {
-  :root { --font-syne: 'syne', sans-serif; }
-
   * { box-sizing: border-box; }
 
   html {
