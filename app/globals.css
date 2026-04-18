@@ -3,11 +3,6 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --font-syne: 'Syne', sans-serif;
-    --font-inter: 'Inter', sans-serif;
-  }
-
   * { box-sizing: border-box; }
 
   html {
@@ -34,9 +29,6 @@
 }
 
 @layer utilities {
-  .font-syne  { font-family: var(--font-syne); }
-  .font-inter { font-family: var(--font-inter); }
-
   /* ── Shimmer skeleton ──────────────────────────────────────────────── */
   @keyframes shimmer {
     0%   { background-position: -200% 0; }
