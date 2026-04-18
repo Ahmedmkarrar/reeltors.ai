@@ -13,6 +13,8 @@
 }
 
 @layer base {
+  :root { --font-syne: 'syne', sans-serif; }
+
   * { box-sizing: border-box; }
 
   html {
