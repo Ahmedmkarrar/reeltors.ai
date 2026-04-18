@@ -10,6 +10,7 @@ const syne = Syne({
   weight: ['400', '600', '700', '800'],
   variable: '--font-syne',
   display: 'swap',
+  adjustFontFallback: false,
 });
 
 const inter = Inter({
