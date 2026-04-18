@@ -17,9 +17,6 @@ const syne = localFont({
   variable: '--font-syne',
   display: 'swap',
   adjustFontFallback: false,
-  declarations: [
-    { prop: 'size-adjust', value: '85%' },
-  ],
 });
 
 const inter = Inter({

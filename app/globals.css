@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* scale Syne glyphs to match pre-upgrade rendering */
+@font-face {
+  font-family: 'syne';
+  src: url('/fonts/Syne-Variable-Latin.woff2') format('woff2');
+  font-weight: 400 800;
+  font-style: normal;
+  font-display: swap;
+  size-adjust: 85%;
+}
+
 @layer base {
   * { box-sizing: border-box; }
 
