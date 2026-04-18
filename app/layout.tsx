@@ -1,16 +1,25 @@
 import type { Metadata, Viewport } from 'next';
-import { Syne, Inter } from 'next/font/google';
+import localFont from 'next/font/local';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import { PostHogProvider } from '@/components/providers/PostHogProvider';
 import NextTopLoader from 'nextjs-toploader';
 
-const syne = Syne({
-  subsets: ['latin'],
-  weight: ['400', '600', '700', '800'],
+const syne = localFont({
+  src: [
+    {
+      path: '../public/fonts/Syne-Variable-Latin.woff2',
+      weight: '400 800',
+      style: 'normal',
+    },
+  ],
   variable: '--font-syne',
   display: 'swap',
   adjustFontFallback: false,
+  declarations: [
+    { prop: 'size-adjust', value: '85%' },
+  ],
 });
 
 const inter = Inter({
