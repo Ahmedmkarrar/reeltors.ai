@@ -47,7 +47,7 @@ export function AnimatedCounter({
   }, [started, end, duration, decimals]);
 
   return (
-    <span ref={ref} className={className}>
+    <span ref={ref} className={className} style={{ willChange: 'contents', fontVariantNumeric: 'tabular-nums' }}>
       {prefix}{value.toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}{suffix}
     </span>
   );

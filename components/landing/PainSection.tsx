@@ -111,7 +111,7 @@ export function PainSection() {
                   <p className="font-mono text-[10px] tracking-[0.25em] text-[#6B6760] uppercase mb-3">The Earnings Gap</p>
                   <div
                     className="font-syne font-extrabold text-[#F0B429] leading-none"
-                    style={{ fontSize: 'clamp(4rem, 10vw, 7rem)' }}
+                    style={{ fontSize: 'clamp(4rem, 10vw, 7rem)', willChange: 'transform' }}
                   >
                     $<AnimatedCounter end={338000} duration={2500} suffix="/yr" />
                   </div>
