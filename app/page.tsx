@@ -16,7 +16,7 @@ import { CursorGlow } from '@/components/landing/CursorGlow';
 
 export default function LandingPage() {
   return (
-    <main className="relative min-h-screen bg-[#0D0B08]">
+    <main className="relative min-h-screen bg-[#0D0B08] overflow-x-hidden">
       <CursorGlow />
       <Navbar />
       <Hero />
