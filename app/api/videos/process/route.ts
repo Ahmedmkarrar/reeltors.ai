@@ -168,13 +168,17 @@ async function runProcess(payload: ProcessVideoPayload) {
 
   // Critical: update the video record with render_id so the webhook can find it.
   // If this fails the video is orphaned — catch and mark failed.
-  const { error: updateError } = await admin
+  const { data: updatedRows, error: updateError } = await admin
     .from('videos')
     .update({ status: 'processing', render_id: render.id })
-    .eq('id', videoId);
+    .eq('id', videoId)
+    .select('id');
 
-  if (updateError) {
-    console.error(`[PROCESS] Failed to store render_id for video ${videoId}:`, updateError);
+  if (updateError || !updatedRows?.length) {
+    const reason = updateError
+      ? updateError.message
+      : `no matching row for videoId ${videoId}`;
+    console.error(`[PROCESS] Failed to store render_id for video ${videoId}: ${reason}`);
     const { error: failError } = await admin
       .from('videos')
       .update({ status: 'failed' })
