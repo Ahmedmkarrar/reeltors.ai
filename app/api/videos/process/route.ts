@@ -185,34 +185,30 @@ async function runProcess(payload: ProcessVideoPayload) {
   const sideEffects: Promise<unknown>[] = [];
 
   if (!aiRequestedButFullyFailed) {
-    sideEffects.push(Promise.resolve(admin.rpc('increment_videos_used', { p_user_id: userId })));
+    sideEffects.push(admin.rpc('increment_videos_used', { p_user_id: userId }));
   } else {
     console.info(`AI shots fully failed for video ${videoId} — usage counter not incremented.`);
   }
 
   if (isFree) {
     sideEffects.push(
-      Promise.resolve(
-        admin.from('free_generation_logs').insert({
-          user_id:        userId,
-          ip_address:     clientIp && clientIp !== '0.0.0.0' ? clientIp : null,
-          fingerprint_id: fingerprintId ?? null,
-        }),
-      ),
+      admin.from('free_generation_logs').insert({
+        user_id:        userId,
+        ip_address:     clientIp && clientIp !== '0.0.0.0' ? clientIp : null,
+        fingerprint_id: fingerprintId ?? null,
+      }),
     );
   }
 
   if (fingerprintId) {
     sideEffects.push(
-      Promise.resolve(
-        admin
-          .from('profiles')
-          .update({
-            session_fingerprint:            fingerprintId,
-            session_fingerprint_updated_at: new Date().toISOString(),
-          })
-          .eq('id', userId),
-      ),
+      admin
+        .from('profiles')
+        .update({
+          session_fingerprint:            fingerprintId,
+          session_fingerprint_updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId),
     );
   }
 
