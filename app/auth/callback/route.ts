@@ -24,7 +24,7 @@ export async function GET(request: Request) {
   }
 
   const cookieStore = await cookies();
-  const next = searchParams.get('next') ?? cookieStore.get('auth_next')?.value ?? '/dashboard';
+  const next = searchParams.get('next') ?? cookieStore.get('auth_next')?.value ?? '/create';
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
