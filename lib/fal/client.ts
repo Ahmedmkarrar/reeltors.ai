@@ -177,8 +177,6 @@ async function pollForResult(
   const POLL_MS  = 4_000;
 
   while (Date.now() < deadline) {
-    await sleep(POLL_MS);
-
     let statusRes: Response;
     try {
       statusRes = await fetchWithTimeout(statusUrl, {
@@ -187,11 +185,13 @@ async function pollForResult(
     } catch (err) {
       const isAbort = err instanceof Error && err.name === 'AbortError';
       console.warn(`fal.ai status fetch ${isAbort ? 'timed out' : 'failed'} for ${requestId}, retrying…`);
+      // fetch already consumed up to FETCH_TIMEOUT_MS — skip extra sleep, recheck deadline
       continue;
     }
 
     if (!statusRes.ok) {
       console.warn(`fal.ai status poll ${statusRes.status} for ${requestId}, retrying…`);
+      await sleep(Math.min(POLL_MS, deadline - Date.now()));
       continue;
     }
 
@@ -216,7 +216,8 @@ async function pollForResult(
       );
     }
 
-    // IN_QUEUE or IN_PROGRESS — keep waiting
+    // IN_QUEUE or IN_PROGRESS — sleep then retry, capped so we don't overshoot budget
+    await sleep(Math.min(POLL_MS, deadline - Date.now()));
   }
 
   throw new FalError(`fal.ai timed out after ${timeoutMs / 1000}s for request ${requestId}`);
