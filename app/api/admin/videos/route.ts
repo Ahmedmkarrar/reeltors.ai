@@ -5,14 +5,14 @@ import { getSupabaseAdmin } from '@/lib/supabase/admin';
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+  if (!user || user.email?.toLowerCase() !== process.env.ADMIN_EMAIL?.toLowerCase()) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   const { searchParams } = new URL(req.url);
   const search = searchParams.get('search') ?? '';
   const status = searchParams.get('status') ?? '';
-  const page   = parseInt(searchParams.get('page') ?? '1');
+  const page   = Math.max(1, parseInt(searchParams.get('page') ?? '1') || 1);
   const limit  = 50;
   const offset = (page - 1) * limit;
 
