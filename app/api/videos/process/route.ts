@@ -118,6 +118,10 @@ async function runProcess(payload: ProcessVideoPayload) {
     ? (process.env.SHOTSTACK_PROD_ENV.trim() as 'v1' | 'stage')
     : undefined;
 
+  if (isPaidPlan && !process.env.SHOTSTACK_PROD_API_KEY) {
+    console.info(`[PROCESS] SHOTSTACK_PROD_API_KEY not set — paid plan falling back to stage key for video ${videoId}`);
+  }
+
   const sharedParams = {
     templateKey: templateId,
     listingAddress,

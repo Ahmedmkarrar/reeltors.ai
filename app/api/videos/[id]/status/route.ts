@@ -50,6 +50,22 @@ export async function GET(
   }
 
   if (render.status === 'done' && render.url) {
+    // Re-check DB before downloading — webhook may have already completed it,
+    // which would cause a redundant download and storage race.
+    const { data: fresh } = await admin
+      .from('videos')
+      .select('status, output_url, thumbnail_url')
+      .eq('id', video.id)
+      .single();
+
+    if (fresh?.status === 'complete') {
+      return NextResponse.json({
+        status:        'complete',
+        output_url:    fresh.output_url,
+        thumbnail_url: fresh.thumbnail_url,
+      });
+    }
+
     let finalUrl = render.url;
     try {
       finalUrl = await downloadAndStoreVideo(video.render_id, render.url!, user.id);
@@ -57,8 +73,8 @@ export async function GET(
       console.error('Failed to store video, using CDN URL as fallback:', e);
     }
 
-    // Conditional update — only applies if webhook hasn't already marked it complete.
-    // Prevents double-download race between this polling route and the webhook handler.
+    // Conditional update — only applies if webhook hasn't marked it complete
+    // in the window between the re-check above and the download completing.
     const { data: updated } = await admin
       .from('videos')
       .update({ status: 'complete', output_url: finalUrl })
