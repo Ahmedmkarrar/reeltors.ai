@@ -182,7 +182,7 @@ async function runProcess(payload: ProcessVideoPayload) {
   }
 
   // Non-critical side-effects — log failures but don't fail the job
-  const sideEffects: Promise<unknown>[] = [];
+  const sideEffects: PromiseLike<unknown>[] = [];
 
   if (!aiRequestedButFullyFailed) {
     sideEffects.push(admin.rpc('increment_videos_used', { p_user_id: userId }));
