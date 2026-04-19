@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { allowed } = rateLimit(`videos-generate:${user.id}`, 10, 60 * 60 * 1000);
+  const { allowed } = await rateLimit(`videos-generate:${user.id}`, 10, 60 * 60 * 1000);
   if (!allowed) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
 
   if (user.email && isDisposableEmail(user.email)) {

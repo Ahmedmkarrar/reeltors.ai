@@ -5,60 +5,60 @@ import { rateLimit, getIp } from '@/lib/rate-limit';
 const key = () => `test-${Math.random().toString(36).slice(2)}`;
 
 describe('rateLimit', () => {
-  it('allows first request and sets remaining to limit - 1', () => {
-    const result = rateLimit(key(), 3, 60_000);
+  it('allows first request and sets remaining to limit - 1', async () => {
+    const result = await rateLimit(key(), 3, 60_000);
     expect(result.allowed).toBe(true);
     expect(result.remaining).toBe(2);
   });
 
-  it('decrements remaining on each call', () => {
+  it('decrements remaining on each call', async () => {
     const k = key();
-    rateLimit(k, 3, 60_000);
-    const second = rateLimit(k, 3, 60_000);
+    await rateLimit(k, 3, 60_000);
+    const second = await rateLimit(k, 3, 60_000);
     expect(second.allowed).toBe(true);
     expect(second.remaining).toBe(1);
   });
 
-  it('blocks once limit is reached', () => {
+  it('blocks once limit is reached', async () => {
     const k = key();
-    rateLimit(k, 2, 60_000);
-    rateLimit(k, 2, 60_000);
-    const blocked = rateLimit(k, 2, 60_000);
+    await rateLimit(k, 2, 60_000);
+    await rateLimit(k, 2, 60_000);
+    const blocked = await rateLimit(k, 2, 60_000);
     expect(blocked.allowed).toBe(false);
     expect(blocked.remaining).toBe(0);
   });
 
-  it('continues blocking on subsequent calls after limit', () => {
+  it('continues blocking on subsequent calls after limit', async () => {
     const k = key();
-    rateLimit(k, 1, 60_000);
-    rateLimit(k, 1, 60_000); // blocked
-    const stillBlocked = rateLimit(k, 1, 60_000);
+    await rateLimit(k, 1, 60_000);
+    await rateLimit(k, 1, 60_000); // blocked
+    const stillBlocked = await rateLimit(k, 1, 60_000);
     expect(stillBlocked.allowed).toBe(false);
   });
 
-  it('resets after the window expires', () => {
+  it('resets after the window expires', async () => {
     vi.useFakeTimers();
     const k = key();
-    rateLimit(k, 1, 1_000);
-    expect(rateLimit(k, 1, 1_000).allowed).toBe(false);
+    await rateLimit(k, 1, 1_000);
+    expect((await rateLimit(k, 1, 1_000)).allowed).toBe(false);
 
     vi.advanceTimersByTime(1_001);
-    expect(rateLimit(k, 1, 1_000).allowed).toBe(true);
+    expect((await rateLimit(k, 1, 1_000)).allowed).toBe(true);
     vi.useRealTimers();
   });
 
-  it('different keys are isolated from each other', () => {
+  it('different keys are isolated from each other', async () => {
     const k1 = key();
     const k2 = key();
-    rateLimit(k1, 1, 60_000);
-    rateLimit(k1, 1, 60_000); // exhaust k1
-    expect(rateLimit(k2, 1, 60_000).allowed).toBe(true);
+    await rateLimit(k1, 1, 60_000);
+    await rateLimit(k1, 1, 60_000); // exhaust k1
+    expect((await rateLimit(k2, 1, 60_000)).allowed).toBe(true);
   });
 
-  it('a limit of 1 allows exactly one request', () => {
+  it('a limit of 1 allows exactly one request', async () => {
     const k = key();
-    expect(rateLimit(k, 1, 60_000).allowed).toBe(true);
-    expect(rateLimit(k, 1, 60_000).allowed).toBe(false);
+    expect((await rateLimit(k, 1, 60_000)).allowed).toBe(true);
+    expect((await rateLimit(k, 1, 60_000)).allowed).toBe(false);
   });
 });
 

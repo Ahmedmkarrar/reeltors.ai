@@ -26,7 +26,7 @@ function getClientIp(req: NextRequest): string {
 }
 
 export async function POST(req: NextRequest) {
-  const { allowed } = rateLimit(`tunnel-generate:${getIp(req)}`, 5, 60 * 60 * 1000);
+  const { allowed } = await rateLimit(`tunnel-generate:${getIp(req)}`, 5, 60 * 60 * 1000);
   if (!allowed) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
 
   let body: GenerateBody;

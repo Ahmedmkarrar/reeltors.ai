@@ -1,11 +1,13 @@
+import { getRedis } from './redis';
+
 interface RateLimitEntry {
   count: number;
   resetAt: number;
 }
 
+// in-memory fallback for local dev (single instance only)
 const store = new Map<string, RateLimitEntry>();
 
-// prevent unbounded memory growth — prune expired entries every 10 minutes
 setInterval(() => {
   const now = Date.now();
   store.forEach((entry, key) => {
@@ -13,7 +15,30 @@ setInterval(() => {
   });
 }, 10 * 60 * 1000);
 
-export function rateLimit(key: string, limit: number, windowMs: number): { allowed: boolean; remaining: number } {
+async function rateLimitRedis(
+  redis: NonNullable<ReturnType<typeof getRedis>>,
+  key: string,
+  limit: number,
+  windowMs: number,
+): Promise<{ allowed: boolean; remaining: number }> {
+  const redisKey = `rl:${key}:${Math.floor(Date.now() / windowMs)}`;
+  const windowSecs = Math.ceil(windowMs / 1000) + 1;
+
+  const pipeline = redis.pipeline();
+  pipeline.incr(redisKey);
+  pipeline.expire(redisKey, windowSecs);
+  const results = await pipeline.exec();
+
+  const count = (results?.[0]?.[1] as number) ?? 1;
+  const allowed = count <= limit;
+  return { allowed, remaining: Math.max(0, limit - count) };
+}
+
+function rateLimitMemory(
+  key: string,
+  limit: number,
+  windowMs: number,
+): { allowed: boolean; remaining: number } {
   const now = Date.now();
   const entry = store.get(key);
 
@@ -28,6 +53,22 @@ export function rateLimit(key: string, limit: number, windowMs: number): { allow
 
   entry.count++;
   return { allowed: true, remaining: limit - entry.count };
+}
+
+export async function rateLimit(
+  key: string,
+  limit: number,
+  windowMs: number,
+): Promise<{ allowed: boolean; remaining: number }> {
+  const redis = getRedis();
+  if (redis) {
+    try {
+      return await rateLimitRedis(redis, key, limit, windowMs);
+    } catch (err) {
+      console.error('[rate-limit] Redis error, falling back to in-memory:', err);
+    }
+  }
+  return rateLimitMemory(key, limit, windowMs);
 }
 
 export function getIp(req: Request): string {
