@@ -235,9 +235,9 @@ export async function POST(req: NextRequest) {
       console.error(`Process route returned ${res.status}:`, body.error ?? '(no message)');
       await admin.from('videos').update({ status: 'failed' }).eq('id', video.id);
     }
-  }).catch((err) => {
+  }).catch(async (err) => {
     console.error('Failed to reach process route:', err);
-    void Promise.resolve(admin.from('videos').update({ status: 'failed' }).eq('id', video.id));
+    await admin.from('videos').update({ status: 'failed' }).eq('id', video.id);
   });
 
   waitUntil(processPromise);
