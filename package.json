@@ -27,6 +27,7 @@
     "date-fns": "^4.1.0",
     "disposable-email-domains": "^1.0.62",
     "framer-motion": "^12.38.0",
+    "ioredis": "^5.10.1",
     "next": "^15.5.15",
     "nextjs-toploader": "^3.9.17",
     "posthog-js": "^1.364.6",

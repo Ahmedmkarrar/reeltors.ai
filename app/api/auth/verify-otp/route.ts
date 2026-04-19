@@ -8,7 +8,7 @@ import { rateLimit, getIp } from '@/lib/rate-limit';
 const MAX_ATTEMPTS = 5;
 
 export async function POST(req: NextRequest) {
-  const { allowed } = rateLimit(`verify-otp:${getIp(req)}`, 10, 10 * 60 * 1000);
+  const { allowed } = await rateLimit(`verify-otp:${getIp(req)}`, 10, 10 * 60 * 1000);
   if (!allowed) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
 
   const supabase = await createClient();

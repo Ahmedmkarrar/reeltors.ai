@@ -86,6 +86,7 @@ async function runProcess(payload: ProcessVideoPayload) {
     }
   } else if (aiIndices.length > 0 && !process.env.FAL_KEY) {
     console.warn('FAL_KEY not set — skipping AI drone shot generation');
+    falFailed = true;
   }
 
   // ── 2. Build the final media array (videos + images) ──────────────────────
@@ -190,7 +191,7 @@ async function runProcess(payload: ProcessVideoPayload) {
   }
 
   // Non-critical side-effects — log failures but don't fail the job
-  const sideEffects: Promise<unknown>[] = [];
+  const sideEffects: PromiseLike<unknown>[] = [];
 
   if (!aiRequestedButFullyFailed) {
     sideEffects.push(admin.rpc('increment_videos_used', { p_user_id: userId }));

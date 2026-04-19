@@ -10,7 +10,7 @@ const OTP_EXPIRY_MINUTES = 10;
 const MAX_SENDS_PER_HOUR = 3;
 
 export async function POST(req: NextRequest) {
-  const { allowed } = rateLimit(`send-otp:${getIp(req)}`, 5, 15 * 60 * 1000);
+  const { allowed } = await rateLimit(`send-otp:${getIp(req)}`, 5, 15 * 60 * 1000);
   if (!allowed) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
 
   const supabase = await createClient();
