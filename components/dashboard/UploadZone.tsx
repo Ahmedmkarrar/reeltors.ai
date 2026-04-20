@@ -264,14 +264,14 @@ export function UploadZone({
           className={[
             'h-full min-h-[220px] rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-4 cursor-pointer transition-all duration-200 select-none',
             isDragActive
-              ? 'border-[#F0B429] bg-[#FFF8E6]'
-              : 'border-[#D8D4CC] bg-white hover:border-[#1A1714]/30 hover:bg-[#F9F9F8]',
+              ? 'border-[#C9A84C] bg-[#FDF8EC]'
+              : 'border-[#C9A84C]/30 bg-white/70 hover:border-[#C9A84C]/60 hover:bg-white/85',
           ].join(' ')}
         >
           {/* Upload icon */}
           <div className={[
             'w-16 h-16 rounded-full flex items-center justify-center transition-colors',
-            isDragActive ? 'bg-[#F0B429]/20' : 'bg-[#F3F3F2]',
+            isDragActive ? 'bg-[#C9A84C]/20' : 'bg-[#F0EDE6]',
           ].join(' ')}>
             <svg className={['w-7 h-7 transition-colors', isDragActive ? 'text-[#F0B429]' : 'text-[#B8B4AE]'].join(' ')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
@@ -317,50 +317,27 @@ export function UploadZone({
         const wordCount = countWords(videoPrompt);
         const isOver = wordCount > MAX_WORDS;
         return (
-          <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-50 px-3 md:px-8 pb-4 md:pb-6" style={{ background: '#FFFFFF' }}>
+          <div className="fixed bottom-0 left-0 md:left-[240px] right-0 z-50 px-3 md:px-8 pb-4 md:pb-6" style={{ background: '#F5F2EC' }}>
             {/* Fade gradient above the bar */}
-            <div className="absolute inset-x-0 -top-10 h-10 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent, #FFFFFF)' }} />
+            <div className="absolute inset-x-0 -top-10 h-10 pointer-events-none" style={{ background: 'linear-gradient(to bottom, transparent, #F5F2EC)' }} />
             <div
               className={[
-                'rounded-[14px] bg-white border shadow-[0_-2px_24px_rgba(26,23,20,0.08)] overflow-visible transition-all duration-200',
+                'rounded-[14px] bg-white/80 border shadow-[0_-2px_24px_rgba(26,23,20,0.06)] overflow-visible transition-all duration-200',
                 isDragActive
-                  ? 'border-[#F0B429] ring-2 ring-[#F0B429]/20'
+                  ? 'border-[#C9A84C] ring-2 ring-[#C9A84C]/20'
                   : isOver
                   ? 'border-red-400'
-                  : 'border-[#E2DED6] focus-within:border-[#1A1714]/20 focus-within:shadow-[0_-2px_28px_rgba(26,23,20,0.08)]',
+                  : 'border-[#E2DED6] focus-within:border-[#C9A84C]/40',
               ].join(' ')}
             >
-              {/* Format picker row — always visible */}
-              <div className="flex items-center gap-2 px-4 pt-3 pb-2.5 border-b border-[#F0EDE6]">
-                <span className="text-[11px] text-[#B8B4AE] shrink-0">Format</span>
-                {([
-                  { value: 'vertical',   label: '9:16', hint: 'Reels' },
-                  { value: 'square',     label: '1:1',  hint: 'Feed' },
-                  { value: 'horizontal', label: '16:9', hint: 'YouTube' },
-                ] as const).map(({ value, label, hint }) => (
-                  <button
-                    key={value}
-                    type="button"
-                    onClick={() => onFormatChange?.(value)}
-                    className={[
-                      'flex items-center gap-1 px-2.5 py-1 rounded-full border text-[11px] font-medium transition-all',
-                      format === value
-                        ? 'border-[#1A1714] bg-[#F5F5F3] text-[#1A1714]'
-                        : 'border-[#E2DED6] text-[#8A8682] hover:border-[#1A1714]/30',
-                    ].join(' ')}
-                  >
-                    <span className="font-mono">{label}</span>
-                    <span className={format === value ? 'text-[#6B6760]' : 'text-[#B8B4AE]'}>{hint}</span>
-                  </button>
-                ))}
-              </div>
 
               {/* Photo strip — shown inside the bar once photos exist */}
               {files.length > 0 && (
                 <>
                   <div className="px-4 pt-3 pb-1">
                     <div className="flex items-center gap-1.5 mb-2.5">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold bg-[#0D9488] text-white rounded-md px-2.5 py-1">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-white rounded-md px-2.5 py-1"
+                        style={{ background: 'linear-gradient(135deg, #F5C842, #C9930A)' }}>
                         <BoltIcon className="w-3 h-3" /> AI
                       </span>
                       <span className="text-xs text-[#8A8682]">
@@ -391,7 +368,7 @@ export function UploadZone({
                             <div
                               className={[
                                 'relative overflow-hidden rounded border bg-[#F7F5EF]',
-                                isAi && !isCardUploading ? 'border-[#0D9488]/70 ring-1 ring-[#0D9488]/30' : 'border-[#E2DED6]',
+                                isAi && !isCardUploading ? 'border-[#C9A84C]/70 ring-1 ring-[#C9A84C]/30' : 'border-[#E2DED6]',
                               ].join(' ')}
                               style={{ aspectRatio: FORMAT_ASPECT[format] }}
                             >
@@ -405,10 +382,11 @@ export function UploadZone({
                                   </svg>
                                 </div>
                               )}
-                              {isAi && !isCardUploading && <div className="absolute inset-0 bg-[#0D9488]/10 pointer-events-none" />}
+                              {isAi && !isCardUploading && <div className="absolute inset-0 bg-[#C9A84C]/10 pointer-events-none" />}
                               {isAi && !isCardUploading && (
                                 <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-                                  <span className="inline-flex items-center gap-0.5 bg-[#0D9488] text-white text-[6px] font-bold px-1 py-0.5 rounded-full leading-none">
+                                  <span className="inline-flex items-center gap-0.5 text-white text-[6px] font-bold px-1 py-0.5 rounded-full leading-none"
+                                    style={{ background: 'linear-gradient(135deg, #F5C842, #C9930A)' }}>
                                     <BoltIcon className="w-1.5 h-1.5" /> AI
                                   </span>
                                 </div>
@@ -439,9 +417,10 @@ export function UploadZone({
                                 isCardUploading
                                   ? 'bg-white border-[#D8D4CC] text-[#C8C4BC] opacity-50 cursor-not-allowed'
                                   : isAi
-                                  ? 'bg-[#0D9488] border-[#0B7A70] text-white'
-                                  : 'bg-white border-[#D8D4CC] text-[#B8B4AE] hover:border-[#0D9488] hover:text-[#0D9488]',
+                                  ? 'border-[#C9930A] text-white'
+                                  : 'bg-white border-[#D8D4CC] text-[#B8B4AE] hover:border-[#C9A84C] hover:text-[#C9A84C]',
                               ].join(' ')}
+                              style={isAi && !isCardUploading ? { background: 'linear-gradient(135deg, #F5C842, #C9930A)' } : {}}
                             >
                               <BoltIcon className="w-2 h-2" />
                             </button>
@@ -529,13 +508,8 @@ export function UploadZone({
                     type="button"
                     onClick={onNext}
                     disabled={nextDisabled || uploading}
-                    className={[
-                      'flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold transition-all',
-                      'bg-[#1A1714] text-white',
-                      'hover:bg-[#2A2420] hover:shadow-[0_0_16px_rgba(26,23,20,0.3)]',
-                      'disabled:opacity-35 disabled:cursor-not-allowed disabled:shadow-none',
-                      'shadow-[0_2px_12px_rgba(26,23,20,0.2)]',
-                    ].join(' ')}
+                    className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold transition-all disabled:opacity-35 disabled:cursor-not-allowed"
+                    style={{ background: 'linear-gradient(90deg, #96680A 0%, #C9930A 25%, #F0B429 55%, #FFD966 75%, #DAA520 100%)', color: '#1A1714', boxShadow: '0 2px 16px rgba(197,152,40,0.5), inset 0 1px 0 rgba(255,255,255,0.2)' }}
                     title={`Next — ${files.length} photo${files.length !== 1 ? 's' : ''}`}
                   >
                     Next →

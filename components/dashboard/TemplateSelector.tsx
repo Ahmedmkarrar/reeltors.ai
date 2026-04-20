@@ -61,14 +61,19 @@ export function TemplateSelector({ selected, onSelect, plan }: TemplateSelectorP
             onMouseEnter={() => unlocked && handleMouseEnter(i)}
             onMouseLeave={handleMouseLeave}
             className={[
-              'relative text-left rounded-[14px] border-2 overflow-hidden transition-all duration-200 bg-white group',
-              isSelected
-                ? 'border-[#1A1714] shadow-[0_4px_24px_rgba(26,23,20,0.12)]'
-                : unlocked
-                ? 'border-[#EBEBEB] hover:border-[#1A1714]/30 hover:shadow-[0_4px_16px_rgba(26,23,20,0.08)] cursor-pointer'
-                : 'border-[#EBEBEB] cursor-not-allowed opacity-60',
-            ].join(' ')}
-            style={{ transform: isSelected ? 'scale(1.02)' : 'scale(1)' }}
+              'relative text-left rounded-[20px] overflow-hidden transition-all duration-300 group',
+              !unlocked && 'cursor-not-allowed opacity-50',
+              unlocked && !isSelected && 'cursor-pointer',
+            ].filter(Boolean).join(' ')}
+            style={{
+              background: 'rgba(255,255,255,0.75)',
+              backdropFilter: 'blur(8px)',
+              border: isSelected ? '2px solid #C9A84C' : '2px solid rgba(201,168,76,0.18)',
+              boxShadow: isSelected
+                ? '0 0 0 4px rgba(201,168,76,0.15), 0 8px 32px rgba(201,168,76,0.2)'
+                : '0 2px 12px rgba(0,0,0,0.04)',
+              transform: isSelected ? 'translateY(-4px) scale(1.01)' : 'translateY(0) scale(1)',
+            }}
           >
             {/* Video thumbnail */}
             <div className="relative w-full aspect-video bg-[#1A1714] overflow-hidden">
@@ -90,7 +95,8 @@ export function TemplateSelector({ selected, onSelect, plan }: TemplateSelectorP
 
               {/* Selected checkmark */}
               {isSelected && (
-                <div className="absolute bottom-2.5 right-2.5 w-6 h-6 rounded-full bg-[#1A1714] flex items-center justify-center z-10 shadow-lg">
+                <div className="absolute bottom-2.5 right-2.5 w-6 h-6 rounded-full flex items-center justify-center z-10 shadow-lg"
+                  style={{ background: 'linear-gradient(135deg, #F5C842, #C9930A)' }}>
                   <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                   </svg>
@@ -106,7 +112,8 @@ export function TemplateSelector({ selected, onSelect, plan }: TemplateSelectorP
                   isSelected ? 'text-[#1A1714]' : 'text-[#1A1714]',
                 ].join(' ')}>{template.name}</h3>
                 {isSelected && (
-                  <span className="shrink-0 text-[10px] font-bold text-white bg-[#1A1714] px-2 py-0.5 rounded-full mt-0.5">
+                  <span className="shrink-0 text-[10px] font-bold text-white px-2 py-0.5 rounded-full mt-0.5"
+                    style={{ background: 'linear-gradient(135deg, #F5C842, #C9930A)' }}>
                     Selected
                   </span>
                 )}
@@ -117,8 +124,8 @@ export function TemplateSelector({ selected, onSelect, plan }: TemplateSelectorP
               </p>
 
               <div className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#0D9488]" />
-                <span className="text-[11px] font-medium text-[#0D9488]">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#C9A84C]" />
+                <span className="text-[11px] font-medium text-[#C9A84C]">
                   {template.bestFor}
                 </span>
               </div>
@@ -126,13 +133,14 @@ export function TemplateSelector({ selected, onSelect, plan }: TemplateSelectorP
 
             {/* Locked overlay */}
             {!unlocked && (
-              <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2 rounded-[12px]">
-                <div className="w-10 h-10 bg-[#F5F5F3] border border-[#EBEBEB] rounded-full flex items-center justify-center">
-                  <svg className="w-5 h-5 text-[#ADADAD]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <div className="absolute inset-0 bg-[#F5F2EC]/85 backdrop-blur-[3px] flex flex-col items-center justify-center gap-2 rounded-[20px]">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ background: 'linear-gradient(135deg, #F5C842, #C9930A)' }}>
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                   </svg>
                 </div>
-                <span className="text-[12px] font-medium text-[#ADADAD]">Upgrade to unlock</span>
+                <span className="text-[12px] font-semibold text-[#8C8680]">Upgrade to unlock</span>
               </div>
             )}
           </button>
