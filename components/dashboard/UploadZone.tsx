@@ -93,7 +93,6 @@ export function UploadZone({
   videoPrompt = '',
   onPromptChange,
   format = 'vertical',
-  onFormatChange,
   onNext,
   nextDisabled = false,
   plan,
