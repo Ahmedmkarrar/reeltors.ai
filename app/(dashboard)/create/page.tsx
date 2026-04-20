@@ -15,26 +15,6 @@ import type { RealtimeChannel } from '@supabase/supabase-js';
 
 type Step = 'upload' | 'format' | 'details' | 'template' | 'generating' | 'result';
 
-const LOADING_MESSAGES_BASE = [
-  'Analyzing your photos…',
-  'Applying cinematic effects…',
-  'Syncing music…',
-  'Rendering your video…',
-  'Almost ready…',
-];
-
-const LOADING_MESSAGES_AI = [
-  'Generating AI drone shot…',
-  'Rendering cinematic flyover…',
-  'Compositing your video…',
-  'Stitching drone shot with photos…',
-  'Almost ready…',
-];
-
-// Simulated progress caps at 90% until Realtime signals completion
-const PROGRESS_TICK = 7;
-const PROGRESS_CAP  = 90;
-
 export default function CreatePage() {
   const router  = useRouter();
   const supabase = createClient();
@@ -59,13 +39,12 @@ export default function CreatePage() {
   const [, setVideoId]     = useState('');
   const [outputUrl, setOutputUrl] = useState('');
   const [generating, setGenerating] = useState(false);
-  const [, setLoadingMsg] = useState(LOADING_MESSAGES_BASE[0]);
   const [progress, setProgress]     = useState(0);
   const [copied, setCopied]         = useState(false);
   const [countdown, setCountdown]   = useState(0);
 
   const channelRef    = useRef<RealtimeChannel | null>(null);
-  const msgRef        = useRef(0);
+  const startTimeRef  = useRef<number>(0);
   const countdownRef  = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -78,15 +57,15 @@ export default function CreatePage() {
     });
   }, [supabase, router]);
 
-  // Cycle loading messages while generating
+  // Smooth time-based progress: fills to 95% over estimated render duration
   useEffect(() => {
     if (step !== 'generating') return;
-    const messages = aiVideoIndices.length > 0 ? LOADING_MESSAGES_AI : LOADING_MESSAGES_BASE;
+    const totalMs = (aiVideoIndices.length > 0 ? 180 : 90) * 1000;
+    startTimeRef.current = Date.now();
     const interval = setInterval(() => {
-      msgRef.current = (msgRef.current + 1) % messages.length;
-      setLoadingMsg(messages[msgRef.current]);
-      setProgress((p) => Math.min(p + PROGRESS_TICK, PROGRESS_CAP));
-    }, 3000);
+      const elapsed = Date.now() - startTimeRef.current;
+      setProgress(Math.min((elapsed / totalMs) * 95, 95));
+    }, 250);
     return () => clearInterval(interval);
   }, [step, aiVideoIndices.length]);
 
@@ -204,11 +183,7 @@ export default function CreatePage() {
     if (!profile) return;
     setGenerating(true);
     setStep('generating');
-    setProgress(5);
-    msgRef.current = 0;
-    setLoadingMsg(
-      aiVideoIndices.length > 0 ? LOADING_MESSAGES_AI[0] : LOADING_MESSAGES_BASE[0],
-    );
+    setProgress(0);
     // Estimated render time: ~90s standard, ~180s with AI drone shots
     startCountdown(aiVideoIndices.length > 0 ? 180 : 90);
 

@@ -166,7 +166,7 @@ function LoginForm() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="your@email.com"
-                  className="w-full px-4 py-3.5 text-sm border border-[#E2DED6] rounded-[8px] bg-white text-[#1A1714] placeholder:text-[#B0ABA3] focus:outline-none focus:border-[#C07A00] transition-colors"
+                  className="w-full px-4 py-3.5 text-[16px] border border-[#E2DED6] rounded-[8px] bg-white text-[#1A1714] placeholder:text-[#B0ABA3] focus:outline-none focus:border-[#C07A00] transition-colors"
                 />
                 {emailError && <p className="text-xs text-red-500">{emailError}</p>}
                 <button
