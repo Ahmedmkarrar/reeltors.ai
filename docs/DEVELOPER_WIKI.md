@@ -29,13 +29,14 @@ Agents upload 3–15 photos, pick a visual style, and a cinematic listing video 
 | Auth | Supabase Auth | Google OAuth + email magic link. Auth state managed via `@supabase/ssr`. |
 | Payments | Stripe | Subscription billing with webhooks. Plans: Free / Starter ($49) / Growth ($99) / Pro ($199). |
 | Email | Resend | Transactional emails: welcome, video ready, OTP codes, payment failures. |
-| Hosting | Vercel | All functions run on Fluid Compute (Node.js 24). `maxDuration = 300` for AI generation routes. |
+| Hosting | Coolify (Docker) | Next.js on port 3000, Express worker on port 4000. Both run as Docker containers on a self-hosted Coolify instance. All env vars live in Coolify dashboard, not Vercel. |
 
 ### Database & Storage
 | Layer | Technology | Notes |
 |---|---|---|
 | Database | Supabase (PostgreSQL) | Tables: `profiles`, `videos`, `tunnel_sessions`, `email_verifications`, `free_generation_logs` |
 | File Storage | Supabase Storage | Bucket: `output-videos`. Path pattern: `{userId}/{renderId}.mp4`. Videos stored with 1-year cache. |
+| Queue / Cache | Redis (self-hosted on Coolify) | Used for BullMQ job queue (Express worker) and IP rate limiting (`lib/rate-limit.ts`). Internal URL shared by both Next.js and Express services via `REDIS_URL`. Migrated from Upstash 2026-04-20. |
 
 ### AI & Video Pipeline
 | Layer | Technology | Why |
@@ -161,6 +162,9 @@ Free users hit layers 1–5. Paid users hit layers 1, 5, and 6.
 ### `.env.local` (local dev)
 
 ```bash
+# ── Redis ─────────────────────────────────────────────────────────────────────
+REDIS_URL=redis://localhost:6379   # In production: internal Coolify Redis URL (both Next.js + Express)
+
 # ── Supabase ──────────────────────────────────────────────────────────────────
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
@@ -205,7 +209,7 @@ MOCK_AI=true   # Set to skip fal.ai + Shotstack API calls entirely. Returns samp
 | Cost | Free / dev quota | Billed per render |
 | Use for | Local dev, testing, CI | Production only |
 
-**When to switch to prod:** Set `SHOTSTACK_ENV=v1` and use your production Shotstack API key in Vercel environment variables before going live.
+**When to switch to prod:** Set `SHOTSTACK_ENV=v1` and use your production Shotstack API key in Coolify environment variables before going live.
 
 ### MOCK_AI Mode
 
@@ -339,7 +343,7 @@ supabase/migrations/002_rename_render_id.sql  -- Renames creatomate_render_id �
 ### Utility
 | Route | Method | Purpose |
 |---|---|---|
-| `/api/cron/reset-usage` | GET | Resets `videos_used_this_month = 0` for all users. Triggered monthly by Vercel Cron. |
+| `/api/cron/reset-usage` | GET | Resets `videos_used_this_month = 0` for all users. Triggered monthly by a cron job (configured in Coolify or external scheduler). |
 | `/api/users/welcome` | POST | Sends welcome email after first sign-up. |
 | `/api/feedback` | POST | Routes user feedback to `support@reeltors.ai` via Resend. |
 
@@ -349,8 +353,8 @@ supabase/migrations/002_rename_render_id.sql  -- Renames creatomate_render_id �
 
 ### Prerequisites
 - Node.js 20+, npm
+- Redis running locally (`brew install redis && brew services start redis` on Mac)
 - Supabase CLI (optional, for local DB)
-- Vercel CLI (`npm i -g vercel`)
 
 ### First-time setup
 ```bash
@@ -358,17 +362,15 @@ git clone https://github.com/Ahmedmkarrar/reeltors.ai
 cd reeltors.ai
 npm install
 
-# Pull environment variables from Vercel (requires vercel link)
-vercel env pull .env.local
-
-# OR manually copy and fill in:
+# Copy and fill in env vars manually (no Vercel CLI — we're on Coolify)
 cp .env.example .env.local
 ```
 
 ### Run locally
 ```bash
-npm run dev       # http://localhost:3000
-npm test          # Run Vitest suite (54 tests)
+npm run dev       # Next.js at http://localhost:3000
+npm run dev       # Express worker at http://localhost:4000 (run from /server)
+npm test          # Run Vitest suite
 npm run build     # Production build check
 ```
 
@@ -379,11 +381,8 @@ MOCK_AI=true
 ```
 This lets you test the full generate → poll → result UI flow without spending Shotstack or fal.ai credits. The sample video URL is a real MP4 so the player works.
 
-### Deploying to Vercel
-```bash
-vercel --prod     # Deploys to production after confirmation
-```
-Or push to `main` — GitHub Actions CI runs tests first (`.github/workflows/ci.yml`).
+### Deploying to production
+Push to `main` — GitHub Actions CI runs lint + tests (`.github/workflows/ci.yml`). Coolify watches the repo and auto-deploys both services on merge. Env vars are set in the Coolify dashboard per service.
 
 ---
 
@@ -408,7 +407,7 @@ The Mac Mini exposes a local API (e.g. `http://mac-mini.local:11434`). Scripts i
 |---|---|---|
 | Free users get 1 video (`videos_limit = 1`) | `profiles.videos_limit`, `/api/videos/generate` | Core trial gate |
 | Video limit is checked against `videos_used_this_month`, not total | `profiles.videos_used_this_month` | Monthly rolling quota, not lifetime |
-| `videos_used_this_month` resets on 1st of month | `/api/cron/reset-usage` | Cron job on Vercel |
+| `videos_used_this_month` resets on 1st of month | `/api/cron/reset-usage` | Cron job scheduled in Coolify |
 | Google OAuth always sets `email_verified = true` | `app/auth/callback/route.ts` | Google verifies email ownership, OTP not needed |
 | Shotstack renders must be downloaded immediately | `lib/storage.ts` + webhook routes | Shotstack deletes CDN files after 24 hours |
 | `output_url` in DB must always be a Supabase URL | Enforced in `downloadAndStoreVideo()` | Permanent storage, not ephemeral CDN |
@@ -435,8 +434,13 @@ Run `npm install` — the project requires `disposable-email-domains` and `vites
 
 ### "Stripe webhook failing"
 1. Register the webhook URL at Stripe Dashboard → Webhooks → `{appUrl}/api/webhooks/stripe`
-2. Copy the `whsec_...` signing secret to `STRIPE_WEBHOOK_SECRET` in Vercel env
+2. Copy the `whsec_...` signing secret to `STRIPE_WEBHOOK_SECRET` in Coolify env
 3. Stripe webhook MUST use the live URL (not localhost). Use Stripe CLI for local testing: `stripe listen --forward-to localhost:3000/api/webhooks/stripe`
 
 ### "Shotstack renders have a watermark"
-You're on `SHOTSTACK_ENV=stage`. Switch to `v1` with a production API key in Vercel for live deploys.
+You're on `SHOTSTACK_ENV=stage`. Switch to `v1` with a production API key in Coolify env vars for live deploys.
+
+### "Rate limiting not working / Redis errors"
+1. Check `REDIS_URL` is set in both the Next.js and Express Coolify services — they share the same internal Redis instance
+2. Locally: make sure Redis is running (`redis-cli ping` should return `PONG`)
+3. Rate limiting lives in `lib/rate-limit.ts` and fires on `/api/videos/generate` and `/api/tunnel/generate`
