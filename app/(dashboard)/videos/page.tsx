@@ -94,7 +94,7 @@ export default function VideosPage() {
               placeholder="Search videos…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white/80 border border-[#C9A84C]/20 rounded-[10px] pl-9 pr-3 py-2 text-sm text-[#1A1714] placeholder-[#ADADAD] focus:outline-none focus:border-[#C9A84C]/50 transition-colors backdrop-blur-sm"
+              className="w-full bg-white/80 border border-[#C9A84C]/20 rounded-[10px] pl-9 pr-3 py-2 text-[16px] md:text-sm text-[#1A1714] placeholder-[#ADADAD] focus:outline-none focus:border-[#C9A84C]/50 transition-colors backdrop-blur-sm"
             />
             {search && (
               <button

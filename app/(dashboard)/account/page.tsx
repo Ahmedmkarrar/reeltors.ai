@@ -179,7 +179,7 @@ export default function AccountPage() {
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="Your full name"
-                  className="w-full h-10 px-3 text-[13px] text-[#1A1714] bg-white/60 border border-[#C9A84C]/20 rounded-lg outline-none transition-all duration-150
+                  className="w-full h-10 px-3 text-[16px] md:text-[13px] text-[#1A1714] bg-white/60 border border-[#C9A84C]/20 rounded-lg outline-none transition-all duration-150
                     placeholder:text-[#C8C4BC]
                     hover:border-[#C9A84C]/40
                     focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/15"
@@ -196,7 +196,7 @@ export default function AccountPage() {
                   value={brandName}
                   onChange={(e) => setBrandName(e.target.value)}
                   placeholder="e.g. Keller Williams, My Realty Group"
-                  className="w-full h-10 px-3 text-[13px] text-[#1A1714] bg-white/60 border border-[#C9A84C]/20 rounded-lg outline-none transition-all duration-150
+                  className="w-full h-10 px-3 text-[16px] md:text-[13px] text-[#1A1714] bg-white/60 border border-[#C9A84C]/20 rounded-lg outline-none transition-all duration-150
                     placeholder:text-[#C8C4BC]
                     hover:border-[#C9A84C]/40
                     focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/15"
@@ -213,7 +213,7 @@ export default function AccountPage() {
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="(123) 555-1234"
-                  className="w-full h-10 px-3 text-[13px] text-[#1A1714] bg-white/60 border border-[#C9A84C]/20 rounded-lg outline-none transition-all duration-150
+                  className="w-full h-10 px-3 text-[16px] md:text-[13px] text-[#1A1714] bg-white/60 border border-[#C9A84C]/20 rounded-lg outline-none transition-all duration-150
                     placeholder:text-[#C8C4BC]
                     hover:border-[#C9A84C]/40
                     focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/15"
@@ -230,7 +230,7 @@ export default function AccountPage() {
                   value={profile.email}
                   readOnly
                   tabIndex={-1}
-                  className="w-full h-10 px-3 text-[13px] text-[#8A8682] bg-[#F5F2EC]/80 border border-[#C9A84C]/15 rounded-lg cursor-not-allowed select-none"
+                  className="w-full h-10 px-3 text-[16px] md:text-[13px] text-[#8A8682] bg-[#F5F2EC]/80 border border-[#C9A84C]/15 rounded-lg cursor-not-allowed select-none"
                 />
               </div>
             </div>
