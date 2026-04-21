@@ -139,7 +139,7 @@ export default function FeedbackPage() {
                   placeholder="Tell us what's on your mind…"
                   rows={5}
                   required
-                  className="w-full px-3 py-2.5 text-[13px] text-[#1A1714] bg-white/60 border border-[#C9A84C]/20 rounded-lg outline-none resize-none transition-all duration-150
+                  className="w-full px-3 py-2.5 text-[16px] md:text-[13px] text-[#1A1714] bg-white/60 border border-[#C9A84C]/20 rounded-lg outline-none resize-none transition-all duration-150
                     placeholder:text-[#C8C4BC]
                     hover:border-[#C9A84C]/40
                     focus:border-[#C9A84C] focus:ring-2 focus:ring-[#C9A84C]/15"
