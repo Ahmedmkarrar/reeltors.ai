@@ -140,7 +140,7 @@ export function MobileNav() {
       {isCreatePage ? (
         <button
           onClick={() => setIsOpen(true)}
-          className="md:hidden fixed top-4 right-4 z-50 w-10 h-10 rounded-full flex items-center justify-center shadow-md"
+          className="md:hidden fixed top-4 left-4 z-50 w-10 h-10 rounded-full flex items-center justify-center shadow-md"
           style={{
             background: 'rgba(255,255,255,0.9)',
             backdropFilter: 'blur(8px)',
