@@ -9,8 +9,11 @@ export async function GET(request: Request) {
   const errorParam = searchParams.get('error');
   const errorDescription = searchParams.get('error_description');
 
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') ?? 'https';
   const requestUrl = new URL(request.url);
-  const siteUrl = process.env.APP_URL ?? `${requestUrl.protocol}//${requestUrl.host}`;
+  const siteUrl = process.env.APP_URL
+    ?? (forwardedHost ? `${forwardedProto}://${forwardedHost}` : `${requestUrl.protocol}//${requestUrl.host}`);
 
   // OAuth provider sent back an error (e.g. user denied consent)
   if (errorParam) {
