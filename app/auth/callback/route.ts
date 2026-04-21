@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   const errorParam = searchParams.get('error');
   const errorDescription = searchParams.get('error_description');
 
-  const siteUrl = process.env.NEXT_PUBLIC_APP_URL!;
+  const siteUrl = (process.env.APP_URL ?? process.env.NEXT_PUBLIC_APP_URL)!;
 
   // OAuth provider sent back an error (e.g. user denied consent)
   if (errorParam) {
