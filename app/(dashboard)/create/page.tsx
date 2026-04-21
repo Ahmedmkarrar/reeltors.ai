@@ -652,39 +652,10 @@ export default function CreatePage() {
             </div>
           </div>
 
-          {/* Stage ticker */}
-          <div
-            className="relative overflow-hidden w-full mb-4"
-            style={{ maskImage: 'linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%)', WebkitMaskImage: 'linear-gradient(to right, transparent 0%, black 20%, black 80%, transparent 100%)' }}
-          >
-            <div
-              className="flex w-full transition-transform duration-500 ease-in-out"
-              style={{ transform: `translateX(calc(${(2 - activeMilestoneIndex) * 20}%))` }}
-            >
-              {milestones.map((m, i) => {
-                const offset = Math.abs(i - activeMilestoneIndex);
-                const isCurrent = offset === 0;
-                const opacity = isCurrent ? 1 : offset === 1 ? 0.4 : 0.15;
-                return (
-                  <div
-                    key={m.label}
-                    className="w-1/5 flex-shrink-0 text-center transition-all duration-500"
-                    style={{ opacity }}
-                  >
-                    <span
-                      className="text-sm whitespace-nowrap"
-                      style={{
-                        fontWeight: isCurrent ? 600 : 400,
-                        color: isCurrent ? '#1A1714' : '#6B6760',
-                      }}
-                    >
-                      {m.label}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          {/* Stage label */}
+          <p className="text-sm font-semibold text-[#1A1714] mb-4 transition-all duration-500">
+            {milestones[activeMilestoneIndex].label}
+          </p>
 
           {/* Time estimate */}
           <p className="text-sm text-[#8C8680]">{timeLabel}</p>

@@ -131,51 +131,67 @@ export function MobileNav() {
     router.refresh();
   }
 
-  if (pathname.startsWith('/create')) return null;
-
+  const isCreatePage = pathname.startsWith('/create');
   const initial = (userName || userEmail || 'R').charAt(0).toUpperCase();
 
   return (
     <>
-      {/* Bottom tab bar */}
-      <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#EBEBEB]"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
-      >
-        <div className="flex h-[56px]">
-          {TAB_ITEMS.map(({ href, label, icon }) => {
-            const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
-            return (
-              <Link
-                key={href}
-                href={href}
-                prefetch={true}
-                className="flex-1 flex flex-col items-center justify-center gap-[3px] transition-colors relative"
-              >
-                {isActive && (
-                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-[2px] rounded-full"
-                    style={{ background: 'linear-gradient(90deg, #C9930A, #F0B429)' }} />
-                )}
-                <span style={{ color: isActive ? '#C9930A' : '#ADADAD' }}>{icon}</span>
-                <span className="text-[9px] font-medium tracking-wide" style={{ color: isActive ? '#C9930A' : '#ADADAD' }}>
-                  {label}
-                </span>
-              </Link>
-            );
-          })}
+      {/* Floating hamburger on create page */}
+      {isCreatePage ? (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="md:hidden fixed top-4 right-4 z-50 w-10 h-10 rounded-full flex items-center justify-center shadow-md"
+          style={{
+            background: 'rgba(255,255,255,0.9)',
+            backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(201,168,76,0.3)',
+          }}
+        >
+          <svg className="w-5 h-5" style={{ color: '#1A1714' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+      ) : (
+        /* Bottom tab bar */
+        <nav
+          className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-[#EBEBEB]"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+        >
+          <div className="flex h-[56px]">
+            {TAB_ITEMS.map(({ href, label, icon }) => {
+              const isActive = pathname === href || (href !== '/dashboard' && pathname.startsWith(href));
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  prefetch={true}
+                  className="flex-1 flex flex-col items-center justify-center gap-[3px] transition-colors relative"
+                >
+                  {isActive && (
+                    <span className="absolute top-0 left-1/2 -translate-x-1/2 w-4 h-[2px] rounded-full"
+                      style={{ background: 'linear-gradient(90deg, #C9930A, #F0B429)' }} />
+                  )}
+                  <span style={{ color: isActive ? '#C9930A' : '#ADADAD' }}>{icon}</span>
+                  <span className="text-[9px] font-medium tracking-wide" style={{ color: isActive ? '#C9930A' : '#ADADAD' }}>
+                    {label}
+                  </span>
+                </Link>
+              );
+            })}
 
-          {/* Menu / hamburger tab */}
-          <button
-            onClick={() => setIsOpen(true)}
-            className="flex-1 flex flex-col items-center justify-center gap-[3px] transition-colors relative"
-          >
-            <svg className="w-[22px] h-[22px]" style={{ color: '#ADADAD' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-            </svg>
-            <span className="text-[9px] font-medium tracking-wide text-[#ADADAD]">More</span>
-          </button>
-        </div>
-      </nav>
+            {/* Menu / hamburger tab */}
+            <button
+              onClick={() => setIsOpen(true)}
+              className="flex-1 flex flex-col items-center justify-center gap-[3px] transition-colors relative"
+            >
+              <svg className="w-[22px] h-[22px]" style={{ color: '#ADADAD' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.6}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+              </svg>
+              <span className="text-[9px] font-medium tracking-wide text-[#ADADAD]">More</span>
+            </button>
+          </div>
+        </nav>
+      )}
 
       {/* Backdrop */}
       {isOpen && (
