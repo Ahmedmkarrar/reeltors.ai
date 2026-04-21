@@ -4,8 +4,11 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const next = searchParams.get('next') ?? '/dashboard';
 
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') ?? 'https';
   const requestUrl = new URL(request.url);
-  const siteUrl = process.env.APP_URL ?? `${requestUrl.protocol}//${requestUrl.host}`;
+  const siteUrl = process.env.APP_URL
+    ?? (forwardedHost ? `${forwardedProto}://${forwardedHost}` : `${requestUrl.protocol}//${requestUrl.host}`);
 
   // redirect_to must exactly match an entry in Supabase → Auth → URL Configuration.
   // Pass `next` via a short-lived cookie instead of a query param so the base URL stays clean.
