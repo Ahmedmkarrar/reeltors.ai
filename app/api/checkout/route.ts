@@ -63,15 +63,15 @@ export async function POST(req: NextRequest) {
     console.log('[CHECKOUT] appUrl:', appUrl, '| returnUrl:', returnUrl, '| plan:', plan, '| priceId:', priceId);
 
     if (embedded) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const session = await (stripe.checkout.sessions.create as any)({
+      const session = await stripe.checkout.sessions.create({
         customer: customerId,
         mode: 'subscription',
         line_items: [{ price: priceId, quantity: 1 }],
-        ui_mode: 'embedded',
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ui_mode: 'embedded' as any,
         return_url: returnUrl,
         allow_promotion_codes: true,
-      }) as { client_secret: string };
+      });
       return NextResponse.json({ clientSecret: session.client_secret });
     }
 

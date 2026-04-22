@@ -30,8 +30,8 @@ export function EmbeddedCheckoutModal({ plan, annual, onClose }: Props) {
   }, [plan, annual]);
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4" style={{ background: 'rgba(13,11,8,0.9)', backdropFilter: 'blur(8px)' }}>
-      <div className="w-full max-w-[520px] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col" style={{ maxHeight: '90vh' }}>
+    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center sm:p-4" style={{ background: 'rgba(13,11,8,0.9)', backdropFilter: 'blur(8px)' }}>
+      <div className="w-full sm:max-w-[520px] bg-white sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden flex flex-col" style={{ maxHeight: '95vh' }}>
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-[#EAE8E2] shrink-0">
           <span className="font-syne font-extrabold text-[13px] tracking-[0.08em] text-[#1A1714]">

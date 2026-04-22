@@ -100,7 +100,7 @@ export function PaywallModal() {
         </div>
 
         {/* plan cards */}
-        <div className="p-4 grid grid-cols-3 gap-3 flex-1 min-h-0">
+        <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 overflow-y-auto flex-1 min-h-0">
           {PLAN_KEYS.map((key) => {
             const p         = PLANS[key];
             const isPopular = key === 'growth';
