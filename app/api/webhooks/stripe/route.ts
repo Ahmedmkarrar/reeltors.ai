@@ -121,9 +121,13 @@ export async function POST(req: NextRequest) {
           .eq('stripe_customer_id', invoice.customer as string)
           .single();
 
-        if (profile?.email) {
-          await sendPaymentFailedEmail(profile.email, profile.full_name || 'there').catch(console.error);
+        if (!profile?.email) {
+          console.warn(`[STRIPE] invoice.payment_failed — no profile found for customer ${invoice.customer}`);
+          break;
         }
+
+        // let this throw — Stripe will retry the webhook if Resend is down
+        await sendPaymentFailedEmail(profile.email, profile.full_name || 'there');
         break;
       }
     }
