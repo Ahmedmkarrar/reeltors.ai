@@ -48,7 +48,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN apk add --no-cache curl && addgroup -S appgroup && adduser -S appuser -G appgroup
 
 # standalone output bundles only what next start needs
 COPY --from=builder --chown=appuser:appgroup /app/.next/standalone ./
