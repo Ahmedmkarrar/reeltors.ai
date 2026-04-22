@@ -124,12 +124,13 @@ export async function generateDroneShotsForIndices(
   aiVideoIndices: number[],
   customPrompt?: string,
   format: string = 'vertical',
+  timeoutMs = 150_000,
 ): Promise<Map<number, string>> {
   const clamped = clampAiIndices(aiVideoIndices, images.length);
 
   const results = await Promise.allSettled(
     clamped.map(async (idx) => {
-      const videoUrl = await generateDroneShot(images[idx], customPrompt, format);
+      const videoUrl = await generateDroneShot(images[idx], customPrompt, format, timeoutMs);
       return { idx, videoUrl };
     }),
   );
