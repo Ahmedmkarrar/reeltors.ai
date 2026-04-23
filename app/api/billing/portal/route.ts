@@ -21,12 +21,17 @@ export async function POST() {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
+    const email = profile.email?.trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+/.test(email)) {
+      return NextResponse.json({ error: 'Account has no valid email address' }, { status: 400 });
+    }
+
     const stripe = getStripe();
     let customerId = profile.stripe_customer_id;
 
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: profile.email,
+        email,
         metadata: { supabase_user_id: user.id },
       });
       customerId = customer.id;

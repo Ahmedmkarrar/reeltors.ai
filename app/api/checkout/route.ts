@@ -49,12 +49,30 @@ export async function POST(req: NextRequest) {
     }
 
     if (!customerId) {
-      const customer = await stripe.customers.create({
-        email: profile?.email || user.email || undefined,
-        metadata: { supabase_user_id: user.id },
-      });
+      // H3: use Stripe idempotency key so concurrent tabs can't create two customers
+      const customer = await stripe.customers.create(
+        { email: profile?.email || user.email || undefined, metadata: { supabase_user_id: user.id } },
+        { idempotencyKey: `create_customer_${user.id}` },
+      );
       customerId = customer.id;
-      await admin.from('profiles').update({ stripe_customer_id: customerId }).eq('id', user.id);
+
+      // only write if stripe_customer_id is still null — handles the concurrent-write race
+      const { data: written } = await admin
+        .from('profiles')
+        .update({ stripe_customer_id: customerId })
+        .eq('id', user.id)
+        .is('stripe_customer_id', null)
+        .select('stripe_customer_id');
+
+      if (!written?.length) {
+        // another request already wrote a customer_id; use that one instead
+        const { data: fresh } = await admin
+          .from('profiles')
+          .select('stripe_customer_id')
+          .eq('id', user.id)
+          .single();
+        customerId = fresh?.stripe_customer_id ?? customerId;
+      }
     }
 
     const rawUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim().replace(/^["']|["']$/g, '').replace(/\/$/, '');
