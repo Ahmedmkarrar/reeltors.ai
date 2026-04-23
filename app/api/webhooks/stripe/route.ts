@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getStripe } from '@/lib/stripe/client';
 import { PLAN_LIMITS, getPlanFromPriceId } from '@/lib/stripe/plans';
-import { sendPaymentFailedEmail } from '@/lib/resend/emails';
+import { sendUpgradeSuccessEmail, sendPaymentFailedEmail } from '@/lib/resend/emails';
 import type Stripe from 'stripe';
 
 export async function POST(req: NextRequest) {
@@ -32,11 +32,42 @@ export async function POST(req: NextRequest) {
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
+        const session        = event.data.object as Stripe.Checkout.Session;
         const customerId     = session.customer as string;
         const subscriptionId = session.subscription as string;
 
         if (!subscriptionId) break; // one-time payment, not subscription
+
+        // C4+C5: resolve profile ID with one select, check idempotency before touching the DB
+        let profileId:    string | null = null;
+        let profileEmail: string | null = null;
+        let profileName:  string | null = null;
+
+        const { data: existing } = await admin
+          .from('profiles')
+          .select('id, email, full_name, subscription_id')
+          .eq('stripe_customer_id', customerId)
+          .single();
+
+        if (existing) {
+          // C5: already processed — Stripe is retrying, nothing to do
+          if (existing.subscription_id === subscriptionId) {
+            console.log(`[STRIPE] duplicate checkout event for subscription ${subscriptionId} — skipping`);
+            break;
+          }
+          profileId    = existing.id;
+          profileEmail = existing.email   ?? null;
+          profileName  = existing.full_name ?? null;
+        } else {
+          // customer_id not yet stored — fall back to Stripe customer metadata
+          const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+          profileId = customer.metadata?.supabase_user_id ?? null;
+        }
+
+        if (!profileId) {
+          console.error(`[STRIPE] checkout.session.completed — no profile found for customer ${customerId}`);
+          break;
+        }
 
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0]?.price.id;
@@ -45,36 +76,26 @@ export async function POST(req: NextRequest) {
           console.error(`[STRIPE] Unknown priceId ${priceId} — defaulting to free plan`);
         }
 
-        // Look up by stripe_customer_id (set during checkout session creation)
-        // Fall back to customer metadata.supabase_user_id if not yet saved
+        // C4: single atomic update by primary key
         const { data: updated } = await admin
           .from('profiles')
           .update({
-            stripe_customer_id:   customerId,
-            subscription_id:      subscriptionId,
-            subscription_status:  'active',
+            stripe_customer_id:  customerId,
+            subscription_id:     subscriptionId,
+            subscription_status: 'active',
             plan,
             videos_limit: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? 1,
           })
-          .eq('stripe_customer_id', customerId)
-          .select('id');
+          .eq('id', profileId)
+          .select('email, full_name');
 
-        // If no row matched (customer_id not yet written), fall back to user metadata
-        if (!updated?.length) {
-          const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
-          const supabaseUserId = customer.metadata?.supabase_user_id;
-          if (supabaseUserId) {
-            await admin
-              .from('profiles')
-              .update({
-                stripe_customer_id:  customerId,
-                subscription_id:     subscriptionId,
-                subscription_status: 'active',
-                plan,
-                videos_limit: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? 1,
-              })
-              .eq('id', supabaseUserId);
-          }
+        profileEmail ??= updated?.[0]?.email   ?? null;
+        profileName  ??= updated?.[0]?.full_name ?? null;
+
+        if (profileEmail) {
+          await sendUpgradeSuccessEmail(profileEmail, profileName || 'there', plan).catch((err) =>
+            console.error('[STRIPE] upgrade email failed:', err)
+          );
         }
         break;
       }
@@ -115,11 +136,18 @@ export async function POST(req: NextRequest) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
-        const { data: profile } = await admin
-          .from('profiles')
-          .select('email, full_name')
-          .eq('stripe_customer_id', invoice.customer as string)
-          .single();
+
+        const [{ data: profile }] = await Promise.all([
+          admin
+            .from('profiles')
+            .select('email, full_name')
+            .eq('stripe_customer_id', invoice.customer as string)
+            .single(),
+          admin
+            .from('profiles')
+            .update({ subscription_status: 'past_due' })
+            .eq('stripe_customer_id', invoice.customer as string),
+        ]);
 
         if (!profile?.email) {
           console.warn(`[STRIPE] invoice.payment_failed — no profile found for customer ${invoice.customer}`);

@@ -44,7 +44,8 @@ vi.mock('@/lib/stripe/client', () => ({
 // ── Email mock ────────────────────────────────────────────────────────────────
 
 vi.mock('@/lib/resend/emails', () => ({
-  sendPaymentFailedEmail: vi.fn().mockResolvedValue(undefined),
+  sendUpgradeSuccessEmail: vi.fn().mockResolvedValue(undefined),
+  sendPaymentFailedEmail:  vi.fn().mockResolvedValue(undefined),
 }));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -108,18 +109,15 @@ describe('POST /api/webhooks/stripe', () => {
   it('checkout.session.completed: upgrades plan and sets video limit', async () => {
     const sub = makeSubscription('price_starter');
     mockSubscriptionsRetrieve.mockResolvedValue(sub);
-    // first eq().select() call returns a matched row (no fallback needed)
-    adminChain.then = (res: (v: { data: { id: string }[]; error: null }) => unknown) =>
-      Promise.resolve({ data: [{ id: 'user-1' }], error: null }).then(res);
+    // profile found by stripe_customer_id, no prior subscription_id (not a duplicate)
+    adminChain.single.mockResolvedValueOnce({
+      data: { id: 'user-1', email: 'agent@test.com', full_name: 'Test Agent', subscription_id: null },
+      error: null,
+    });
 
     mockConstructEvent.mockReturnValue({
       type: 'checkout.session.completed',
-      data: {
-        object: {
-          customer: 'cus_test',
-          subscription: 'sub_test',
-        },
-      },
+      data: { object: { customer: 'cus_test', subscription: 'sub_test' } },
     });
 
     const { POST } = await import('@/app/api/webhooks/stripe/route');
@@ -131,16 +129,34 @@ describe('POST /api/webhooks/stripe', () => {
     );
   });
 
+  it('checkout.session.completed: skips duplicate event when subscription_id already matches', async () => {
+    mockSubscriptionsRetrieve.mockResolvedValue(makeSubscription('price_starter'));
+    // subscription_id already applied — should be treated as a duplicate
+    adminChain.single.mockResolvedValueOnce({
+      data: { id: 'user-1', email: 'agent@test.com', full_name: 'Test Agent', subscription_id: 'sub_test' },
+      error: null,
+    });
+
+    mockConstructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: { object: { customer: 'cus_test', subscription: 'sub_test' } },
+    });
+
+    const { POST } = await import('@/app/api/webhooks/stripe/route');
+    const res = await POST(makeRequest('{}'));
+    expect(res.status).toBe(200);
+    expect(adminChain.update).not.toHaveBeenCalled();
+  });
+
   it('checkout.session.completed: falls back to customer metadata when no profile matched', async () => {
     const sub = makeSubscription('price_growth');
     mockSubscriptionsRetrieve.mockResolvedValue(sub);
+    // no profile found by stripe_customer_id
+    adminChain.single.mockResolvedValueOnce({ data: null, error: null });
     mockCustomersRetrieve.mockResolvedValue({
       id: 'cus_test',
       metadata: { supabase_user_id: 'user-fallback' },
     });
-    // first update returns empty (no match on stripe_customer_id)
-    adminChain.then = (res: (v: { data: unknown[]; error: null }) => unknown) =>
-      Promise.resolve({ data: [], error: null }).then(res);
 
     mockConstructEvent.mockReturnValue({
       type: 'checkout.session.completed',
