@@ -103,6 +103,7 @@ export function UploadZone({
   const [showPrompts, setShowPrompts] = useState(false);
   const [showAiPaywall, setShowAiPaywall] = useState(false);
 
+  const isPlanLoaded = plan !== undefined;
   const isFreeUser = !plan || plan === 'free';
 
 
@@ -409,8 +410,8 @@ export function UploadZone({
                             <button
                               type="button"
                               title={isAi ? 'Remove AI drone shot' : 'Generate AI drone shot'}
-                              onClick={() => !isCardUploading && toggleAiForIndex(i)}
-                              disabled={isCardUploading}
+                              onClick={() => !isCardUploading && isPlanLoaded && toggleAiForIndex(i)}
+                              disabled={isCardUploading || !isPlanLoaded}
                               className={[
                                 'absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full flex items-center justify-center shadow-sm transition-all border',
                                 isCardUploading
