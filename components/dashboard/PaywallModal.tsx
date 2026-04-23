@@ -1,19 +1,24 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { PLANS, PLAN_LIMITS } from '@/lib/stripe/plans';
 import { EmbeddedCheckoutModal } from './EmbeddedCheckout';
 import { createClient } from '@/lib/supabase/client';
+import toast from 'react-hot-toast';
 
 type PlanKey = 'starter' | 'growth' | 'pro';
-const PLAN_KEYS: PlanKey[] = ['starter', 'growth', 'pro'];
+const ALL_PLAN_KEYS: PlanKey[] = ['starter', 'growth', 'pro'];
+const PLAN_ORDER: Record<string, number> = { free: 0, starter: 1, growth: 2, pro: 3 };
 
 export function PaywallModal() {
   const [annual, setAnnual] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState<{ plan: PlanKey; annual: boolean } | null>(null);
   const [isDismissed, setIsDismissed] = useState(false);
-  // default true avoids flash-of-paywall for paid users
   const [shouldShow, setShouldShow] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<string>('free');
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   useEffect(() => {
     const supabase = createClient();
@@ -26,8 +31,10 @@ export function PaywallModal() {
         .single()
         .then(({ data }) => {
           if (!data) return;
+          setCurrentPlan(data.plan ?? 'free');
           const isPaid = !!PLAN_LIMITS[data.plan as string];
-          const hitLimit = !isPaid && (data.videos_used_this_month ?? 0) >= (data.videos_limit ?? 1);
+          const limit = PLAN_LIMITS[data.plan as string] || data.videos_limit || 1;
+          const hitLimit = !isPaid && (data.videos_used_this_month ?? 0) >= limit;
           setShouldShow(hitLimit);
         });
     });
@@ -41,6 +48,14 @@ export function PaywallModal() {
     window.addEventListener('show-upgrade-modal', handler);
     return () => window.removeEventListener('show-upgrade-modal', handler);
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get('upgraded') !== '1') return;
+    toast.success('Payment successful — welcome to your new plan!', { duration: 6000 });
+    const url = new URL(window.location.href);
+    url.searchParams.delete('upgraded');
+    router.replace(url.pathname + (url.search || ''), { scroll: false });
+  }, [searchParams, router]);
 
   if (!shouldShow || isDismissed) return null;
 
@@ -99,9 +114,9 @@ export function PaywallModal() {
           </div>
         </div>
 
-        {/* plan cards */}
+        {/* plan cards — only show plans above the user's current plan */}
         <div className="p-4 grid grid-cols-1 sm:grid-cols-3 gap-3 overflow-y-auto flex-1 min-h-0">
-          {PLAN_KEYS.map((key) => {
+          {ALL_PLAN_KEYS.filter((key) => (PLAN_ORDER[key] ?? 0) > (PLAN_ORDER[currentPlan] ?? 0)).map((key) => {
             const p         = PLANS[key];
             const isPopular = key === 'growth';
 
