@@ -4,8 +4,10 @@ import { createClient } from '@/lib/supabase/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getStripe } from '@/lib/stripe/client';
 import { rateLimit } from '@/lib/rate-limit';
-import { PLANS } from '@/lib/stripe/plans';
+import { PLANS, validateStripePriceEnvVars } from '@/lib/stripe/plans';
 import type { PlanKey } from '@/lib/stripe/plans';
+
+validateStripePriceEnvVars();
 
 export async function POST(req: NextRequest) {
   try {
@@ -13,7 +15,7 @@ export async function POST(req: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { allowed } = await rateLimit(`checkout:${user.id}`, 5, 60 * 60 * 1000);
+    const { allowed } = await rateLimit(`checkout:${user.id}`, 20, 60 * 60 * 1000);
     if (!allowed) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
 
     const { plan, annual, embedded } = await req.json() as { plan: PlanKey; annual?: boolean; embedded?: boolean };
@@ -58,9 +60,11 @@ export async function POST(req: NextRequest) {
     }
 
     const rawUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').trim().replace(/^["']|["']$/g, '').replace(/\/$/, '');
-    const appUrl = rawUrl.startsWith('http') ? rawUrl : 'https://reeltors.ai';
-    const returnUrl = `${appUrl}/dashboard?upgraded=1`;
-    console.log('[CHECKOUT] appUrl:', appUrl, '| returnUrl:', returnUrl, '| plan:', plan, '| priceId:', priceId);
+    if (!rawUrl.startsWith('http')) {
+      console.error('[CHECKOUT] NEXT_PUBLIC_APP_URL is missing or invalid:', process.env.NEXT_PUBLIC_APP_URL);
+      return NextResponse.json({ error: 'Server misconfiguration — contact support' }, { status: 500 });
+    }
+    const returnUrl = `${rawUrl}/dashboard?upgraded=1`;
 
     if (embedded) {
       const session = await stripe.checkout.sessions.create({
@@ -72,6 +76,7 @@ export async function POST(req: NextRequest) {
         return_url: returnUrl,
         allow_promotion_codes: true,
       });
+      console.log('[CHECKOUT] embedded session created | plan:', plan, '| customer:', customerId);
       return NextResponse.json({ clientSecret: session.client_secret });
     }
 
@@ -80,10 +85,11 @@ export async function POST(req: NextRequest) {
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: returnUrl,
-      cancel_url: `${appUrl}/subscription`,
+      cancel_url: `${rawUrl}/subscription`,
       allow_promotion_codes: true,
     });
 
+    console.log('[CHECKOUT] redirect session created | plan:', plan, '| customer:', customerId);
     return NextResponse.json({ url: session.url });
   } catch (err) {
     console.error('[CHECKOUT_ERROR]', err);
