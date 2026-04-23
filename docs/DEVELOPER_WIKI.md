@@ -343,7 +343,9 @@ supabase/migrations/002_rename_render_id.sql  -- Renames creatomate_render_id �
 ### Utility
 | Route | Method | Purpose |
 |---|---|---|
+| `/api/health` | GET | Validates all required env vars + makes a live Stripe API call. Used as the Coolify health check (`interval: 30s`, `timeout: 10s`, `retries: 2`, `start period: 60s`). Returns 200 if healthy, 500 with a reason if not. |
 | `/api/cron/reset-usage` | GET | Resets `videos_used_this_month = 0` for all users. Triggered monthly by a cron job (configured in Coolify or external scheduler). |
+| `/api/cron/expire-videos` | GET | Marks any video stuck in `pending` or `processing` for more than 15 minutes as `failed`. Prevents ghost cards in the dashboard. Schedule in Coolify after full domain migration. |
 | `/api/users/welcome` | POST | Sends welcome email after first sign-up. |
 | `/api/feedback` | POST | Routes user feedback to `support@reeltors.ai` via Resend. |
 
@@ -397,7 +399,7 @@ The Mac Mini runs a local instance of **Qwen 2.5** (via Ollama or LM Studio) as 
 **How it connects:**
 The Mac Mini exposes a local API (e.g. `http://mac-mini.local:11434`). Scripts in `/scripts/` (not committed) POST listing data to it and receive optimised `videoPrompt` strings that are then passed to `/api/videos/generate` as the `videoPrompt` field in the request body.
 
-**Important:** The Mac Mini is offline tooling only. Production video generation runs entirely through Vercel → fal.ai → Shotstack. No production code calls the Mac Mini.
+**Important:** The Mac Mini is offline tooling only. Production video generation runs entirely through Coolify → fal.ai → Shotstack. No production code calls the Mac Mini.
 
 ---
 

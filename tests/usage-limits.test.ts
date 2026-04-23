@@ -116,9 +116,9 @@ describe('Usage limit enforcement (POST /api/videos/generate)', () => {
     expect(res.status).toBe(202);
   });
 
-  it('allows pro user regardless of usage count', async () => {
+  it('allows pro user within their 100-video limit', async () => {
     mockProfile = {
-      plan: 'pro', videos_used_this_month: 9999, videos_limit: 100,
+      plan: 'pro', videos_used_this_month: 50, videos_limit: 100,
       full_name: 'Pro User', email: null, phone: null, brand_name: null,
     };
 
@@ -127,15 +127,17 @@ describe('Usage limit enforcement (POST /api/videos/generate)', () => {
     expect(res.status).toBe(202);
   });
 
-  it('allows team plan user regardless of usage count', async () => {
+  it('blocks pro user who has reached their 100-video limit', async () => {
     mockProfile = {
-      plan: 'team', videos_used_this_month: 500, videos_limit: 100,
-      full_name: 'Team User', email: null, phone: null, brand_name: null,
+      plan: 'pro', videos_used_this_month: 100, videos_limit: 100,
+      full_name: 'Pro User', email: null, phone: null, brand_name: null,
     };
 
     const { POST } = await import('@/app/api/videos/generate/route');
     const res = await POST(makeGenerateRequest());
-    expect(res.status).toBe(202);
+    expect(res.status).toBe(403);
+    const json = await res.json();
+    expect(json.code).toBe('LIMIT_REACHED');
   });
 
   it('triggers the process route when generation is accepted', async () => {

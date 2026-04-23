@@ -5,6 +5,7 @@ import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import type { CreateVideoPayload } from '@/types';
 import { isDisposableEmail, getClientIp } from '@/lib/abuse/email';
 import { clampAiIndices } from '@/lib/fal/client';
+import { PLAN_LIMITS } from '@/lib/stripe/plans';
 import { rateLimit } from '@/lib/rate-limit';
 import { validateExternalUrlHttp } from '@/lib/validate-url';
 
@@ -90,8 +91,8 @@ export async function POST(req: NextRequest) {
     profile = upserted;
   }
 
-  const isUnlimited = profile.plan === 'pro' || profile.plan === 'team';
-  if (!isUnlimited && (profile.videos_used_this_month ?? 0) >= (profile.videos_limit ?? 1)) {
+  const planLimit = profile.videos_limit || PLAN_LIMITS[profile.plan ?? ''] || 1;
+  if ((profile.videos_used_this_month ?? 0) >= planLimit) {
     return NextResponse.json(
       { error: 'Monthly video limit reached. Upgrade your plan to create more videos.', code: 'LIMIT_REACHED' },
       { status: 403 },

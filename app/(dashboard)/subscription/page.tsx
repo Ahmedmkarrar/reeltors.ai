@@ -84,7 +84,7 @@ export default function SubscriptionPage() {
   }
 
   const meta       = PLAN_META[profile.plan] ?? PLAN_META.free;
-  const videoLimit = PLAN_LIMITS[profile.plan] ?? profile.videos_limit;
+  const videoLimit = PLAN_LIMITS[profile.plan] || profile.videos_limit || 1;
   const usedPct    = Math.min((profile.videos_used_this_month / Math.max(videoLimit, 1)) * 100, 100);
   const isPaid     = profile.plan !== 'free';
   const upgrades   = UPGRADE_FROM[profile.plan] ?? [];

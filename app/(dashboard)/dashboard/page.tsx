@@ -39,10 +39,9 @@ export default async function DashboardPage() {
   const allVideos   = (videos ?? []) as Video[];
   const totalVideos = allVideos.length;
   const readyVideos = allVideos.filter((v) => v.status === 'complete').length;
-  const isUnlimited = profile.plan === 'pro' || profile.plan === 'growth';
-  const videoLimit  = PLAN_LIMITS[profile.plan] ?? profile.videos_limit;
-  const usedPct     = Math.min((profile.videos_used_this_month / Math.max(videoLimit, 1)) * 100, 100);
-  const remaining   = isUnlimited ? '∞' : Math.max(0, videoLimit - profile.videos_used_this_month);
+  const videoLimit  = PLAN_LIMITS[profile.plan] || profile.videos_limit || 1;
+  const usedPct     = Math.min((profile.videos_used_this_month / videoLimit) * 100, 100);
+  const remaining   = Math.max(0, videoLimit - profile.videos_used_this_month);
   const firstName   = profile.full_name?.split(' ')[0] || 'there';
 
   return (
@@ -62,7 +61,7 @@ export default async function DashboardPage() {
       <div className="relative z-10 p-4 md:p-10 max-w-5xl">
 
         {/* Limit-reached banner */}
-        {profile.videos_used_this_month >= videoLimit && !isUnlimited && (
+        {profile.videos_used_this_month >= videoLimit && (
           <div className="mb-6 flex items-center justify-between gap-3 bg-[#FFF8F6] border border-[#FFCBB5] rounded-[12px] px-4 py-3">
             <p className="text-sm text-[#C04000]">You&apos;ve reached your monthly video limit.</p>
             <UpgradeButton className="shrink-0 text-xs font-semibold text-[#1A1714] btn-gold px-3 py-1.5 rounded-[8px]">
@@ -100,32 +99,30 @@ export default async function DashboardPage() {
         </div>
 
         {/* Usage bar */}
-        {!isUnlimited && (
-          <div className="mb-10 bg-white/80 border border-[#C9A84C]/20 rounded-[12px] px-5 py-4 backdrop-blur-sm">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-[#6B6760]">Monthly usage</span>
-              <span className="text-sm font-mono text-[#1A1714]">
-                {profile.videos_used_this_month}
-                <span className="text-[#ADADAD]"> / {videoLimit}</span>
-              </span>
-            </div>
-            <div className="h-1.5 bg-[#F0EDE6] rounded-full overflow-hidden">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{
-                  width: `${usedPct}%`,
-                  background: usedPct >= 90 ? '#FF5500' : usedPct >= 70 ? '#f59e0b' : 'linear-gradient(90deg, #96680A 0%, #C9930A 25%, #F0B429 55%, #FFD966 75%, #DAA520 100%)',
-                }}
-              />
-            </div>
-            <p className="text-xs text-[#ADADAD] mt-2.5">
-              {remaining} video{remaining === 1 ? '' : 's'} remaining ·{' '}
-              <UpgradeLink className="text-[#C9930A] hover:underline font-medium">
-                Upgrade for more →
-              </UpgradeLink>
-            </p>
+        <div className="mb-10 bg-white/80 border border-[#C9A84C]/20 rounded-[12px] px-5 py-4 backdrop-blur-sm">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm text-[#6B6760]">Monthly usage</span>
+            <span className="text-sm font-mono text-[#1A1714]">
+              {profile.videos_used_this_month}
+              <span className="text-[#ADADAD]"> / {videoLimit}</span>
+            </span>
           </div>
-        )}
+          <div className="h-1.5 bg-[#F0EDE6] rounded-full overflow-hidden">
+            <div
+              className="h-full rounded-full transition-all duration-700"
+              style={{
+                width: `${usedPct}%`,
+                background: usedPct >= 90 ? '#FF5500' : usedPct >= 70 ? '#f59e0b' : 'linear-gradient(90deg, #96680A 0%, #C9930A 25%, #F0B429 55%, #FFD966 75%, #DAA520 100%)',
+              }}
+            />
+          </div>
+          <p className="text-xs text-[#ADADAD] mt-2.5">
+            {remaining} video{remaining === 1 ? '' : 's'} remaining
+            {profile.plan !== 'pro' && (
+              <> · <UpgradeLink className="text-[#C9930A] hover:underline font-medium">Upgrade for more →</UpgradeLink></>
+            )}
+          </p>
+        </div>
 
         {/* Recent videos */}
         <div>
