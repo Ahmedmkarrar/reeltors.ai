@@ -124,11 +124,18 @@ export async function POST(req: NextRequest) {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
-        const { data: profile } = await admin
-          .from('profiles')
-          .select('email, full_name')
-          .eq('stripe_customer_id', invoice.customer as string)
-          .single();
+
+        const [{ data: profile }] = await Promise.all([
+          admin
+            .from('profiles')
+            .select('email, full_name')
+            .eq('stripe_customer_id', invoice.customer as string)
+            .single(),
+          admin
+            .from('profiles')
+            .update({ subscription_status: 'past_due' })
+            .eq('stripe_customer_id', invoice.customer as string),
+        ]);
 
         if (!profile?.email) {
           console.warn(`[STRIPE] invoice.payment_failed — no profile found for customer ${invoice.customer}`);
