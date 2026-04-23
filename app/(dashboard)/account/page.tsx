@@ -256,6 +256,26 @@ export default function AccountPage() {
           </form>
         </section>
 
+        {/* subscription status banner */}
+        {profile.subscription_status === 'past_due' && (
+          <div className="rounded-xl border border-[#FFB347]/40 bg-[#FFF8F0] px-5 py-3 flex items-center justify-between gap-3">
+            <p className="text-[13px] text-[#C04000]">Your last payment failed. Update your payment method to keep your plan active.</p>
+            <button onClick={handlePortal} disabled={portalLoading} className="shrink-0 text-[12px] font-semibold text-[#C04000] underline underline-offset-2 disabled:opacity-50">
+              {portalLoading ? 'Opening…' : 'Fix now →'}
+            </button>
+          </div>
+        )}
+        {profile.subscription_status === 'canceled' && (
+          <div className="rounded-xl border border-[#E2DED6] bg-[#FAF9F7] px-5 py-3">
+            <p className="text-[13px] text-[#6B6760]">Your subscription has been canceled. Upgrade below to regain access.</p>
+          </div>
+        )}
+        {profile.subscription_status === 'trialing' && (
+          <div className="rounded-xl border border-[#059669]/30 bg-[#F0FDF4] px-5 py-3">
+            <p className="text-[13px] text-[#059669]">You're on a free trial. Your card will be charged when the trial ends.</p>
+          </div>
+        )}
+
         {/* subscription */}
         <section id="upgrade" className="rounded-xl border border-[#C9A84C]/25 bg-white/80 overflow-hidden backdrop-blur-sm shadow-[0_2px_12px_rgba(201,168,76,0.08)] scroll-mt-6">
 
