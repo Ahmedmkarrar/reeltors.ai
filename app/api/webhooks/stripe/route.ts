@@ -32,11 +32,42 @@ export async function POST(req: NextRequest) {
   try {
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
+        const session        = event.data.object as Stripe.Checkout.Session;
         const customerId     = session.customer as string;
         const subscriptionId = session.subscription as string;
 
         if (!subscriptionId) break; // one-time payment, not subscription
+
+        // C4+C5: resolve profile ID with one select, check idempotency before touching the DB
+        let profileId:    string | null = null;
+        let profileEmail: string | null = null;
+        let profileName:  string | null = null;
+
+        const { data: existing } = await admin
+          .from('profiles')
+          .select('id, email, full_name, subscription_id')
+          .eq('stripe_customer_id', customerId)
+          .single();
+
+        if (existing) {
+          // C5: already processed — Stripe is retrying, nothing to do
+          if (existing.subscription_id === subscriptionId) {
+            console.log(`[STRIPE] duplicate checkout event for subscription ${subscriptionId} — skipping`);
+            break;
+          }
+          profileId    = existing.id;
+          profileEmail = existing.email   ?? null;
+          profileName  = existing.full_name ?? null;
+        } else {
+          // customer_id not yet stored — fall back to Stripe customer metadata
+          const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+          profileId = customer.metadata?.supabase_user_id ?? null;
+        }
+
+        if (!profileId) {
+          console.error(`[STRIPE] checkout.session.completed — no profile found for customer ${customerId}`);
+          break;
+        }
 
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0]?.price.id;
@@ -45,40 +76,21 @@ export async function POST(req: NextRequest) {
           console.error(`[STRIPE] Unknown priceId ${priceId} — defaulting to free plan`);
         }
 
-        const payload = {
-          stripe_customer_id:  customerId,
-          subscription_id:     subscriptionId,
-          subscription_status: 'active',
-          plan,
-          videos_limit: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? 1,
-        };
-
-        // look up by stripe_customer_id first; fall back to Stripe customer metadata
+        // C4: single atomic update by primary key
         const { data: updated } = await admin
           .from('profiles')
-          .update(payload)
-          .eq('stripe_customer_id', customerId)
-          .select('id, email, full_name');
+          .update({
+            stripe_customer_id:  customerId,
+            subscription_id:     subscriptionId,
+            subscription_status: 'active',
+            plan,
+            videos_limit: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? 1,
+          })
+          .eq('id', profileId)
+          .select('email, full_name');
 
-        let profileEmail: string | null = null;
-        let profileName:  string | null = null;
-
-        if (updated?.length) {
-          profileEmail = updated[0].email ?? null;
-          profileName  = updated[0].full_name ?? null;
-        } else {
-          const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
-          const supabaseUserId = customer.metadata?.supabase_user_id;
-          if (supabaseUserId) {
-            const { data: fallback } = await admin
-              .from('profiles')
-              .update(payload)
-              .eq('id', supabaseUserId)
-              .select('email, full_name');
-            profileEmail = fallback?.[0]?.email ?? null;
-            profileName  = fallback?.[0]?.full_name ?? null;
-          }
-        }
+        profileEmail ??= updated?.[0]?.email   ?? null;
+        profileName  ??= updated?.[0]?.full_name ?? null;
 
         if (profileEmail) {
           await sendUpgradeSuccessEmail(profileEmail, profileName || 'there', plan).catch((err) =>
