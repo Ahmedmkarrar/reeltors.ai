@@ -89,7 +89,7 @@ export function Sidebar() {
     allRoutes.concat(['/create']).forEach((href) => router.prefetch(href));
   }, [router]);
 
-  const videoLimit = profile ? (PLAN_LIMITS[profile.plan] ?? profile.videos_limit) : 0;
+  const videoLimit = profile ? (PLAN_LIMITS[profile.plan] || profile.videos_limit || 1) : 0;
   const usedPct    = profile ? Math.min((profile.videos_used_this_month / Math.max(videoLimit, 1)) * 100, 100) : 0;
   const initial    = (profile?.full_name || profile?.email || 'R').charAt(0).toUpperCase();
 
