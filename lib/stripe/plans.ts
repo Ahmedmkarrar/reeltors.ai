@@ -59,6 +59,21 @@ export const PLAN_LIMITS: Record<string, number> = {
   pro:     PLANS.pro.videosPerMonth,
 };
 
+export function validateStripePriceEnvVars(): void {
+  const required = [
+    'STRIPE_PRICE_STARTER',
+    'STRIPE_PRICE_PRO',
+    'STRIPE_PRICE_TEAM',
+    'STRIPE_PRICE_STARTER_ANNUAL',
+    'STRIPE_PRICE_GROWTH_ANNUAL',
+    'STRIPE_PRICE_PRO_ANNUAL',
+  ];
+  const missing = required.filter((k) => !process.env[k]);
+  if (missing.length) {
+    console.error('[STRIPE] Missing price ID env vars:', missing.join(', '));
+  }
+}
+
 export function getPlanFromPriceId(priceId: string): string {
   if (priceId === process.env.STRIPE_PRICE_STARTER)        return 'starter';
   if (priceId === process.env.STRIPE_PRICE_STARTER_ANNUAL) return 'starter';

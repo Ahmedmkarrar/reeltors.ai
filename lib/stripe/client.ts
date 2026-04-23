@@ -8,5 +8,6 @@ export function getStripe(): Stripe {
     apiVersion: '2024-11-20.acacia',
     typescript: true,
     httpClient: Stripe.createFetchHttpClient(),
+    timeout: 10000,
   });
 }
