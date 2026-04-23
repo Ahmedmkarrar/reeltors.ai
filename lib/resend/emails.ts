@@ -156,6 +156,34 @@ export async function sendOtpEmail(email: string, otp: string) {
   });
 }
 
+export async function sendUpgradeSuccessEmail(email: string, name: string, plan: string) {
+  const planLabel = plan.charAt(0).toUpperCase() + plan.slice(1);
+  return getResend().emails.send({
+    from: FROM(),
+    to: email,
+    subject: `Welcome to ${planLabel} — your plan is active`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <body style="${baseStyle}">
+        <div style="max-width:560px;margin:0 auto;">
+          <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:8px;">Reeltors.ai</h1>
+          <h2 style="font-size:22px;font-weight:700;margin-bottom:16px;">You're on ${planLabel}, ${name}.</h2>
+          <p style="color:#8A8682;line-height:1.7;margin-bottom:24px;">
+            Your payment was successful and your ${planLabel} plan is now active. You can start creating videos right away.
+          </p>
+          <a href="${APP_URL()}/create" style="display:inline-block;background:#F0B429;color:#0D0B08;font-weight:700;padding:14px 28px;border-radius:4px;text-decoration:none;font-size:15px;">Create a Video →</a>
+          <p style="color:#8A8682;font-size:13px;margin-top:32px;line-height:1.6;">
+            Need help or have questions? Reply to this email — we're here.
+          </p>
+          <p style="color:#2E2B27;font-size:12px;margin-top:48px;">© 2026 Reeltors.ai</p>
+        </div>
+      </body>
+      </html>
+    `,
+  });
+}
+
 export async function sendPaymentFailedEmail(email: string, name: string) {
   return getResend().emails.send({
     from: FROM(),

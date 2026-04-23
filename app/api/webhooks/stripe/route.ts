@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getStripe } from '@/lib/stripe/client';
 import { PLAN_LIMITS, getPlanFromPriceId } from '@/lib/stripe/plans';
-import { sendPaymentFailedEmail } from '@/lib/resend/emails';
+import { sendUpgradeSuccessEmail, sendPaymentFailedEmail } from '@/lib/resend/emails';
 import type Stripe from 'stripe';
 
 export async function POST(req: NextRequest) {
@@ -45,36 +45,45 @@ export async function POST(req: NextRequest) {
           console.error(`[STRIPE] Unknown priceId ${priceId} — defaulting to free plan`);
         }
 
-        // Look up by stripe_customer_id (set during checkout session creation)
-        // Fall back to customer metadata.supabase_user_id if not yet saved
+        const payload = {
+          stripe_customer_id:  customerId,
+          subscription_id:     subscriptionId,
+          subscription_status: 'active',
+          plan,
+          videos_limit: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? 1,
+        };
+
+        // look up by stripe_customer_id first; fall back to Stripe customer metadata
         const { data: updated } = await admin
           .from('profiles')
-          .update({
-            stripe_customer_id:   customerId,
-            subscription_id:      subscriptionId,
-            subscription_status:  'active',
-            plan,
-            videos_limit: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? 1,
-          })
+          .update(payload)
           .eq('stripe_customer_id', customerId)
-          .select('id');
+          .select('id, email, full_name');
 
-        // If no row matched (customer_id not yet written), fall back to user metadata
-        if (!updated?.length) {
+        let profileEmail: string | null = null;
+        let profileName:  string | null = null;
+
+        if (updated?.length) {
+          profileEmail = updated[0].email ?? null;
+          profileName  = updated[0].full_name ?? null;
+        } else {
           const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
           const supabaseUserId = customer.metadata?.supabase_user_id;
           if (supabaseUserId) {
-            await admin
+            const { data: fallback } = await admin
               .from('profiles')
-              .update({
-                stripe_customer_id:  customerId,
-                subscription_id:     subscriptionId,
-                subscription_status: 'active',
-                plan,
-                videos_limit: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? 1,
-              })
-              .eq('id', supabaseUserId);
+              .update(payload)
+              .eq('id', supabaseUserId)
+              .select('email, full_name');
+            profileEmail = fallback?.[0]?.email ?? null;
+            profileName  = fallback?.[0]?.full_name ?? null;
           }
+        }
+
+        if (profileEmail) {
+          await sendUpgradeSuccessEmail(profileEmail, profileName || 'there', plan).catch((err) =>
+            console.error('[STRIPE] upgrade email failed:', err)
+          );
         }
         break;
       }
