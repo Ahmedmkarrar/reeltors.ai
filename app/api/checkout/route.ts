@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
       { idempotencyKey: `${sessionIdempotencyKey}_redirect` },
     );
 
-    console.log('[CHECKOUT] redirect session created | plan:', plan, '| customer:', customerId);
+    console.log('[CHECKOUT] redirect session created');
     return NextResponse.json({ url: session.url });
   } catch (err) {
     console.error('[CHECKOUT_ERROR]', err);
