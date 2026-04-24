@@ -118,13 +118,47 @@ export function UploadZone({
         return;
       }
 
-      const validFiles = acceptedFiles.filter((file) => {
+      const ALLOWED_MIME = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+      const validFiles: File[] = [];
+      for (const file of acceptedFiles) {
         if (file.size > 10 * 1024 * 1024) {
-          toast.error(`${file.name} exceeds 10MB limit`);
-          return false;
+          toast.error(`${file.name} exceeds 10 MB`);
+          continue;
         }
-        return true;
-      });
+
+        // check declared MIME type first (fast rejection)
+        const declaredType = file.type.toLowerCase();
+        if (declaredType === 'image/heic' || declaredType === 'image/heif' ||
+            file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif')) {
+          toast.error(`${file.name}: HEIC not supported — convert to JPG first`);
+          continue;
+        }
+        if (!ALLOWED_MIME.has(declaredType)) {
+          toast.error(`${file.name}: only JPG, PNG, and WEBP are supported`);
+          continue;
+        }
+
+        // verify actual file content via magic bytes (can't be spoofed by renaming)
+        const header = await file.slice(0, 12).arrayBuffer();
+        const b = new Uint8Array(header);
+        const isJpeg = b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff;
+        const isPng  = b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47;
+        const isWebp = b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46
+                    && b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50;
+
+        const mimeMatchesMagic =
+          (declaredType === 'image/jpeg' && isJpeg) ||
+          (declaredType === 'image/png'  && isPng)  ||
+          (declaredType === 'image/webp' && isWebp);
+
+        if (!mimeMatchesMagic) {
+          toast.error(`${file.name}: file content doesn't match its extension`);
+          continue;
+        }
+
+        validFiles.push(file);
+      }
 
       if (validFiles.length === 0) return;
 
@@ -142,7 +176,12 @@ export function UploadZone({
 
       const results = await Promise.all(
         validFiles.map(async (file, i) => {
-          const ext = file.name.split('.').pop();
+          // derive extension from magic bytes, not the filename
+          const header = await file.slice(0, 12).arrayBuffer();
+          const b = new Uint8Array(header);
+          const isPng  = b[0] === 0x89 && b[1] === 0x50;
+          const isWebp = b[0] === 0x52 && b[1] === 0x49 && b[8] === 0x57;
+          const ext = isPng ? 'png' : isWebp ? 'webp' : 'jpg';
           const path = `${userId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
 
           const { data, error } = await supabase.storage
