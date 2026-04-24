@@ -48,6 +48,8 @@ vi.mock('@/lib/stripe/client', () => ({
 vi.mock('@/lib/resend/emails', () => ({
   sendUpgradeSuccessEmail: vi.fn().mockResolvedValue(undefined),
   sendPaymentFailedEmail:  vi.fn().mockResolvedValue(undefined),
+  sendTrialEndingEmail:    vi.fn().mockResolvedValue(undefined),
+  sendRefundEmail:         vi.fn().mockResolvedValue(undefined),
 }));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -111,7 +113,6 @@ describe('POST /api/webhooks/stripe', () => {
   it('checkout.session.completed: upgrades plan and sets video limit', async () => {
     const sub = makeSubscription('price_starter');
     mockSubscriptionsRetrieve.mockResolvedValue(sub);
-    // profile found by stripe_customer_id, no prior subscription_id (not a duplicate)
     adminChain.single.mockResolvedValueOnce({
       data: { id: 'user-1', email: 'agent@test.com', full_name: 'Test Agent', subscription_id: null },
       error: null,
@@ -133,7 +134,6 @@ describe('POST /api/webhooks/stripe', () => {
 
   it('checkout.session.completed: skips duplicate event when subscription_id already matches', async () => {
     mockSubscriptionsRetrieve.mockResolvedValue(makeSubscription('price_starter'));
-    // subscription_id already applied — should be treated as a duplicate
     adminChain.single.mockResolvedValueOnce({
       data: { id: 'user-1', email: 'agent@test.com', full_name: 'Test Agent', subscription_id: 'sub_test' },
       error: null,
@@ -153,7 +153,6 @@ describe('POST /api/webhooks/stripe', () => {
   it('checkout.session.completed: falls back to customer metadata when no profile matched', async () => {
     const sub = makeSubscription('price_growth');
     mockSubscriptionsRetrieve.mockResolvedValue(sub);
-    // no profile found by stripe_customer_id
     adminChain.single.mockResolvedValueOnce({ data: null, error: null });
     mockCustomersRetrieve.mockResolvedValue({
       id: 'cus_test',
@@ -343,6 +342,89 @@ describe('POST /api/webhooks/stripe', () => {
     const res = await POST(makeRequest('{}'));
     expect(res.status).toBe(400);
     expect(adminChain.update).not.toHaveBeenCalled();
+  });
+
+  it('customer.subscription.created: activates plan for API-created subscription', async () => {
+    mockConstructEvent.mockReturnValue({
+      type: 'customer.subscription.created',
+      data: { object: makeSubscription('price_starter', 'active') },
+    });
+
+    const { POST } = await import('@/app/api/webhooks/stripe/route');
+    const res = await POST(makeRequest('{}'));
+    expect(res.status).toBe(200);
+    expect(adminChain.update).toHaveBeenCalledWith(
+      expect.objectContaining({ plan: 'starter', subscription_status: 'active', videos_limit: 15 }),
+    );
+  });
+
+  it('customer.subscription.created: sets trialing status for trial subscriptions', async () => {
+    mockConstructEvent.mockReturnValue({
+      type: 'customer.subscription.created',
+      data: { object: makeSubscription('price_starter', 'trialing') },
+    });
+
+    const { POST } = await import('@/app/api/webhooks/stripe/route');
+    const res = await POST(makeRequest('{}'));
+    expect(res.status).toBe(200);
+    expect(adminChain.update).toHaveBeenCalledWith(
+      expect.objectContaining({ subscription_status: 'trialing', plan: 'starter' }),
+    );
+  });
+
+  it('charge.refunded: downgrades user to free and sends refund email', async () => {
+    adminChain.single.mockResolvedValueOnce({
+      data: { email: 'agent@test.com', full_name: 'Refund Agent' },
+      error: null,
+    });
+    mockConstructEvent.mockReturnValue({
+      type: 'charge.refunded',
+      data: { object: { customer: 'cus_test' } },
+    });
+
+    const { POST } = await import('@/app/api/webhooks/stripe/route');
+    const { sendRefundEmail } = await import('@/lib/resend/emails');
+    const res = await POST(makeRequest('{}'));
+    expect(res.status).toBe(200);
+    expect(adminChain.update).toHaveBeenCalledWith(
+      expect.objectContaining({ plan: 'free', subscription_status: 'canceled', videos_limit: 1 }),
+    );
+    expect(sendRefundEmail).toHaveBeenCalledWith('agent@test.com', 'Refund Agent');
+  });
+
+  it('invoice.refund.created: downgrades user to free and sends refund email', async () => {
+    adminChain.single.mockResolvedValueOnce({
+      data: { email: 'agent@test.com', full_name: 'Refund Agent' },
+      error: null,
+    });
+    mockConstructEvent.mockReturnValue({
+      type: 'invoice.refund.created',
+      data: { object: { customer: 'cus_test' } },
+    });
+
+    const { POST } = await import('@/app/api/webhooks/stripe/route');
+    const { sendRefundEmail } = await import('@/lib/resend/emails');
+    const res = await POST(makeRequest('{}'));
+    expect(res.status).toBe(200);
+    expect(sendRefundEmail).toHaveBeenCalledWith('agent@test.com', 'Refund Agent');
+  });
+
+  it('customer.subscription.trial_will_end: sends trial ending email with days left', async () => {
+    const trialEnd = Math.floor((Date.now() + 3 * 86_400_000) / 1000); // 3 days from now
+    adminChain.single.mockResolvedValueOnce({
+      data: { email: 'agent@test.com', full_name: 'Trial Agent' },
+      error: null,
+    });
+    mockConstructEvent.mockReturnValue({
+      type: 'customer.subscription.trial_will_end',
+      data: { object: { customer: 'cus_test', trial_end: trialEnd } },
+    });
+
+    const { POST } = await import('@/app/api/webhooks/stripe/route');
+    const { sendTrialEndingEmail } = await import('@/lib/resend/emails');
+    const res = await POST(makeRequest('{}'));
+    expect(res.status).toBe(200);
+    expect(sendTrialEndingEmail).toHaveBeenCalledWith('agent@test.com', 'Trial Agent', expect.any(Number));
   });
 });
 

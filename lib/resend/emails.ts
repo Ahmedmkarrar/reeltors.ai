@@ -184,6 +184,55 @@ export async function sendUpgradeSuccessEmail(email: string, name: string, plan:
   });
 }
 
+export async function sendTrialEndingEmail(email: string, name: string, daysLeft: number) {
+  return getResend().emails.send({
+    from: FROM(),
+    to: email,
+    subject: `Your trial ends in ${daysLeft} day${daysLeft === 1 ? '' : 's'} — keep creating`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <body style="${baseStyle}">
+        <div style="max-width:560px;margin:0 auto;">
+          <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:8px;">Reeltors.ai</h1>
+          <h2 style="font-size:22px;font-weight:700;margin-bottom:16px;">Your trial ends in ${daysLeft} day${daysLeft === 1 ? '' : 's'}, ${name}.</h2>
+          <p style="color:#8A8682;line-height:1.7;margin-bottom:24px;">
+            Once your trial ends, you'll lose access to paid features. Add a payment method to stay on your plan.
+          </p>
+          <a href="${APP_URL()}/subscription" style="display:inline-block;background:#F0B429;color:#0D0B08;font-weight:700;padding:14px 28px;border-radius:4px;text-decoration:none;font-size:15px;">Add Payment Method →</a>
+          <p style="color:#2E2B27;font-size:12px;margin-top:48px;">© 2026 Reeltors.ai</p>
+        </div>
+      </body>
+      </html>
+    `,
+  });
+}
+
+export async function sendRefundEmail(email: string, name: string) {
+  return getResend().emails.send({
+    from: FROM(),
+    to: email,
+    subject: 'Your refund has been processed',
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <body style="${baseStyle}">
+        <div style="max-width:560px;margin:0 auto;">
+          <h1 style="font-size:28px;font-weight:800;color:#F0B429;margin-bottom:8px;">Reeltors.ai</h1>
+          <h2 style="font-size:22px;font-weight:700;margin-bottom:16px;">Refund processed, ${name}.</h2>
+          <p style="color:#8A8682;line-height:1.7;margin-bottom:24px;">
+            Your refund has been processed and your account has been moved back to the free plan.
+            It can take 5–10 business days to appear on your statement.
+          </p>
+          <a href="${APP_URL()}/subscription" style="display:inline-block;background:#F0B429;color:#0D0B08;font-weight:700;padding:14px 28px;border-radius:4px;text-decoration:none;font-size:15px;">View Plans →</a>
+          <p style="color:#2E2B27;font-size:12px;margin-top:48px;">© 2026 Reeltors.ai</p>
+        </div>
+      </body>
+      </html>
+    `,
+  });
+}
+
 export async function sendPaymentFailedEmail(email: string, name: string) {
   return getResend().emails.send({
     from: FROM(),

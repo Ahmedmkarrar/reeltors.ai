@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseAdmin } from '@/lib/supabase/admin';
 import { getStripe } from '@/lib/stripe/client';
 import { PLAN_LIMITS, getPlanFromPriceId } from '@/lib/stripe/plans';
-import { sendUpgradeSuccessEmail, sendPaymentFailedEmail } from '@/lib/resend/emails';
+import { sendUpgradeSuccessEmail, sendPaymentFailedEmail, sendTrialEndingEmail, sendRefundEmail } from '@/lib/resend/emails';
 import type Stripe from 'stripe';
 
 export function GET() {
@@ -190,6 +190,89 @@ export async function POST(req: NextRequest) {
 
         // let this throw — Stripe will retry the webhook if Resend is down
         await sendPaymentFailedEmail(profile.email, profile.full_name || 'there');
+        break;
+      }
+
+      case 'customer.subscription.created': {
+        // handles subscriptions created via API (not checkout) e.g. admin-created or migration
+        const sub     = event.data.object as Stripe.Subscription;
+        const priceId = sub.items.data[0]?.price.id;
+        const plan    = getPlanFromPriceId(priceId);
+        const status  = sub.status === 'trialing' ? 'trialing' : sub.status === 'active' ? 'active' : sub.status;
+        const isActive = sub.status === 'active' || sub.status === 'trialing';
+
+        if (isActive && !PLAN_LIMITS[plan]) {
+          console.error(`[STRIPE] Unknown priceId ${priceId} on subscription.created — defaulting to free`);
+        }
+
+        await admin
+          .from('profiles')
+          .update({
+            subscription_id:     sub.id,
+            subscription_status: status,
+            plan:         isActive ? plan : 'free',
+            videos_limit: isActive ? (PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? 1) : 1,
+          })
+          .eq('stripe_customer_id', sub.customer as string);
+        break;
+      }
+
+      case 'invoice.refund.created':
+      case 'charge.refunded': {
+        // revoke access immediately on refund — user keeps nothing after a refund
+        const obj        = event.data.object as Stripe.Refund | Stripe.Charge;
+        const customerId = 'customer' in obj ? (obj.customer as string) : null;
+
+        if (!customerId) {
+          console.warn(`[STRIPE] ${event.type} — no customer id on event`);
+          break;
+        }
+
+        const [{ data: profile }] = await Promise.all([
+          admin
+            .from('profiles')
+            .select('email, full_name')
+            .eq('stripe_customer_id', customerId)
+            .single(),
+          admin
+            .from('profiles')
+            .update({
+              subscription_id:     null,
+              subscription_status: 'canceled',
+              plan:                'free',
+              videos_limit:        1,
+            })
+            .eq('stripe_customer_id', customerId),
+        ]);
+
+        if (profile?.email) {
+          await sendRefundEmail(profile.email, profile.full_name || 'there').catch((err) =>
+            console.error('[STRIPE] refund email failed:', err)
+          );
+        }
+        break;
+      }
+
+      case 'customer.subscription.trial_will_end': {
+        const sub        = event.data.object as Stripe.Subscription;
+        const customerId = sub.customer as string;
+        const trialEnd   = sub.trial_end ?? 0;
+        const daysLeft   = Math.max(1, Math.ceil((trialEnd * 1000 - Date.now()) / 86_400_000));
+
+        const { data: profile } = await admin
+          .from('profiles')
+          .select('email, full_name')
+          .eq('stripe_customer_id', customerId)
+          .single();
+
+        if (!profile?.email) {
+          console.warn(`[STRIPE] trial_will_end — no profile found for customer ${customerId}`);
+          break;
+        }
+
+        await sendTrialEndingEmail(profile.email, profile.full_name || 'there', daysLeft).catch((err) =>
+          console.error('[STRIPE] trial ending email failed:', err)
+        );
         break;
       }
     }
