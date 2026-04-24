@@ -76,9 +76,15 @@ export async function POST(req: NextRequest) {
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
         const priceId = subscription.items.data[0]?.price.id;
         const plan    = getPlanFromPriceId(priceId);
+
+        // L4: treat unknown price IDs as a hard error — do not silently default to free
         if (!PLAN_LIMITS[plan]) {
-          console.error(`[STRIPE] Unknown priceId ${priceId} — defaulting to free plan`);
+          console.error(`[STRIPE] Unknown priceId ${priceId} on checkout.session.completed — aborting`);
+          return NextResponse.json({ error: 'Unknown price ID' }, { status: 400 });
         }
+
+        // L1: set trialing if the subscription is in trial, not always 'active'
+        const checkoutStatus = subscription.status === 'trialing' ? 'trialing' : 'active';
 
         // C4: single atomic update by primary key
         const { data: updated } = await admin
@@ -86,9 +92,9 @@ export async function POST(req: NextRequest) {
           .update({
             stripe_customer_id:  customerId,
             subscription_id:     subscriptionId,
-            subscription_status: 'active',
+            subscription_status: checkoutStatus,
             plan,
-            videos_limit: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? 1,
+            videos_limit: PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS],
           })
           .eq('id', profileId)
           .select('email, full_name');

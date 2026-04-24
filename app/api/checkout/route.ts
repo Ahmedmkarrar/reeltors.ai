@@ -18,12 +18,15 @@ export async function POST(req: NextRequest) {
     const { allowed } = await rateLimit(`checkout:${user.id}`, 20, 60 * 60 * 1000);
     if (!allowed) return NextResponse.json({ error: 'Too many requests' }, { status: 429 });
 
-    const { plan, annual, embedded } = await req.json() as { plan: PlanKey; annual?: boolean; embedded?: boolean };
-    if (!plan || !(plan in PLANS)) {
+    const body = await req.json() as { plan: unknown; annual?: unknown; embedded?: unknown };
+    const { plan } = body;
+    const annual   = body.annual   === true;
+    const embedded = body.embedded === true;
+
+    if (!plan || typeof plan !== 'string' || !(plan in PLANS)) {
       return NextResponse.json({ error: 'Invalid plan' }, { status: 400 });
     }
-
-    const planData = PLANS[plan];
+    const planData = PLANS[plan as PlanKey];
     const priceId = annual ? planData.stripePriceIdAnnual : planData.stripePriceId;
     if (!priceId) {
       return NextResponse.json({ error: 'Price not configured for this plan' }, { status: 400 });
