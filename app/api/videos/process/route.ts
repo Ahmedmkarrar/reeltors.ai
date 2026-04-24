@@ -194,7 +194,13 @@ async function runProcess(payload: ProcessVideoPayload) {
   const sideEffects: PromiseLike<unknown>[] = [];
 
   if (!aiRequestedButFullyFailed) {
-    sideEffects.push(admin.rpc('increment_videos_used', { p_user_id: userId }));
+    // R2: RPC returns false if the user is already at their limit (concurrent request beat us)
+    const incrementResult = await admin.rpc('increment_videos_used', { p_user_id: userId });
+    if (incrementResult.data === false) {
+      console.warn(`[PROCESS] video ${videoId} — usage limit reached atomically; marking video failed`);
+      await admin.from('videos').update({ status: 'failed' }).eq('id', videoId);
+      return;
+    }
   } else {
     console.info(`AI shots fully failed for video ${videoId} — usage counter not incremented.`);
   }

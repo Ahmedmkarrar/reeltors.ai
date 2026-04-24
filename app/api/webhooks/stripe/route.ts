@@ -113,7 +113,7 @@ export async function POST(req: NextRequest) {
           console.error(`[STRIPE] Unknown priceId ${priceId} on subscription update — defaulting to free`);
         }
 
-        await admin
+        const updateQuery = admin
           .from('profiles')
           .update({
             subscription_status: sub.status,
@@ -121,6 +121,15 @@ export async function POST(req: NextRequest) {
             videos_limit: isActive ? (PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] ?? 1) : 1,
           })
           .eq('stripe_customer_id', sub.customer as string);
+
+        // R3: only apply if the event is newer than what we last stored to protect
+        // against Stripe retries delivering an older event after a newer one
+        if (event.created) {
+          const eventTs = new Date(event.created * 1000).toISOString();
+          await updateQuery.lt('updated_at', eventTs);
+        } else {
+          await updateQuery;
+        }
         break;
       }
 

@@ -67,13 +67,21 @@ CREATE TRIGGER on_auth_user_created
 
 -- ─── Atomic video usage increment ─────────────────────────────────────────────
 -- Called by /api/videos/generate after a render is successfully queued.
+-- R2: returns TRUE if the increment succeeded (was within limit), FALSE if limit already reached.
+-- The WHERE clause makes the check-and-increment atomic — no separate read needed.
 CREATE OR REPLACE FUNCTION increment_videos_used(p_user_id UUID)
-RETURNS void AS $$
+RETURNS boolean AS $$
+DECLARE
+  rows_updated integer;
 BEGIN
   UPDATE profiles
   SET videos_used_this_month = videos_used_this_month + 1,
       updated_at = NOW()
-  WHERE id = p_user_id;
+  WHERE id = p_user_id
+    AND videos_used_this_month < videos_limit;
+
+  GET DIAGNOSTICS rows_updated = ROW_COUNT;
+  RETURN rows_updated > 0;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
