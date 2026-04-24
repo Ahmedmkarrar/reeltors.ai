@@ -63,14 +63,29 @@ export async function POST(req: NextRequest) {
           profileEmail = existing.email   ?? null;
           profileName  = existing.full_name ?? null;
         } else {
-          // customer_id not yet stored — fall back to Stripe customer metadata
+          // customer_id not yet stored — fall back to Stripe customer metadata then email
           const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
           profileId = customer.metadata?.supabase_user_id ?? null;
+
+          if (!profileId && customer.email) {
+            // C7: last-resort lookup by email when metadata is missing
+            const { data: byEmail } = await admin
+              .from('profiles')
+              .select('id, email, full_name')
+              .eq('email', customer.email)
+              .single();
+            if (byEmail) {
+              profileId    = byEmail.id;
+              profileEmail = byEmail.email   ?? null;
+              profileName  = byEmail.full_name ?? null;
+            }
+          }
         }
 
         if (!profileId) {
+          // return 400 so Stripe stops retrying — this is a data integrity issue, not transient
           console.error(`[STRIPE] checkout.session.completed — no profile found for customer ${customerId}`);
-          break;
+          return NextResponse.json({ error: 'Profile not found for customer' }, { status: 400 });
         }
 
         const subscription = await stripe.subscriptions.retrieve(subscriptionId);
