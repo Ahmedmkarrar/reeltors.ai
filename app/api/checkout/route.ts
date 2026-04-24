@@ -84,28 +84,39 @@ export async function POST(req: NextRequest) {
     }
     const returnUrl = `${rawUrl}/dashboard?upgraded=1`;
 
+    // R1: idempotency key scoped to user+plan+billing-cycle (5-minute window) to prevent
+    // double-click from creating multiple sessions while still allowing retries after failures
+    const idempotencyWindow = Math.floor(Date.now() / 300_000);
+    const sessionIdempotencyKey = `checkout_session_${user.id}_${plan}_${annual}_${idempotencyWindow}`;
+
     if (embedded) {
-      const session = await stripe.checkout.sessions.create({
-        customer: customerId,
-        mode: 'subscription',
-        line_items: [{ price: priceId, quantity: 1 }],
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ui_mode: 'embedded' as any,
-        return_url: returnUrl,
-        allow_promotion_codes: true,
-      });
-      console.log('[CHECKOUT] embedded session created | plan:', plan, '| customer:', customerId);
+      const session = await stripe.checkout.sessions.create(
+        {
+          customer: customerId,
+          mode: 'subscription',
+          line_items: [{ price: priceId, quantity: 1 }],
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ui_mode: 'embedded' as any,
+          return_url: returnUrl,
+          allow_promotion_codes: true,
+        },
+        { idempotencyKey: `${sessionIdempotencyKey}_embedded` },
+      );
+      console.log('[CHECKOUT] embedded session created');
       return NextResponse.json({ clientSecret: session.client_secret });
     }
 
-    const session = await stripe.checkout.sessions.create({
-      customer: customerId,
-      mode: 'subscription',
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: returnUrl,
-      cancel_url: `${rawUrl}/subscription`,
-      allow_promotion_codes: true,
-    });
+    const session = await stripe.checkout.sessions.create(
+      {
+        customer: customerId,
+        mode: 'subscription',
+        line_items: [{ price: priceId, quantity: 1 }],
+        success_url: returnUrl,
+        cancel_url: `${rawUrl}/subscription`, // rawUrl is validated against NEXT_PUBLIC_APP_URL above — not user-supplied
+        allow_promotion_codes: true,
+      },
+      { idempotencyKey: `${sessionIdempotencyKey}_redirect` },
+    );
 
     console.log('[CHECKOUT] redirect session created | plan:', plan, '| customer:', customerId);
     return NextResponse.json({ url: session.url });
