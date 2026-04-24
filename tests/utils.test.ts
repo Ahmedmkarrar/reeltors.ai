@@ -46,9 +46,9 @@ describe('getPlanFromPriceId', () => {
   beforeEach(() => {
     process.env.STRIPE_PRICE_STARTER        = 'price_starter_monthly';
     process.env.STRIPE_PRICE_STARTER_ANNUAL = 'price_starter_annual';
-    process.env.STRIPE_PRICE_PRO            = 'price_growth_monthly';
+    process.env.STRIPE_PRICE_GROWTH         = 'price_growth_monthly';
     process.env.STRIPE_PRICE_GROWTH_ANNUAL  = 'price_growth_annual';
-    process.env.STRIPE_PRICE_TEAM           = 'price_pro_monthly';
+    process.env.STRIPE_PRICE_PRO            = 'price_pro_monthly';
     process.env.STRIPE_PRICE_PRO_ANNUAL     = 'price_pro_annual';
   });
 
@@ -60,7 +60,7 @@ describe('getPlanFromPriceId', () => {
     expect(getPlanFromPriceId('price_starter_annual')).toBe('starter');
   });
 
-  it('maps STRIPE_PRICE_PRO (growth monthly) to growth plan', () => {
+  it('maps STRIPE_PRICE_GROWTH (growth monthly) to growth plan', () => {
     expect(getPlanFromPriceId('price_growth_monthly')).toBe('growth');
   });
 
@@ -68,7 +68,7 @@ describe('getPlanFromPriceId', () => {
     expect(getPlanFromPriceId('price_growth_annual')).toBe('growth');
   });
 
-  it('maps STRIPE_PRICE_TEAM (pro monthly) to pro plan', () => {
+  it('maps STRIPE_PRICE_PRO (pro monthly) to pro plan', () => {
     expect(getPlanFromPriceId('price_pro_monthly')).toBe('pro');
   });
 

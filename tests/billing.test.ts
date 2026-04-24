@@ -32,12 +32,14 @@ vi.mock('@/lib/supabase/admin', () => ({
 const mockConstructEvent = vi.fn();
 const mockSubscriptionsRetrieve = vi.fn();
 const mockCustomersRetrieve = vi.fn();
+const mockSessionsCreate = vi.fn();
 
 vi.mock('@/lib/stripe/client', () => ({
   getStripe: () => ({
     webhooks: { constructEvent: mockConstructEvent },
     subscriptions: { retrieve: mockSubscriptionsRetrieve },
-    customers: { retrieve: mockCustomersRetrieve },
+    customers: { retrieve: mockCustomersRetrieve, create: vi.fn() },
+    checkout: { sessions: { create: mockSessionsCreate } },
   }),
 }));
 
@@ -72,11 +74,11 @@ function makeSubscription(priceId: string, status = 'active') {
 describe('POST /api/webhooks/stripe', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.STRIPE_WEBHOOK_SECRET    = 'whsec_test';
-    process.env.STRIPE_PRICE_STARTER     = 'price_starter';
-    process.env.STRIPE_PRICE_PRO         = 'price_growth';
-    process.env.STRIPE_PRICE_TEAM        = 'price_pro';
-    process.env.STRIPE_PRICE_PRO_ANNUAL  = 'price_pro_annual';
+    process.env.STRIPE_WEBHOOK_SECRET        = 'whsec_test';
+    process.env.STRIPE_PRICE_STARTER         = 'price_starter';
+    process.env.STRIPE_PRICE_GROWTH          = 'price_growth';
+    process.env.STRIPE_PRICE_PRO             = 'price_pro';
+    process.env.STRIPE_PRICE_PRO_ANNUAL      = 'price_pro_annual';
     process.env.STRIPE_PRICE_STARTER_ANNUAL  = 'price_starter_annual';
     process.env.STRIPE_PRICE_GROWTH_ANNUAL   = 'price_growth_annual';
     adminChain.eq.mockReturnThis();
@@ -276,6 +278,61 @@ describe('POST /api/webhooks/stripe', () => {
     adminChain.single.mockResolvedValueOnce({
       data: { id: 'user-1', email: 'agent@test.com', full_name: 'Test', subscription_id: null },
       error: null,
+    });
+    mockConstructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: { object: { customer: 'cus_test', subscription: 'sub_test' } },
+    });
+
+    const { POST } = await import('@/app/api/webhooks/stripe/route');
+    const res = await POST(makeRequest('{}'));
+    expect(res.status).toBe(400);
+    expect(adminChain.update).not.toHaveBeenCalled();
+  });
+
+  // C6 — correct price mapping
+  it('getPlanFromPriceId: STRIPE_PRICE_GROWTH maps to growth (not pro)', async () => {
+    const { getPlanFromPriceId } = await import('@/lib/stripe/plans');
+    expect(getPlanFromPriceId('price_growth')).toBe('growth');
+    expect(getPlanFromPriceId('price_pro')).toBe('pro');
+    expect(getPlanFromPriceId('price_starter')).toBe('starter');
+  });
+
+  // C7 — email fallback when supabase_user_id metadata missing
+  it('checkout.session.completed: falls back to email lookup when metadata has no supabase_user_id', async () => {
+    const sub = makeSubscription('price_starter');
+    mockSubscriptionsRetrieve.mockResolvedValue(sub);
+    adminChain.single
+      .mockResolvedValueOnce({ data: null, error: null })  // lookup by stripe_customer_id
+      .mockResolvedValueOnce({ data: { id: 'user-email', email: 'agent@test.com', full_name: 'Email Agent' }, error: null }); // lookup by email
+    mockCustomersRetrieve.mockResolvedValue({
+      id: 'cus_test',
+      email: 'agent@test.com',
+      metadata: {},  // no supabase_user_id
+    });
+    mockConstructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: { object: { customer: 'cus_test', subscription: 'sub_test' } },
+    });
+
+    const { POST } = await import('@/app/api/webhooks/stripe/route');
+    const res = await POST(makeRequest('{}'));
+    expect(res.status).toBe(200);
+    expect(adminChain.update).toHaveBeenCalledWith(
+      expect.objectContaining({ plan: 'starter', videos_limit: 15 }),
+    );
+  });
+
+  // C7 — returns 400 (not 200) when no profile can be resolved
+  it('checkout.session.completed: returns 400 when no profile found via any lookup', async () => {
+    mockSubscriptionsRetrieve.mockResolvedValue(makeSubscription('price_starter'));
+    adminChain.single
+      .mockResolvedValueOnce({ data: null, error: null })  // lookup by stripe_customer_id
+      .mockResolvedValueOnce({ data: null, error: null }); // email fallback also misses
+    mockCustomersRetrieve.mockResolvedValue({
+      id: 'cus_test',
+      email: 'unknown@test.com',
+      metadata: {},
     });
     mockConstructEvent.mockReturnValue({
       type: 'checkout.session.completed',

@@ -43,7 +43,11 @@ export async function POST(req: NextRequest) {
       .eq('id', user.id)
       .single();
 
-    let customerId = profile?.stripe_customer_id ?? null;
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
+    let customerId = profile.stripe_customer_id ?? null;
 
     if (customerId) {
       try {
@@ -56,7 +60,7 @@ export async function POST(req: NextRequest) {
     if (!customerId) {
       // H3: use Stripe idempotency key so concurrent tabs can't create two customers
       const customer = await stripe.customers.create(
-        { email: profile?.email || user.email || undefined, metadata: { supabase_user_id: user.id } },
+        { email: profile.email || user.email || undefined, metadata: { supabase_user_id: user.id } },
         { idempotencyKey: `create_customer_${user.id}` },
       );
       customerId = customer.id;

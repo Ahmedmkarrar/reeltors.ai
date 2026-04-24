@@ -28,7 +28,7 @@ export const PLANS = {
       'Branding (logo + colors)',
       'Faster rendering',
     ],
-    stripePriceId:       process.env.STRIPE_PRICE_PRO,
+    stripePriceId:       process.env.STRIPE_PRICE_GROWTH,
     stripePriceIdAnnual: process.env.STRIPE_PRICE_GROWTH_ANNUAL,
     popular: true,
   },
@@ -45,7 +45,7 @@ export const PLANS = {
       'Advanced styles',
       'Multi-platform export',
     ],
-    stripePriceId:       process.env.STRIPE_PRICE_TEAM,
+    stripePriceId:       process.env.STRIPE_PRICE_PRO,
     stripePriceIdAnnual: process.env.STRIPE_PRICE_PRO_ANNUAL,
   },
 } as const;
@@ -62,8 +62,8 @@ export const PLAN_LIMITS: Record<string, number> = {
 export function validateStripePriceEnvVars(): void {
   const required = [
     'STRIPE_PRICE_STARTER',
+    'STRIPE_PRICE_GROWTH',
     'STRIPE_PRICE_PRO',
-    'STRIPE_PRICE_TEAM',
     'STRIPE_PRICE_STARTER_ANNUAL',
     'STRIPE_PRICE_GROWTH_ANNUAL',
     'STRIPE_PRICE_PRO_ANNUAL',
@@ -77,9 +77,9 @@ export function validateStripePriceEnvVars(): void {
 export function getPlanFromPriceId(priceId: string): string {
   if (priceId === process.env.STRIPE_PRICE_STARTER)        return 'starter';
   if (priceId === process.env.STRIPE_PRICE_STARTER_ANNUAL) return 'starter';
-  if (priceId === process.env.STRIPE_PRICE_PRO)            return 'growth';
+  if (priceId === process.env.STRIPE_PRICE_GROWTH)         return 'growth';
   if (priceId === process.env.STRIPE_PRICE_GROWTH_ANNUAL)  return 'growth';
-  if (priceId === process.env.STRIPE_PRICE_TEAM)           return 'pro';
+  if (priceId === process.env.STRIPE_PRICE_PRO)            return 'pro';
   if (priceId === process.env.STRIPE_PRICE_PRO_ANNUAL)     return 'pro';
   return 'free';
 }
