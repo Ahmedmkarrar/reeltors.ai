@@ -196,7 +196,7 @@ async function runProcess(payload: ProcessVideoPayload) {
   if (!aiRequestedButFullyFailed) {
     // R2: RPC returns false if the user is already at their limit (concurrent request beat us)
     const incrementResult = await admin.rpc('increment_videos_used', { p_user_id: userId });
-    if (incrementResult.data === false) {
+    if ((incrementResult.data as boolean | null) === false) {
       console.warn(`[PROCESS] video ${videoId} — usage limit reached atomically; marking video failed`);
       await admin.from('videos').update({ status: 'failed' }).eq('id', videoId);
       return;
