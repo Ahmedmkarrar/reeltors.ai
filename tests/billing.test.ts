@@ -248,4 +248,43 @@ describe('POST /api/webhooks/stripe', () => {
     const json = await res.json();
     expect(json.received).toBe(true);
   });
+
+  // L1 — trialing subscriptions get status 'trialing' not 'active'
+  it('checkout.session.completed: sets trialing status for trial subscriptions', async () => {
+    const sub = { ...makeSubscription('price_starter', 'trialing') };
+    mockSubscriptionsRetrieve.mockResolvedValue(sub);
+    adminChain.single.mockResolvedValueOnce({
+      data: { id: 'user-1', email: 'agent@test.com', full_name: 'Trial User', subscription_id: null },
+      error: null,
+    });
+    mockConstructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: { object: { customer: 'cus_test', subscription: 'sub_test' } },
+    });
+
+    const { POST } = await import('@/app/api/webhooks/stripe/route');
+    const res = await POST(makeRequest('{}'));
+    expect(res.status).toBe(200);
+    expect(adminChain.update).toHaveBeenCalledWith(
+      expect.objectContaining({ subscription_status: 'trialing' }),
+    );
+  });
+
+  // L4 — unknown priceId returns 400 instead of silently defaulting to free
+  it('checkout.session.completed: returns 400 for unknown priceId', async () => {
+    mockSubscriptionsRetrieve.mockResolvedValue(makeSubscription('price_unknown_xyz'));
+    adminChain.single.mockResolvedValueOnce({
+      data: { id: 'user-1', email: 'agent@test.com', full_name: 'Test', subscription_id: null },
+      error: null,
+    });
+    mockConstructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: { object: { customer: 'cus_test', subscription: 'sub_test' } },
+    });
+
+    const { POST } = await import('@/app/api/webhooks/stripe/route');
+    const res = await POST(makeRequest('{}'));
+    expect(res.status).toBe(400);
+    expect(adminChain.update).not.toHaveBeenCalled();
+  });
 });

@@ -40,7 +40,7 @@ export default async function DashboardPage() {
   const totalVideos = allVideos.length;
   const readyVideos = allVideos.filter((v) => v.status === 'complete').length;
   const videoLimit  = PLAN_LIMITS[profile.plan] || profile.videos_limit || 1;
-  const usedPct     = Math.min((profile.videos_used_this_month / videoLimit) * 100, 100);
+  const usedPct     = videoLimit > 0 ? Math.min((profile.videos_used_this_month / videoLimit) * 100, 100) : 0;
   const remaining   = Math.max(0, videoLimit - profile.videos_used_this_month);
   const firstName   = profile.full_name?.split(' ')[0] || 'there';
 
