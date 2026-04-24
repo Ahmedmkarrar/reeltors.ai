@@ -128,7 +128,7 @@ export default function SubscriptionPage() {
         )}
         {profile.subscription_status === 'trialing' && (
           <div className="rounded-xl border border-[#059669]/30 bg-[#F0FDF4] px-5 py-3">
-            <p className="text-[13px] text-[#059669]">You're on a free trial. Your card will be charged when the trial ends.</p>
+            <p className="text-[13px] text-[#059669]">You&apos;re on a free trial. Your card will be charged when the trial ends.</p>
           </div>
         )}
 
