@@ -249,3 +249,36 @@ describe('POST /api/webhooks/stripe', () => {
     expect(json.received).toBe(true);
   });
 });
+
+// S3 — webhook only accepts POST
+describe('GET /api/webhooks/stripe', () => {
+  it('returns 405 for GET requests', async () => {
+    const { GET } = await import('@/app/api/webhooks/stripe/route');
+    const res = await GET();
+    expect(res.status).toBe(405);
+  });
+});
+
+// S4 — billing portal CSRF protection
+describe('POST /api/billing/portal', () => {
+  beforeEach(() => {
+    process.env.NEXT_PUBLIC_APP_URL = 'https://reeltors.ai';
+  });
+
+  it('returns 403 when Origin header is missing', async () => {
+    const { POST } = await import('@/app/api/billing/portal/route');
+    const req = new NextRequest('http://localhost/api/billing/portal', { method: 'POST' });
+    const res = await POST(req);
+    expect(res.status).toBe(403);
+  });
+
+  it('returns 403 when Origin is a different domain', async () => {
+    const { POST } = await import('@/app/api/billing/portal/route');
+    const req = new NextRequest('http://localhost/api/billing/portal', {
+      method: 'POST',
+      headers: { origin: 'https://evil.com' },
+    });
+    const res = await POST(req);
+    expect(res.status).toBe(403);
+  });
+});

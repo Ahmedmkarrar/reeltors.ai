@@ -5,6 +5,10 @@ import { PLAN_LIMITS, getPlanFromPriceId } from '@/lib/stripe/plans';
 import { sendUpgradeSuccessEmail, sendPaymentFailedEmail } from '@/lib/resend/emails';
 import type Stripe from 'stripe';
 
+export function GET() {
+  return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.text();
   const signature = req.headers.get('stripe-signature');

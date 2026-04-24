@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
         return_url: returnUrl,
         allow_promotion_codes: true,
       });
-      console.log('[CHECKOUT] embedded session created | plan:', plan, '| customer:', customerId);
+      console.log('[CHECKOUT] embedded session created');
       return NextResponse.json({ clientSecret: session.client_secret });
     }
 
@@ -103,11 +103,11 @@ export async function POST(req: NextRequest) {
       mode: 'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: returnUrl,
-      cancel_url: `${rawUrl}/subscription`,
+      cancel_url: `${rawUrl}/subscription`, // rawUrl is validated against NEXT_PUBLIC_APP_URL above — not user-supplied
       allow_promotion_codes: true,
     });
 
-    console.log('[CHECKOUT] redirect session created | plan:', plan, '| customer:', customerId);
+    console.log('[CHECKOUT] redirect session created');
     return NextResponse.json({ url: session.url });
   } catch (err) {
     console.error('[CHECKOUT_ERROR]', err);
