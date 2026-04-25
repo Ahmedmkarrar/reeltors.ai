@@ -16,6 +16,28 @@ import { StepResult }     from '@/components/dashboard/create/StepResult';
 
 type Step = 'upload' | 'format' | 'details' | 'template' | 'generating' | 'result';
 
+const DRAFT_KEY = 'create_draft';
+
+interface CreateDraft {
+  images: string[];
+  aiVideoIndices: number[];
+  videoPrompt: string;
+  listingAddress: string;
+  listingPrice: string;
+  agentName: string;
+  format: VideoFormat;
+  selectedTemplateKey: string;
+  logoUrl: string;
+}
+
+function saveDraft(draft: CreateDraft) {
+  try { sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft)); } catch { /* quota full */ }
+}
+
+function clearDraft() {
+  try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+}
+
 export default function CreatePage() {
   const router   = useRouter();
   const supabase = createClient();
@@ -52,7 +74,30 @@ export default function CreatePage() {
       const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single<Profile>();
       if (data) setProfile(data);
     });
-  }, [supabase, router]);
+
+    // restore draft saved before an OAuth redirect (photos already uploaded to Storage)
+    try {
+      const raw = sessionStorage.getItem(DRAFT_KEY);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as Partial<CreateDraft>;
+      if (draft.images?.length)         setImages(draft.images);
+      if (draft.aiVideoIndices?.length) setAiVideoIndices(draft.aiVideoIndices);
+      if (draft.videoPrompt)            setVideoPrompt(draft.videoPrompt);
+      if (draft.listingAddress)         setListingAddress(draft.listingAddress);
+      if (draft.listingPrice)           setListingPrice(draft.listingPrice);
+      if (draft.agentName)              setAgentName(draft.agentName);
+      if (draft.format)                 setFormat(draft.format);
+      if (draft.selectedTemplateKey)    setSelectedTemplateKey(draft.selectedTemplateKey);
+      if (draft.logoUrl)                { setLogoUrl(draft.logoUrl); setLogoPreview(draft.logoUrl); }
+    } catch { /* corrupted draft — ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // persist form state so Google OAuth redirects don't lose uploaded photo URLs
+  useEffect(() => {
+    if (step === 'generating' || step === 'result') return;
+    saveDraft({ images, aiVideoIndices, videoPrompt, listingAddress, listingPrice, agentName, format, selectedTemplateKey, logoUrl });
+  }, [images, aiVideoIndices, videoPrompt, listingAddress, listingPrice, agentName, format, selectedTemplateKey, logoUrl, step]);
 
   // smooth time-based progress fill to 95% over estimated render duration
   useEffect(() => {
@@ -270,6 +315,7 @@ export default function CreatePage() {
   }
 
   function handleNewListing() {
+    clearDraft();
     setStep('upload');
     setImages([]);
     setAiVideoIndices([0]);
