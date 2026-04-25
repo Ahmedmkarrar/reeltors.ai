@@ -119,7 +119,7 @@ export async function POST(req: NextRequest) {
         mode: 'subscription',
         line_items: [{ price: priceId, quantity: 1 }],
         success_url: returnUrl,
-        cancel_url: `${rawUrl}/subscription`, // rawUrl is validated against NEXT_PUBLIC_APP_URL above — not user-supplied
+        cancel_url: `${rawUrl}/subscription?checkout_cancelled=1`, // rawUrl is validated against NEXT_PUBLIC_APP_URL above — not user-supplied
         allow_promotion_codes: true,
       },
       { idempotencyKey: `${sessionIdempotencyKey}_redirect` },

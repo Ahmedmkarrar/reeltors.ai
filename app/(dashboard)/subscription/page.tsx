@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { PLANS, PLAN_LIMITS } from '@/lib/stripe/plans';
 import toast from 'react-hot-toast';
@@ -27,7 +28,9 @@ const UPGRADE_FROM: Record<string, Array<'starter' | 'growth' | 'pro'>> = {
 };
 
 export default function SubscriptionPage() {
-  const supabase = createClient();
+  const supabase     = createClient();
+  const searchParams = useSearchParams();
+  const router       = useRouter();
   const [profile,         setProfile]         = useState<Profile | null>(null);
   const [portalLoading,   setPortalLoading]   = useState(false);
   const [checkoutLoading, setCheckoutLoading] = useState('');
@@ -42,6 +45,14 @@ export default function SubscriptionPage() {
     }
     load();
   }, [supabase]);
+
+  useEffect(() => {
+    if (searchParams.get('checkout_cancelled') !== '1') return;
+    toast('Payment cancelled — no charge was made. You can try again whenever you\'re ready.', { duration: 6000 });
+    const url = new URL(window.location.href);
+    url.searchParams.delete('checkout_cancelled');
+    router.replace(url.pathname + (url.search || ''), { scroll: false });
+  }, [searchParams, router]);
 
   async function handlePortal() {
     setPortalLoading(true);
