@@ -55,6 +55,26 @@ export function PaywallModal() {
     const url = new URL(window.location.href);
     url.searchParams.delete('upgraded');
     router.replace(url.pathname + (url.search || ''), { scroll: false });
+
+    // poll until the Stripe webhook has updated the plan, then refresh the server component
+    const supabase = createClient();
+    let attempts = 0;
+    const maxAttempts = 15; // 30 seconds
+    const poll = setInterval(async () => {
+      attempts++;
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { clearInterval(poll); return; }
+      const { data } = await supabase
+        .from('profiles')
+        .select('subscription_status')
+        .eq('id', session.user.id)
+        .single();
+      const isActive = data?.subscription_status === 'active' || data?.subscription_status === 'trialing';
+      if (isActive || attempts >= maxAttempts) {
+        clearInterval(poll);
+        router.refresh();
+      }
+    }, 2000);
   }, [searchParams, router]);
 
   if (!shouldShow || isDismissed) return null;
