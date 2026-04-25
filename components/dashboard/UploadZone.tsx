@@ -239,7 +239,7 @@ export function UploadZone({
       onAiIndicesChange(aiVideoIndices.filter((i) => i !== index));
     } else {
       if (aiVideoIndices.length >= MAX_AI_VIDEOS) {
-        toast.error(`Maximum ${MAX_AI_VIDEOS} AI drone shots per video`);
+        toast.error(`Maximum ${MAX_AI_VIDEOS} AI animated videos per video`);
         return;
       }
       onAiIndicesChange([...aiVideoIndices, index].sort((a, b) => a - b));
@@ -330,7 +330,7 @@ export function UploadZone({
               <div className="flex flex-wrap gap-2 justify-center max-w-sm px-4">
                 {[
                   { icon: '📸', label: 'Up to 15 photos' },
-                  { icon: '⚡', label: 'AI drone shots' },
+                  { icon: '⚡', label: 'AI animated videos' },
                   { icon: '🎬', label: 'Cinematic motion' },
                   { icon: '📐', label: '9:16 · 1:1 · 16:9' },
                 ].map(({ icon, label }) => (
@@ -448,7 +448,7 @@ export function UploadZone({
                             </div>
                             <button
                               type="button"
-                              title={isAi ? 'Remove AI drone shot' : 'Generate AI drone shot'}
+                              title={isAi ? 'Remove AI animated video' : 'Generate AI animated video'}
                               onClick={() => !isCardUploading && isPlanLoaded && toggleAiForIndex(i)}
                               disabled={isCardUploading || !isPlanLoaded}
                               className={[
@@ -622,9 +622,9 @@ export function UploadZone({
               <BoltIcon className="w-5 h-5 text-[#1A1714]" />
             </div>
 
-            <h3 className="font-syne font-bold text-lg text-[#1A1714] mb-1">AI Drone Shots</h3>
+            <h3 className="font-syne font-bold text-lg text-[#1A1714] mb-1">AI Animated Videos</h3>
             <p className="text-sm text-[#6B6760] mb-5">
-              Upgrade to <span className="font-semibold text-[#1A1714]">Starter</span> or higher to animate your listing with AI-generated cinematic drone shots.
+              Upgrade to <span className="font-semibold text-[#1A1714]">Starter</span> or higher to animate your listing with AI animated videos.
             </p>
 
             <a

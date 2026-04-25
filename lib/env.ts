@@ -16,7 +16,7 @@ const REQUIRED: Record<string, string> = {
 };
 
 const OPTIONAL: Record<string, string> = {
-  FAL_KEY:                'fal.ai key — AI drone shots skipped when absent',
+  FAL_KEY:                'fal.ai key — AI animated videos skipped when absent',
   REDIS_URL:              'Redis URL — rate limiting falls back to in-memory when absent',
   SHOTSTACK_PROD_API_KEY: 'Shotstack production API key — falls back to stage key when absent',
   SHOTSTACK_PROD_ENV:     'Shotstack production env — falls back to stage when absent',

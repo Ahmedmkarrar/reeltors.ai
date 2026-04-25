@@ -69,7 +69,7 @@ async function runProcess(payload: ProcessVideoPayload) {
   const markFailed = () =>
     admin.from('videos').update({ status: 'failed' }).eq('id', videoId);
 
-  // ── 1. Generate AI drone shots via fal.ai (parallel, max 3) ───────────────
+  // ── 1. Generate AI animated videos via fal.ai (parallel, max 3) ────────────
   let falVideoMap = new Map<number, string>();
   let falFailed = false;
 
@@ -85,7 +85,7 @@ async function runProcess(payload: ProcessVideoPayload) {
       falFailed = true;
     }
   } else if (aiIndices.length > 0 && !process.env.FAL_KEY) {
-    console.warn('FAL_KEY not set — skipping AI drone shot generation');
+    console.warn('FAL_KEY not set — skipping AI animated video generation');
     falFailed = true;
   }
 

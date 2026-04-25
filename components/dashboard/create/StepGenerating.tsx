@@ -15,7 +15,7 @@ const MILESTONES_STANDARD: Milestone[] = [
 
 const MILESTONES_AI: Milestone[] = [
   { label: 'Uploading photos',         pct: 10 },
-  { label: 'Generating AI drone shots', pct: 35 },
+  { label: 'Generating AI animated videos', pct: 35 },
   { label: 'Compositing footage',       pct: 65 },
   { label: 'Rendering final video',     pct: 85 },
   { label: 'Finishing up',              pct: 96 },
@@ -84,7 +84,7 @@ export function StepGenerating({ progress, countdown, aiVideoIndices }: StepGene
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 shrink-0">
               <path fillRule="evenodd" d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z" clipRule="evenodd" />
             </svg>
-            Generating {aiVideoIndices.length} AI drone shot{aiVideoIndices.length !== 1 ? 's' : ''} — up to 3 min
+            Generating {aiVideoIndices.length} AI animated video{aiVideoIndices.length !== 1 ? 's' : ''} — up to 3 min
           </div>
         )}
       </div>

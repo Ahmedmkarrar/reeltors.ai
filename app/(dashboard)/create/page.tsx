@@ -203,7 +203,7 @@ export default function CreatePage() {
       setVideoId(vid);
 
       if (aiVideosFailed) {
-        toast('AI drone shot generation failed — we created a standard video instead. This didn\'t count against your monthly limit.', {
+        toast('AI animated video generation failed — we created a standard video instead. This didn\'t count against your monthly limit.', {
           duration: 8000,
           icon: '⚠️',
         });

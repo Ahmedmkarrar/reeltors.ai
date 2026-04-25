@@ -1,5 +1,5 @@
 // fal.ai image-to-video client
-// Uses Kling v1.6 Standard for cinematic drone shots.
+// Uses Kling v1.6 Standard for AI animated videos.
 // All calls go through fal.ai's queue REST API — no SDK dependency needed.
 
 const FAL_QUEUE_BASE = 'https://queue.fal.run';
@@ -117,7 +117,7 @@ export async function generateDroneShot(
   return pollForResult(request_id, status_url, response_url, key, timeoutMs);
 }
 
-// ─── Parallel: generate multiple drone shots, returns URL per index ───────────
+// ─── Parallel: generate multiple AI animated videos, returns URL per index ────
 
 export async function generateDroneShotsForIndices(
   images: string[],

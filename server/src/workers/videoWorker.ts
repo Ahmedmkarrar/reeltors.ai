@@ -23,7 +23,7 @@ async function processVideo(job: Job<VideoJobPayload>): Promise<void> {
   const markFailed = () => admin.from('videos').update({ status: 'failed' }).eq('id', videoId);
 
   try {
-    // ── 1. fal.ai: generate AI drone shots (parallel, max 3) ─────────────────
+    // ── 1. fal.ai: generate AI animated videos (parallel, max 3) ────────────
     await job.updateProgress(5);
 
     let falVideoMap = new Map<number, string>();
@@ -41,7 +41,7 @@ async function processVideo(job: Job<VideoJobPayload>): Promise<void> {
         falFailed = true;
       }
     } else if (aiIndices.length > 0) {
-      console.warn(`[worker] job ${job.id} — FAL_KEY not set, skipping AI drone shots`);
+      console.warn(`[worker] job ${job.id} — FAL_KEY not set, skipping AI animated videos`);
     }
 
     await job.updateProgress(45);
