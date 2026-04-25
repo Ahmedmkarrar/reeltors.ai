@@ -42,9 +42,11 @@ export default function CreatePage() {
   const [isCopied, setIsCopied]   = useState(false);
   const [countdown, setCountdown] = useState(0);
 
-  const channelRef   = useRef<RealtimeChannel | null>(null);
-  const startTimeRef = useRef<number>(0);
-  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const channelRef      = useRef<RealtimeChannel | null>(null);
+  const startTimeRef    = useRef<number>(0);
+  const countdownRef    = useRef<ReturnType<typeof setInterval> | null>(null);
+  const safetyTimerRef  = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isGeneratingRef = useRef(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
@@ -76,6 +78,10 @@ export default function CreatePage() {
         clearInterval(countdownRef.current);
         countdownRef.current = null;
       }
+      if (safetyTimerRef.current) {
+        clearTimeout(safetyTimerRef.current);
+        safetyTimerRef.current = null;
+      }
     };
   }, [supabase]);
 
@@ -105,17 +111,21 @@ export default function CreatePage() {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'videos', filter: `id=eq.${vid}` }, (payload) => {
         const updated = payload.new as { status: string; output_url?: string };
         if (updated.status === 'complete' && updated.output_url) {
+          if (safetyTimerRef.current) { clearTimeout(safetyTimerRef.current); safetyTimerRef.current = null; }
           stopCountdown();
           setOutputUrl(updated.output_url);
           setProgress(100);
           setStep('result');
+          isGeneratingRef.current = false;
           setIsGenerating(false);
           supabase.removeChannel(channel);
           channelRef.current = null;
         } else if (updated.status === 'failed') {
+          if (safetyTimerRef.current) { clearTimeout(safetyTimerRef.current); safetyTimerRef.current = null; }
           stopCountdown();
           toast.error('Render failed. Please try again.');
           setStep('template');
+          isGeneratingRef.current = false;
           setIsGenerating(false);
           supabase.removeChannel(channel);
           channelRef.current = null;
@@ -157,6 +167,7 @@ export default function CreatePage() {
 
   async function handleGenerate() {
     if (!profile) return;
+    isGeneratingRef.current = true;
     setIsGenerating(true);
     setStep('generating');
     setProgress(0);
@@ -185,6 +196,7 @@ export default function CreatePage() {
       if (res.status === 403) {
         const { code } = await res.json();
         setStep('template');
+        isGeneratingRef.current = false;
         setIsGenerating(false);
         if (code === 'LIMIT_REACHED') {
           window.dispatchEvent(new CustomEvent('show-upgrade-modal'));
@@ -219,28 +231,34 @@ export default function CreatePage() {
           const { status, output_url } = await statusRes.json();
           if (status === 'complete' && output_url) {
             clearInterval(pollInterval);
+            if (safetyTimerRef.current) { clearTimeout(safetyTimerRef.current); safetyTimerRef.current = null; }
             stopCountdown();
             setOutputUrl(output_url);
             setProgress(100);
             setStep('result');
+            isGeneratingRef.current = false;
             setIsGenerating(false);
           } else if (status === 'failed') {
             clearInterval(pollInterval);
+            if (safetyTimerRef.current) { clearTimeout(safetyTimerRef.current); safetyTimerRef.current = null; }
             stopCountdown();
             toast.error('Render failed. Please try again.');
             setStep('template');
+            isGeneratingRef.current = false;
             setIsGenerating(false);
           }
         } catch { /* ignore poll errors */ }
       }, 5000);
 
       // safety net — stop polling after 6 minutes
-      setTimeout(() => {
+      safetyTimerRef.current = setTimeout(() => {
+        safetyTimerRef.current = null;
         clearInterval(pollInterval);
         stopCountdown();
-        if (isGenerating) {
+        if (isGeneratingRef.current) {
           toast.error('Render timed out. Please check your videos page.');
           setStep('template');
+          isGeneratingRef.current = false;
           setIsGenerating(false);
         }
       }, 360_000);
@@ -248,6 +266,7 @@ export default function CreatePage() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to generate video');
       setStep('template');
+      isGeneratingRef.current = false;
       setIsGenerating(false);
     }
   }
