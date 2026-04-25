@@ -217,7 +217,6 @@ export async function POST(req: NextRequest) {
         break;
       }
 
-      case 'invoice.refund.created':
       case 'charge.refunded': {
         // revoke access immediately on refund — user keeps nothing after a refund
         const obj        = event.data.object as Stripe.Refund | Stripe.Charge;
